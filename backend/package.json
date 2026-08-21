@@ -1,0 +1,24 @@
+{
+  "name": "si_sima-part",
+  "version": "1.0.0",
+  "description": "Membuat SI untuk Katalog Barang Sima Part dan Sistem Orderan untuk Tracking Logistik",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlvinnChandra/SI_SIMA-PART.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlvinnChandra/SI_SIMA-PART/issues"
+  },
+  "homepage": "https://github.com/AlvinnChandra/SI_SIMA-PART#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}
