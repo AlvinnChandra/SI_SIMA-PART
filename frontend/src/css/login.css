@@ -82,21 +82,26 @@
     top: 70px;
     position: relative;
     z-index: 2;
+
+    transform: scale(1.3);
+    transform-origin: center;
 }
 
 .sima-login__logo {
     height: 120px;
     width: auto;
     filter: brightness(0) invert(1);
+    font-size: 30px;
 }
 
 .sima-login__eyebrow {
     font-family: 'Roboto Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.95rem;
     letter-spacing: 0.28em;
     text-transform: uppercase;
     color: #8FA0C7;
     margin: 0 0 0.9rem;
+    padding-bottom: 9px;
 }
 
 .sima-login__headline {
@@ -107,9 +112,14 @@
     letter-spacing: 0.01em;
     margin: 0 0 1.1rem;
     max-width: 9.5ch;
+    padding-bottom: 20px;
 }
 
-.sima-login__headline span {
+.sima-login__headline .headline-yellow {
+    color: #eed063;
+}
+
+.sima-login__headline span:not(.headline-yellow) {
     color: var(--red);
 }
 
@@ -153,12 +163,15 @@
     align-items: center;
     justify-content: center;
     padding: 3rem 2.5rem;
-    background: var(--white);
+    /* background: var(--white); */
+    background: rgb(252, 252, 252);
 }
 
 .sima-login__card {
-    width: 100%;
-    max-width: 380px;
+    width: 500%;
+    max-width: 650px;
+    /* background: rgb(218, 217, 217); */
+    transform: scale(1.1);
 }
 
 .sima-login__form-eyebrow {
