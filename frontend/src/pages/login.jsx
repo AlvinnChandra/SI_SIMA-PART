@@ -106,15 +106,19 @@ function Login() {
                         Portal Admin &amp; Sales
                     </p>
 
-                    <h1 className="sima-login__headline">
-                        Suku cadang tepat,
-                        <span> dan terpercaya.</span>
-                    </h1>
+                    <center>
+                        <h1 className="sima-login__headline">
+                            <span className="headline-yellow">Suku cadang tepat,</span>
+                            <span> dan terpercaya.</span>
+                        </h1>
+                    </center>
 
-                    <p className="sima-login__sub">
-                        Masuk untuk mengakses katalog dan mengelola pesanan
-                        lengkap onderdil motor SIMA.
-                    </p>
+                    <center>
+                        <p className="sima-login__sub">
+                            Masuk untuk mengakses katalog dan mengelola pesanan
+                            lengkap onderdil motor SIMA.
+                        </p>
+                    </center>
 
                 </div>
 
