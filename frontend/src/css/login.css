@@ -1,0 +1,426 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap');
+
+:root {
+    --navy: #10203D;
+    --navy-deep: #0A1730;
+    --navy-mid: #1B3162;
+    --red: #D8262A;
+    --red-dark: #A81E22;
+    --steel: #6C7789;
+    --steel-light: #EEF1F6;
+    --steel-line: #DADFE8;
+    --white: #FFFFFF;
+    --ink: #14213D;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.sima-login {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+}
+
+/* ---------- LEFT PANEL: BRAND ---------- */
+
+.sima-login__brand {
+    position: relative;
+    background: linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 55%, var(--navy-mid) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3.5rem 3.5rem 3rem;
+    overflow: hidden;
+    color: var(--white);
+}
+
+.sima-login__hazard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: repeating-linear-gradient(45deg,
+            var(--red),
+            var(--red) 14px,
+            #0A1730 14px,
+            #0A1730 28px);
+}
+
+.sima-login__gear {
+    position: absolute;
+    right: -160px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 620px;
+    height: 620px;
+    opacity: 0.08;
+    animation: sima-spin 90s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sima-login__gear {
+        animation: none;
+    }
+}
+
+@keyframes sima-spin {
+    from {
+        transform: translateY(-50%) rotate(0deg);
+    }
+
+    to {
+        transform: translateY(-50%) rotate(360deg);
+    }
+}
+
+.sima-login__brand-top {
+    top: 70px;
+    position: relative;
+    z-index: 2;
+}
+
+.sima-login__logo {
+    height: 120px;
+    width: auto;
+    filter: brightness(0) invert(1);
+}
+
+.sima-login__eyebrow {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #8FA0C7;
+    margin: 0 0 0.9rem;
+}
+
+.sima-login__headline {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 2.6rem;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
+    margin: 0 0 1.1rem;
+    max-width: 9.5ch;
+}
+
+.sima-login__headline span {
+    color: var(--red);
+}
+
+.sima-login__sub {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: #B7C2DC;
+    max-width: 34ch;
+    margin: 0;
+}
+
+.sima-login__stats {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 2.4rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.sima-login__stat-num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--white);
+    display: block;
+}
+
+.sima-login__stat-label {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8FA0C7;
+}
+
+/* ---------- RIGHT PANEL: FORM ---------- */
+
+.sima-login__form-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2.5rem;
+    background: var(--white);
+}
+
+.sima-login__card {
+    width: 100%;
+    max-width: 380px;
+}
+
+.sima-login__form-eyebrow {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin: 0 0 0.6rem;
+}
+
+.sima-login__title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.9rem;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+}
+
+.sima-login__desc {
+    font-size: 0.92rem;
+    color: var(--steel);
+    margin: 0 0 2.2rem;
+    line-height: 1.5;
+}
+
+.sima-login__field {
+    margin-bottom: 1.3rem;
+}
+
+.sima-login__label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 0.45rem;
+}
+
+.sima-login__forgot {
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.8rem;
+    color: var(--red);
+    text-decoration: none;
+    font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.sima-login__forgot:hover {
+    text-decoration: underline;
+}
+
+.sima-login__input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sima-login__input {
+    width: 100%;
+    padding: 0.8rem 2.6rem 0.8rem 0.95rem;
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    background: var(--steel-light);
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.sima-login__input::placeholder {
+    color: #9AA4B5;
+}
+
+.sima-login__input:focus {
+    outline: none;
+    border-color: var(--navy);
+    background: var(--white);
+}
+
+.sima-login__input:focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 1px;
+}
+
+.sima-login__field--error .sima-login__input {
+    border-color: var(--red);
+    background: #FDF1F1;
+}
+
+.sima-login__icon-btn {
+    position: absolute;
+    right: 0.7rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--steel);
+    display: flex;
+    align-items: center;
+    padding: 0.2rem;
+}
+
+.sima-login__icon-btn:hover {
+    color: var(--ink);
+}
+
+.sima-login__error-text {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--red);
+    margin-top: 0.4rem;
+}
+
+.sima-login__row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.6rem;
+}
+
+.sima-login__checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--red);
+}
+
+.sima-login__row label {
+    font-size: 0.85rem;
+    color: var(--steel);
+    cursor: pointer;
+}
+
+.sima-login__submit {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.sima-login__submit:hover:not(:disabled) {
+    background: var(--red-dark);
+}
+
+.sima-login__submit:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.sima-login__submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.sima-login__submit-gear {
+    animation: sima-spin-fast 1s linear infinite;
+}
+
+@keyframes sima-spin-fast {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.sima-login__divider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 1.8rem 0;
+}
+
+.sima-login__divider span {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #A6AEBC;
+}
+
+.sima-login__divider::before,
+.sima-login__divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--steel-line);
+}
+
+.sima-login__footer {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--steel);
+}
+
+.sima-login__footer a {
+    color: var(--navy);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.sima-login__footer a:hover {
+    text-decoration: underline;
+}
+
+.sima-login__meta {
+    margin-top: 2.4rem;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: #C3CADA;
+    text-align: center;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 860px) {
+    .sima-login {
+        grid-template-columns: 1fr;
+    }
+
+    .sima-login__brand {
+        padding: 2.4rem 1.8rem;
+        min-height: 260px;
+    }
+
+    .sima-login__headline {
+        font-size: 1.9rem;
+    }
+
+    .sima-login__gear {
+        width: 380px;
+        height: 380px;
+        right: -120px;
+    }
+
+    .sima-login__stats {
+        display: none;
+    }
+
+    .sima-login__form-side {
+        padding: 2.2rem 1.6rem 3rem;
+    }
+}
