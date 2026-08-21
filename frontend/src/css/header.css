@@ -1,0 +1,207 @@
+.sima-header {
+    width: 100%;
+    height: 92px;
+    padding: 0 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--white);
+    border-bottom: 1px solid var(--steel-line);
+    box-shadow: 0 2px 14px rgba(16, 32, 61, 0.06);
+    font-family: 'Inter', sans-serif;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+/* ---------- LEFT: LOGO ---------- */
+
+.sima-header__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.sima-header__logo {
+    height: 54px;
+    width: auto;
+}
+
+/* ---------- CENTER: MENU ---------- */
+
+.sima-header__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.sima-header__nav-item {
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--steel);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-header__nav-item:hover {
+    background: var(--steel-light);
+    color: var(--ink);
+}
+
+.sima-header__nav-item--active {
+    background: var(--steel-light);
+    color: var(--navy);
+    font-weight: 600;
+    position: relative;
+}
+
+.sima-header__nav-item--active::after {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 4px;
+    height: 2.5px;
+    background: var(--red);
+    border-radius: 2px;
+}
+
+/* ---------- RIGHT: PROFILE ---------- */
+
+.sima-header__profile {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding-left: 1.1rem;
+    border-left: 1px solid var(--steel-line);
+}
+
+.sima-header__greeting {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.3;
+}
+
+.sima-header__hi {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--steel);
+}
+
+.sima-header__name {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.08rem;
+    color: var(--ink);
+}
+
+.sima-header__avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    border: 2.5px solid var(--red);
+    box-shadow: 0 3px 10px rgba(16, 32, 61, 0.18);
+    transition: transform 0.15s ease;
+}
+
+.sima-header__avatar:hover {
+    transform: scale(1.05);
+}
+
+.sima-header__logout {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--steel-light);
+    color: var(--steel);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-header__logout:hover {
+    background: var(--red);
+    color: var(--white);
+}
+
+/* Jika nanti pakai foto profil asli, ganti div .sima-header__avatar
+   dengan <img> dan style berikut: */
+.sima-header__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 640px) {
+    .sima-header {
+        padding: 0 1.2rem;
+        height: 72px;
+    }
+
+    .sima-header__logo {
+        height: 40px;
+    }
+
+    .sima-header__profile {
+        padding-left: 0.7rem;
+        gap: 0.7rem;
+    }
+
+    .sima-header__nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        border-bottom: 1px solid var(--steel-line);
+        padding: 0.6rem 1rem;
+        gap: 0.2rem;
+        overflow-x: auto;
+        justify-content: flex-start;
+    }
+
+    .sima-header__nav-item {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .sima-header__hi {
+        display: none;
+    }
+
+    .sima-header__avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 0.95rem;
+    }
+
+    .sima-header__logout {
+        width: 34px;
+        height: 34px;
+    }
+}

@@ -55,7 +55,7 @@ function Login() {
             }
 
             // Masuk ke dashboard
-            navigate("/dashboard");
+            navigate("/katalog");
         }, 1200);
     };
 
