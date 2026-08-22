@@ -1,0 +1,215 @@
+.sima-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 23, 48, 0.55);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 100;
+    animation: sima-modal-fade-in 0.15s ease;
+}
+
+@keyframes sima-modal-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.sima-modal {
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(10, 23, 48, 0.25);
+    animation: sima-modal-slide-up 0.2s ease;
+}
+
+@keyframes sima-modal-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.sima-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 1.6rem;
+    border-bottom: 1px solid var(--steel-line);
+}
+
+.sima-modal__title {
+    margin: 0;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--ink);
+}
+
+.sima-modal__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--steel-light);
+    color: var(--steel);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-modal__close:hover {
+    background: var(--red);
+    color: var(--white);
+}
+
+.sima-modal__body {
+    padding: 1.6rem;
+}
+
+/* ---------- FORM ELEMENTS DI DALAM MODAL ---------- */
+
+.sima-modal__field {
+    margin-bottom: 1.2rem;
+}
+
+.sima-modal__field:last-of-type {
+    margin-bottom: 0;
+}
+
+.sima-modal__label {
+    display: block;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 0.45rem;
+}
+
+.sima-modal__input,
+.sima-modal__textarea {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    color: var(--ink);
+    background: var(--steel-light);
+    transition: border-color 0.15s ease, background 0.15s ease;
+    box-sizing: border-box;
+}
+
+.sima-modal__textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: 'Inter', sans-serif;
+}
+
+.sima-modal__input::placeholder,
+.sima-modal__textarea::placeholder {
+    color: #9AA4B5;
+}
+
+.sima-modal__input:focus,
+.sima-modal__textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+    background: var(--white);
+}
+
+.sima-modal__error-text {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--red);
+    margin: 0.4rem 0 0;
+}
+
+/* ---------- FOOTER / ACTIONS ---------- */
+
+.sima-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.7rem;
+    padding: 1.2rem 1.6rem;
+    border-top: 1px solid var(--steel-line);
+}
+
+.sima-modal__btn-cancel {
+    padding: 0.7rem 1.3rem;
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    background: var(--white);
+    color: var(--steel);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-modal__btn-cancel:hover {
+    background: var(--steel-light);
+    color: var(--ink);
+}
+
+.sima-modal__btn-save {
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: 6px;
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.sima-modal__btn-save:hover {
+    background: var(--red-dark);
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 640px) {
+    .sima-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .sima-modal {
+        max-width: 100%;
+        max-height: 92vh;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .sima-modal__footer {
+        flex-direction: column-reverse;
+    }
+
+    .sima-modal__btn-cancel,
+    .sima-modal__btn-save {
+        width: 100%;
+    }
+}

@@ -1,0 +1,40 @@
+.sima-export-pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1.2rem;
+    background: var(--white);
+    color: #E5252A;
+    border: 1.5px solid #E5252A;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-export-pdf-btn:hover {
+    background: #E5252A;
+    color: var(--white);
+}
+
+.sima-export-pdf-btn:hover svg path:first-child {
+    fill: var(--white);
+}
+
+.sima-export-pdf-btn:hover svg text {
+    fill: #E5252A;
+}
+
+.sima-export-pdf-btn:active {
+    transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+    .sima-export-pdf-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

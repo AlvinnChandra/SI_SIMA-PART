@@ -1,0 +1,33 @@
+.sima-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.3rem;
+    background: #1E9E5A;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.sima-add-btn:hover {
+    background: #17864B;
+}
+
+.sima-add-btn:active {
+    transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+    .sima-add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
