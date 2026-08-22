@@ -192,6 +192,9 @@ function Login() {
                             htmlFor="password"
                         >
                             Kata Sandi
+                            <Link to="/reset-password" className="sima-login__forgot">
+                                Lupa kata sandi?
+                            </Link>
                         </label>
 
                         <div className="sima-login__input-wrap">
@@ -339,7 +342,14 @@ function Login() {
 
                     {/* ---------- HELP ---------- */}
                     <div className="sima-login__divider">
-                        <span>Butuh Bantuan</span>
+                        <a
+                            href="https://wa.me/6289612893580"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="sima-login__divider-link"
+                        >
+                            <span>Butuh Bantuan</span>
+                        </a>
                     </div>
 
 
@@ -361,9 +371,9 @@ function Login() {
 
                 </form>
 
-            </div>
+            </div >
 
-        </div>
+        </div >
     );
 }
 

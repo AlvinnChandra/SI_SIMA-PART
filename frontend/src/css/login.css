@@ -23,12 +23,16 @@
     grid-template-columns: 1fr 1fr;
     font-family: 'Inter', sans-serif;
     background: var(--white);
+    align-items: start;
 }
 
 /* ---------- LEFT PANEL: BRAND ---------- */
 
 .sima-login__brand {
-    position: relative;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: start;
     background: linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 55%, var(--navy-mid) 100%);
     display: flex;
     flex-direction: column;
@@ -436,4 +440,14 @@
     .sima-login__form-side {
         padding: 2.2rem 1.6rem 3rem;
     }
+}
+
+.sima-login__divider-link {
+    display: contents;
+    text-decoration: none;
+}
+
+.sima-login__divider-link:hover span {
+    color: var(--red);
+    text-decoration: underline;
 }

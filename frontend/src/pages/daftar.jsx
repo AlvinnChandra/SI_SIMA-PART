@@ -216,7 +216,7 @@ function Daftar() {
                     {/* ---------- NAMA LENGKAP ---------- */}
                     <div className="sima-login__field">
                         <label className="sima-login__label" htmlFor="namaLengkap">
-                            Nama Lengkap
+                            <span>Nama Lengkap <span className="sima-daftar__required">*</span></span>
                         </label>
                         <div className="sima-login__input-wrap">
                             <input
@@ -236,7 +236,7 @@ function Daftar() {
                     <div className="sima-daftar__grid-2">
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="username">
-                                Username
+                                <span>Username <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -254,7 +254,7 @@ function Daftar() {
 
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="email">
-                                Email
+                                <span>Email <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -276,7 +276,7 @@ function Daftar() {
                     <div className="sima-daftar__grid-2">
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="password">
-                                Kata Sandi
+                                <span>Kata Sandi <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -304,7 +304,7 @@ function Daftar() {
 
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="confirmPassword">
-                                Konfirmasi Kata Sandi
+                                <span>Konfirmasi Kata Sandi <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -338,7 +338,7 @@ function Daftar() {
                     <div className="sima-daftar__grid-2">
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="tempatLahir">
-                                Tempat Lahir
+                                <span>Tempat Lahir <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -355,7 +355,7 @@ function Daftar() {
 
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="tanggalLahir">
-                                Tanggal Lahir
+                                <span>Tanggal Lahir <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -375,7 +375,7 @@ function Daftar() {
                     <div className="sima-daftar__grid-2">
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="nik">
-                                NIK
+                                <span>NIK <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -394,7 +394,7 @@ function Daftar() {
 
                         <div className="sima-login__field">
                             <label className="sima-login__label" htmlFor="noTelepon">
-                                No Telepon
+                                <span>No Telepon <span className="sima-daftar__required">*</span></span>
                             </label>
                             <div className="sima-login__input-wrap">
                                 <input
@@ -414,7 +414,7 @@ function Daftar() {
                     {/* ---------- ALAMAT ---------- */}
                     <div className="sima-login__field">
                         <label className="sima-login__label" htmlFor="alamat">
-                            Alamat
+                            <span>Alamat <span className="sima-daftar__required">*</span></span>
                         </label>
                         <div className="sima-login__input-wrap">
                             <textarea
@@ -578,7 +578,7 @@ function FileUploadField({ id, label, required = false, file, onChange }) {
     return (
         <div className="sima-daftar__upload-field">
             <label className="sima-login__label" htmlFor={id}>
-                {label} {required ? <span className="sima-daftar__required">*</span> : <span className="sima-daftar__optional"></span>}
+                <span>{label} {required && <span className="sima-daftar__required">*</span>}</span>
             </label>
 
             <label htmlFor={id} className="sima-daftar__upload-btn">
