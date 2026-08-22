@@ -26,7 +26,7 @@ const dummySales = [
     },
     {
         id: 4, namaSales: "Dewi Lestari", nik: "3374040404880004", noTelepon: "0821-4444-5555", alamat: "Jl. Mawar No. 21, Semarang",
-        fotoKtp: null, fotoSimA: null, fotoSimC: null,
+        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: null,
         verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
@@ -46,7 +46,7 @@ const dummySales = [
     },
     {
         id: 8, namaSales: "Putri Ayu", nik: "7371080808940008", noTelepon: "0857-8888-9999", alamat: "Jl. Jambu No. 9, Makassar",
-        fotoKtp: null, fotoSimA: null, fotoSimC: null,
+        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: null,
         verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
