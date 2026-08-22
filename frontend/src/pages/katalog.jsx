@@ -4,7 +4,8 @@ import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
 import AddButton from "../components/AddButton";
 import ExportPdfButton from "../components/exportPDF";
-import ExportExcelButton from "../components/ExportExcel";
+import ExportExcelButton from "../components/exportExcel";
+import simaWatermark from "../assets/sima.png";
 import "../css/global.css";
 
 function Katalog() {
@@ -42,6 +43,18 @@ function Katalog() {
                 <SearchBar
                     placeholder="Cari nama produk atau kode barang..."
                     onSearch={setKeyword}
+                />
+
+                <div
+                    style={{
+                        flex: 1,
+                        minHeight: "420px",
+                        backgroundImage: `url(${simaWatermark})`,
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "center",
+                        backgroundSize: "420px",
+                        opacity: 0.35,
+                    }}
                 />
 
             </main>

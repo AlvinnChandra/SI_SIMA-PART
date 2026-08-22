@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/login";
+import Daftar from "./pages/daftar";
 import Katalog from "./pages/katalog";
 import Order from "./pages/order";
 import DataSales from "./pages/dataSales";
@@ -12,6 +13,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="" element={<Login />} />
+        <Route path="/daftar" element={<Daftar />} />
         <Route path="/katalog" element={<Katalog />} />
         <Route path="/order" element={<Order />} />
         <Route path="/dataSales" element={<DataSales />} />

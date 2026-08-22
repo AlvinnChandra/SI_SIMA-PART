@@ -1,0 +1,155 @@
+/* ---------- FORM DAFTAR: LAYOUT TAMBAHAN ---------- */
+
+.sima-daftar__card {
+    max-width: 560px;
+}
+
+.sima-daftar__grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1rem;
+}
+
+.sima-daftar__textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: 'Inter', sans-serif;
+    padding-top: 0.7rem;
+}
+
+/* ---------- UPLOAD DOKUMEN ---------- */
+
+.sima-daftar__upload-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.sima-daftar__upload-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.sima-daftar__required {
+    color: var(--red);
+}
+
+.sima-daftar__optional {
+    color: var(--steel);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.7rem;
+}
+
+.sima-daftar__upload-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.sima-daftar__upload-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.8rem;
+    border: 1.5px dashed var(--steel-line);
+    border-radius: 10px;
+    background: var(--steel-light);
+    color: var(--steel);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    overflow: hidden;
+}
+
+.sima-daftar__upload-btn span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sima-daftar__upload-btn:hover {
+    border-color: var(--navy);
+    color: var(--navy);
+    background: var(--white);
+}
+
+.sima-daftar__upload-input:focus-visible+.sima-daftar__upload-btn,
+.sima-daftar__upload-btn:has(+ input:focus-visible) {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
+}
+
+/* ---------- POPUP: REGISTRASI BERHASIL ---------- */
+
+.sima-daftar__modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+}
+
+.sima-daftar__modal {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 2.2rem 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.sima-daftar__modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.1rem;
+    border-radius: 50%;
+    background: rgba(30, 158, 90, 0.12);
+    color: #1E9E5A;
+}
+
+.sima-daftar__modal-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.6rem;
+}
+
+.sima-daftar__modal-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--steel);
+    line-height: 1.5;
+    margin-bottom: 1.6rem;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 760px) {
+    .sima-daftar__grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .sima-daftar__upload-group {
+        grid-template-columns: 1fr;
+        gap: 0.8rem 0;
+    }
+}
