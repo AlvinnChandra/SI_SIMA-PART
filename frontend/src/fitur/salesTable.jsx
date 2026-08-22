@@ -56,6 +56,20 @@ const dummySales = [
 
 const ITEMS_PER_PAGE = 5;
 
+function toWaLink(noTelepon) {
+    if (!noTelepon) return null;
+
+    // Bersihkan karakter selain angka (hapus strip, spasi, dll)
+    const digitsOnly = noTelepon.replace(/\D/g, "");
+
+    // Ganti awalan 0 jadi 62
+    const waNumber = digitsOnly.startsWith("0")
+        ? "62" + digitsOnly.slice(1)
+        : digitsOnly;
+
+    return `https://wa.me/${waNumber}`;
+}
+
 function DocPhoto({ src, alt, onPreview }) {
     if (!src) {
         return (
@@ -122,6 +136,7 @@ function SalesTable({ data = dummySales }) {
                 sales.id === id ? { ...sales, verifikasi: value } : sales
             )
         );
+
         // nanti di sini logic buat kirim perubahan status verifikasi ke backend
         console.log("Update verifikasi:", id, value);
     };
@@ -135,9 +150,11 @@ function SalesTable({ data = dummySales }) {
         const konfirmasi = window.confirm(
             `Yakin ingin menghapus data sales "${sales.namaSales}"?`
         );
+
         if (!konfirmasi) return;
 
         setSalesData((prev) => prev.filter((s) => s.id !== sales.id));
+
         // nanti di sini logic buat kirim permintaan hapus ke backend
         console.log("Hapus sales:", sales.id);
     };
@@ -182,10 +199,28 @@ function SalesTable({ data = dummySales }) {
                                 <td className="sima-sales-table__col-no">
                                     {startIndex + index + 1}
                                 </td>
-                                <td className="sima-sales-table__strong">{sales.namaSales}</td>
+
+                                <td className="sima-sales-table__strong">
+                                    {sales.namaSales}
+                                </td>
+
                                 <td>{sales.nik}</td>
-                                <td>{sales.noTelepon}</td>
+
+                                {/* LINK WHATSAPP */}
+                                <td>
+                                    <a
+                                        href={toWaLink(sales.noTelepon)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="sima-sales-table__wa-link"
+                                        title={`Chat WhatsApp ${sales.namaSales}`}
+                                    >
+                                        {sales.noTelepon}
+                                    </a>
+                                </td>
+
                                 <td>{sales.alamat}</td>
+
                                 <td className="sima-sales-table__col-center">
                                     <DocPhoto
                                         src={sales.fotoKtp}
@@ -193,6 +228,7 @@ function SalesTable({ data = dummySales }) {
                                         onPreview={openPreview}
                                     />
                                 </td>
+
                                 <td className="sima-sales-table__col-center">
                                     <DocPhoto
                                         src={sales.fotoSimA}
@@ -200,6 +236,7 @@ function SalesTable({ data = dummySales }) {
                                         onPreview={openPreview}
                                     />
                                 </td>
+
                                 <td className="sima-sales-table__col-center">
                                     <DocPhoto
                                         src={sales.fotoSimC}
@@ -207,6 +244,7 @@ function SalesTable({ data = dummySales }) {
                                         onPreview={openPreview}
                                     />
                                 </td>
+
                                 <td className="sima-sales-table__col-center">
                                     <select
                                         className={`sima-sales-table__verif ${sales.verifikasi === "Berhasil"
@@ -215,33 +253,61 @@ function SalesTable({ data = dummySales }) {
                                             }`}
                                         value={sales.verifikasi}
                                         onChange={(e) =>
-                                            handleVerifikasiChange(sales.id, e.target.value)
+                                            handleVerifikasiChange(
+                                                sales.id,
+                                                e.target.value
+                                            )
                                         }
                                     >
-                                        <option value="Berhasil">Berhasil Verifikasi</option>
-                                        <option value="Belum">Tidak Berhasil Verifikasi</option>
+                                        <option value="Berhasil">
+                                            Berhasil Verifikasi
+                                        </option>
+                                        <option value="Belum">
+                                            Tidak Berhasil Verifikasi
+                                        </option>
                                     </select>
                                 </td>
+
                                 <td className="sima-sales-table__col-center">
                                     <div className="sima-sales-table__aksi">
+
                                         <button
                                             type="button"
                                             className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--edit"
                                             onClick={() => handleEdit(sales)}
                                             title={`Edit ${sales.namaSales}`}
                                         >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <svg
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
                                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                                 <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" />
                                             </svg>
                                         </button>
+
                                         <button
                                             type="button"
                                             className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--delete"
                                             onClick={() => handleDelete(sales)}
                                             title={`Hapus ${sales.namaSales}`}
                                         >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <svg
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
                                                 <polyline points="3 6 5 6 21 6" />
                                                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                                                 <path d="M10 11v6" />
@@ -249,6 +315,7 @@ function SalesTable({ data = dummySales }) {
                                                 <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                                             </svg>
                                         </button>
+
                                     </div>
                                 </td>
                             </tr>
@@ -262,10 +329,16 @@ function SalesTable({ data = dummySales }) {
                 <div className="sima-sales-pagination">
 
                     <span className="sima-sales-pagination__info">
-                        Menampilkan {startIndex + 1}–{Math.min(startIndex + ITEMS_PER_PAGE, salesData.length)} dari {salesData.length} data
+                        Menampilkan {startIndex + 1}–
+                        {Math.min(
+                            startIndex + ITEMS_PER_PAGE,
+                            salesData.length
+                        )}{" "}
+                        dari {salesData.length} data
                     </span>
 
                     <div className="sima-sales-pagination__controls">
+
                         <button
                             type="button"
                             className="sima-sales-pagination__btn"
@@ -273,16 +346,30 @@ function SalesTable({ data = dummySales }) {
                             disabled={currentPage === 1}
                             aria-label="Halaman sebelumnya"
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
                                 <polyline points="15 18 9 12 15 6" />
                             </svg>
                         </button>
 
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        {Array.from(
+                            { length: totalPages },
+                            (_, i) => i + 1
+                        ).map((page) => (
                             <button
                                 key={page}
                                 type="button"
-                                className={`sima-sales-pagination__btn ${page === currentPage ? "sima-sales-pagination__btn--active" : ""
+                                className={`sima-sales-pagination__btn ${page === currentPage
+                                    ? "sima-sales-pagination__btn--active"
+                                    : ""
                                     }`}
                                 onClick={() => goToPage(page)}
                             >
@@ -297,12 +384,21 @@ function SalesTable({ data = dummySales }) {
                             disabled={currentPage === totalPages}
                             aria-label="Halaman selanjutnya"
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
                                 <polyline points="9 18 15 12 9 6" />
                             </svg>
                         </button>
-                    </div>
 
+                    </div>
                 </div>
             )}
 
@@ -326,6 +422,7 @@ function SalesTable({ data = dummySales }) {
                         >
                             ×
                         </button>
+
                         <img src={preview.src} alt={preview.alt} />
                         <p>{preview.alt}</p>
                     </div>

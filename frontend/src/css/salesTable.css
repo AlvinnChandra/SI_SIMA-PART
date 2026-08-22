@@ -316,3 +316,14 @@
         text-align: center;
     }
 }
+
+.sima-sales-table__wa-link {
+    color: var(--navy);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.sima-sales-table__wa-link:hover {
+    color: #1E9E5A;
+    text-decoration: underline;
+}
