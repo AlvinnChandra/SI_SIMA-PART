@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import logoSima from "../assets/logoSima.png";
 import "../css/login.css";
 
@@ -142,7 +142,7 @@ function Login() {
                     </p>
 
                     <h2 className="sima-login__title">
-                        Selamat Datang
+                        Selamat Datang !
                     </h2>
 
                     <p className="sima-login__desc">
@@ -192,6 +192,9 @@ function Login() {
                             htmlFor="password"
                         >
                             Kata Sandi
+                            <Link to="/reset-password" className="sima-login__forgot">
+                                Lupa kata sandi?
+                            </Link>
                         </label>
 
                         <div className="sima-login__input-wrap">
@@ -339,7 +342,14 @@ function Login() {
 
                     {/* ---------- HELP ---------- */}
                     <div className="sima-login__divider">
-                        <span>Butuh Bantuan</span>
+                        <a
+                            href="https://wa.me/6289612893580"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="sima-login__divider-link"
+                        >
+                            <span>Butuh Bantuan</span>
+                        </a>
                     </div>
 
 
@@ -348,13 +358,9 @@ function Login() {
 
                         Belum punya akun?{" "}
 
-                        <a
-                            href="https://docs.google.com/forms/d/e/1FAIpQLSeaditjZ_H_62AxvAL_HQCug2F2lUpibDfnpmi_g7EXbGAe3A/viewform?usp=dialog"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
+                        <Link to="/daftar">
                             Daftar Disini!
-                        </a>
+                        </Link>
 
                     </p>
 
@@ -365,9 +371,9 @@ function Login() {
 
                 </form>
 
-            </div>
+            </div >
 
-        </div>
+        </div >
     );
 }
 

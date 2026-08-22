@@ -1,0 +1,40 @@
+.sima-export-excel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1.2rem;
+    background: var(--white);
+    color: #1D6F42;
+    border: 1.5px solid #1D6F42;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-export-excel-btn:hover {
+    background: #1D6F42;
+    color: var(--white);
+}
+
+.sima-export-excel-btn:hover svg path:first-child {
+    fill: var(--white);
+}
+
+.sima-export-excel-btn:hover svg text {
+    fill: #1D6F42;
+}
+
+.sima-export-excel-btn:active {
+    transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+    .sima-export-excel-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

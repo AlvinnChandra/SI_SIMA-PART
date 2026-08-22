@@ -6,4 +6,22 @@
 
 .dashboard-content {
     flex: 1;
+    padding: 2.5rem 3rem;
+}
+
+.page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.page-header-row h1 {
+    margin: 0;
+}
+
+.page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }

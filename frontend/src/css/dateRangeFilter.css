@@ -1,0 +1,117 @@
+.sima-date-filter {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    background: var(--steel-light);
+    border: 1.5px solid var(--steel-line);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.3rem;
+}
+
+.sima-date-filter__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.sima-date-filter__field label {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--steel);
+}
+
+.sima-date-filter__field input[type="date"] {
+    padding: 0.6rem 0.8rem;
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    color: var(--ink);
+    background: var(--white);
+    transition: border-color 0.15s ease;
+}
+
+.sima-date-filter__field input[type="date"]:focus {
+    outline: none;
+    border-color: var(--navy);
+}
+
+.sima-date-filter__sep {
+    color: var(--steel);
+    font-size: 0.9rem;
+    padding-bottom: 0.65rem;
+}
+
+.sima-date-filter__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sima-date-filter__apply {
+    padding: 0.6rem 1.1rem;
+    border: none;
+    border-radius: 6px;
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.sima-date-filter__apply:hover {
+    background: var(--navy-mid);
+}
+
+.sima-date-filter__reset {
+    padding: 0.6rem 1.1rem;
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    background: var(--white);
+    color: var(--steel);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-date-filter__reset:hover {
+    background: var(--steel-line);
+    color: var(--ink);
+}
+
+.sima-date-filter__error {
+    width: 100%;
+    margin: 0;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--red);
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 640px) {
+    .sima-date-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sima-date-filter__sep {
+        display: none;
+    }
+
+    .sima-date-filter__actions {
+        width: 100%;
+    }
+
+    .sima-date-filter__apply,
+    .sima-date-filter__reset {
+        flex: 1;
+    }
+}
