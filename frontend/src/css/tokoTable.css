@@ -1,21 +1,21 @@
-.sima-sales-table-wrap {
+.sima-table-wrap {
     background: var(--white);
     border: 1px solid var(--steel-line);
     border-radius: 10px;
     overflow: hidden;
 }
 
-.sima-sales-table {
+.sima-table {
     width: 100%;
     border-collapse: collapse;
     font-family: 'Inter', sans-serif;
 }
 
-.sima-sales-table thead {
+.sima-table thead {
     background: var(--steel-light);
 }
 
-.sima-sales-table th {
+.sima-table th {
     text-align: center;
     padding: 0.9rem 1.1rem;
     font-family: 'Roboto Mono', monospace;
@@ -27,7 +27,7 @@
     white-space: nowrap;
 }
 
-.sima-sales-table td {
+.sima-table td {
     padding: 0.95rem 1.1rem;
     font-size: 0.88rem;
     color: var(--ink);
@@ -35,111 +35,109 @@
     vertical-align: middle;
 }
 
-.sima-sales-table tbody tr:last-child td {
+.sima-table tbody tr:last-child td {
     border-bottom: none;
 }
 
-.sima-sales-table tbody tr:hover {
+.sima-table tbody tr:hover {
     background: var(--steel-light);
 }
 
-.sima-sales-table__col-no {
+.sima-table__col-no {
     width: 56px;
     text-align: center;
 }
 
-.sima-sales-table__col-center {
+.sima-table__col-center {
     text-align: center;
 }
 
-.sima-sales-table__strong {
+.sima-table__strong {
     font-weight: 600;
     color: var(--ink);
 }
 
-.sima-sales-table__empty {
+.sima-table__empty {
     text-align: center;
     padding: 2.5rem 1rem;
     color: var(--steel);
     font-size: 0.9rem;
 }
 
-/* ---------- DOKUMEN: KTP / SIM A / SIM C (FOTO) ---------- */
+/* ---------- AKSI (EDIT / HAPUS) ---------- */
 
-.sima-sales-table__doc-icon-btn {
+.sima-table__actions {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    border: 1.5px solid var(--steel-line);
-    border-radius: 50%;
-    background: var(--white);
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    gap: 0.4rem;
 }
 
-/* Ikon untuk dokumen yang sudah ada fotonya — bisa diklik untuk preview */
-.sima-sales-table__doc-icon-btn--filled {
-    border-color: var(--navy);
-    background: rgba(30, 58, 138, 0.08);
+.sima-table__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1.5px solid var(--steel-line);
+    border-radius: 8px;
+    background: var(--white);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.sima-table__btn--edit {
     color: var(--navy);
 }
 
-.sima-sales-table__doc-icon-btn--filled:hover {
+.sima-table__btn--edit:hover {
     background: var(--navy);
+    border-color: var(--navy);
     color: var(--white);
     transform: scale(1.06);
 }
 
-.sima-sales-table__doc-icon-btn--filled:focus-visible {
+.sima-table__btn--delete {
+    color: var(--red);
+}
+
+.sima-table__btn--delete:hover {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--white);
+    transform: scale(1.06);
+}
+
+.sima-table__btn:focus-visible {
     outline: 2px solid var(--navy);
     outline-offset: 2px;
 }
 
-/* Ikon untuk dokumen yang belum ada fotonya — tidak bisa diklik */
-.sima-sales-table__doc-icon-btn--empty {
-    border-style: dashed;
-    background: var(--steel-light);
-    color: var(--steel);
-    cursor: default;
-}
+/* ---------- BADGE INPUT BY ---------- */
 
-/* ---------- VERIFIKASI (DROPDOWN) ---------- */
-
-.sima-sales-table__verif {
-    padding: 0.5rem 0.8rem;
+.sima-table__badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
     border-radius: 20px;
-    border: 1.5px solid transparent;
     font-family: 'Inter', sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 600;
-    cursor: pointer;
-    outline: none;
-    appearance: none;
-    text-align: center;
-    text-align-last: center;
-    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sima-sales-table__verif--berhasil {
+.sima-table__badge--admin {
+    background: rgba(30, 58, 138, 0.1);
+    color: var(--navy);
+}
+
+.sima-table__badge--sales {
     background: rgba(30, 158, 90, 0.12);
     color: #1E9E5A;
 }
 
-.sima-sales-table__verif--belum {
-    background: rgba(216, 38, 42, 0.1);
-    color: var(--red);
-}
-
-.sima-sales-table__verif:focus {
-    border-color: var(--navy);
-}
-
 /* ---------- PAGINATION ---------- */
 
-.sima-sales-pagination {
+.sima-pagination {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -149,19 +147,19 @@
     background: var(--white);
 }
 
-.sima-sales-pagination__info {
+.sima-pagination__info {
     font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
     color: var(--steel);
 }
 
-.sima-sales-pagination__controls {
+.sima-pagination__controls {
     display: flex;
     align-items: center;
     gap: 0.35rem;
 }
 
-.sima-sales-pagination__btn {
+.sima-pagination__btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -179,89 +177,37 @@
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.sima-sales-pagination__btn:hover:not(:disabled) {
+.sima-pagination__btn:hover:not(:disabled) {
     background: var(--steel-light);
 }
 
-.sima-sales-pagination__btn--active {
+.sima-pagination__btn--active {
     background: var(--navy);
     border-color: var(--navy);
     color: var(--white);
 }
 
-.sima-sales-pagination__btn--active:hover {
+.sima-pagination__btn--active:hover {
     background: var(--navy);
 }
 
-.sima-sales-pagination__btn:disabled {
+.sima-pagination__btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-}
-
-/* ---------- LIGHTBOX ---------- */
-
-.sima-sales-table__lightbox {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 1.5rem;
-}
-
-.sima-sales-table__lightbox-inner {
-    position: relative;
-    background: var(--white);
-    border-radius: 10px;
-    padding: 1rem;
-    max-width: min(90vw, 640px);
-    text-align: center;
-}
-
-.sima-sales-table__lightbox-inner img {
-    max-width: 100%;
-    max-height: 70vh;
-    border-radius: 6px;
-    display: block;
-    margin: 0 auto;
-}
-
-.sima-sales-table__lightbox-inner p {
-    margin-top: 0.75rem;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.85rem;
-    color: var(--ink);
-}
-
-.sima-sales-table__lightbox-close {
-    position: absolute;
-    top: -0.5rem;
-    right: -0.5rem;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: none;
-    background: var(--navy);
-    color: var(--white);
-    font-size: 1.1rem;
-    line-height: 1;
-    cursor: pointer;
 }
 
 /* ---------- RESPONSIVE ---------- */
 
 @media (max-width: 860px) {
-    .sima-sales-table-wrap {
+    .sima-table-wrap {
         overflow-x: auto;
     }
 
-    .sima-sales-table {
-        min-width: 860px;
+    .sima-table {
+        min-width: 780px;
     }
 
-    .sima-sales-pagination {
+    .sima-pagination {
         justify-content: center;
         text-align: center;
     }
