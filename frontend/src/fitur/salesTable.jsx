@@ -1,56 +1,63 @@
 import { useState } from "react";
 import "../css/salesTable.css";
 
+// Status verifikasi yang tersedia
+const VERIFIKASI_STATUS = {
+    MENUNGGU: "Menunggu",
+    BERHASIL: "Berhasil",
+    TIDAK_BERHASIL: "TidakBerhasil",
+};
+
 const dummySales = [
     {
         id: 1, namaSales: "Budi Santoso", nik: "3273010101900001", noTelepon: "0812-1111-2222", alamat: "Jl. Melati No. 5, Jakarta Selatan",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        verifikasi: "Berhasil"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 2, namaSales: "Siti Rahayu", nik: "3204020202920002", noTelepon: "0813-2222-3333", alamat: "Jl. Kenanga No. 10, Bandung",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        verifikasi: "Belum"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 3, namaSales: "Ahmad Fauzi", nik: "3578030303950003", noTelepon: "0857-3333-4444", alamat: "Jl. Anggrek No. 7, Surabaya",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: null,
-        verifikasi: "Berhasil"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 4, namaSales: "Dewi Lestari", nik: "3374040404880004", noTelepon: "0821-4444-5555", alamat: "Jl. Mawar No. 21, Semarang",
         fotoKtp: null, fotoSimA: null, fotoSimC: null,
-        verifikasi: "Belum"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 5, namaSales: "Rizky Pratama", nik: "3471050505930005", noTelepon: "0878-5555-6666", alamat: "Jl. Cempaka No. 3, Yogyakarta",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        verifikasi: "Berhasil"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 6, namaSales: "Nur Aini", nik: "3573060606910006", noTelepon: "0812-6666-7777", alamat: "Jl. Flamboyan No. 17, Malang",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: null,
-        verifikasi: "Belum"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 7, namaSales: "Hendra Wijaya", nik: "1271070707890007", noTelepon: "0813-7777-8888", alamat: "Jl. Mangga No. 55, Medan",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: null,
-        verifikasi: "Berhasil"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 8, namaSales: "Putri Ayu", nik: "7371080808940008", noTelepon: "0857-8888-9999", alamat: "Jl. Jambu No. 9, Makassar",
         fotoKtp: null, fotoSimA: null, fotoSimC: null,
-        verifikasi: "Belum"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 9, namaSales: "Fajar Nugroho", nik: "1671090909920009", noTelepon: "0821-9999-0000", alamat: "Jl. Rambutan No. 33, Palembang",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        verifikasi: "Berhasil"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
     {
         id: 10, namaSales: "Indah Permata", nik: "5171100000970010", noTelepon: "0878-0000-1111", alamat: "Jl. Duku No. 14, Denpasar",
         fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        verifikasi: "Belum"
+        verifikasi: VERIFIKASI_STATUS.MENUNGGU
     },
 ];
 
@@ -68,6 +75,26 @@ function toWaLink(noTelepon) {
         : digitsOnly;
 
     return `https://wa.me/${waNumber}`;
+}
+
+// Kelas CSS untuk tiap status verifikasi
+function getVerifikasiMeta(status) {
+    switch (status) {
+        case VERIFIKASI_STATUS.BERHASIL:
+            return { className: "sima-sales-table__verif--berhasil" };
+        case VERIFIKASI_STATUS.TIDAK_BERHASIL:
+            return { className: "sima-sales-table__verif--tidak-berhasil" };
+        case VERIFIKASI_STATUS.MENUNGGU:
+        default:
+            return { className: "sima-sales-table__verif--menunggu" };
+    }
+}
+
+// Status sudah final (Berhasil / Tidak Berhasil) -> tidak boleh diubah lagi,
+// termasuk tidak boleh balik lagi ke "Menunggu". Hanya status "Menunggu"
+// yang masih boleh diedit.
+function isVerifikasiLocked(status) {
+    return status !== VERIFIKASI_STATUS.MENUNGGU;
 }
 
 function DocPhoto({ src, alt, onPreview }) {
@@ -132,9 +159,14 @@ function SalesTable({ data = dummySales }) {
 
     const handleVerifikasiChange = (id, value) => {
         setSalesData((prev) =>
-            prev.map((sales) =>
-                sales.id === id ? { ...sales, verifikasi: value } : sales
-            )
+            prev.map((sales) => {
+                // Guard: kalau status sales ini sudah final (bukan Menunggu),
+                // jangan biarkan diubah lagi -> tidak bisa balik ke semula.
+                if (sales.id !== id) return sales;
+                if (isVerifikasiLocked(sales.verifikasi)) return sales;
+
+                return { ...sales, verifikasi: value };
+            })
         );
 
         // nanti di sini logic buat kirim perubahan status verifikasi ke backend
@@ -194,132 +226,143 @@ function SalesTable({ data = dummySales }) {
                             </td>
                         </tr>
                     ) : (
-                        currentData.map((sales, index) => (
-                            <tr key={sales.id}>
-                                <td className="sima-sales-table__col-no">
-                                    {startIndex + index + 1}
-                                </td>
+                        currentData.map((sales, index) => {
+                            const verifMeta = getVerifikasiMeta(sales.verifikasi);
+                            const verifLocked = isVerifikasiLocked(sales.verifikasi);
 
-                                <td className="sima-sales-table__strong">
-                                    {sales.namaSales}
-                                </td>
+                            return (
+                                <tr key={sales.id}>
+                                    <td className="sima-sales-table__col-no">
+                                        {startIndex + index + 1}
+                                    </td>
 
-                                <td>{sales.nik}</td>
+                                    <td className="sima-sales-table__strong">
+                                        {sales.namaSales}
+                                    </td>
 
-                                {/* LINK WHATSAPP */}
-                                <td>
-                                    <a
-                                        href={toWaLink(sales.noTelepon)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="sima-sales-table__wa-link"
-                                        title={`Chat WhatsApp ${sales.namaSales}`}
-                                    >
-                                        {sales.noTelepon}
-                                    </a>
-                                </td>
+                                    <td>{sales.nik}</td>
 
-                                <td>{sales.alamat}</td>
-
-                                <td className="sima-sales-table__col-center">
-                                    <DocPhoto
-                                        src={sales.fotoKtp}
-                                        alt={`KTP ${sales.namaSales}`}
-                                        onPreview={openPreview}
-                                    />
-                                </td>
-
-                                <td className="sima-sales-table__col-center">
-                                    <DocPhoto
-                                        src={sales.fotoSimA}
-                                        alt={`SIM A ${sales.namaSales}`}
-                                        onPreview={openPreview}
-                                    />
-                                </td>
-
-                                <td className="sima-sales-table__col-center">
-                                    <DocPhoto
-                                        src={sales.fotoSimC}
-                                        alt={`SIM C ${sales.namaSales}`}
-                                        onPreview={openPreview}
-                                    />
-                                </td>
-
-                                <td className="sima-sales-table__col-center">
-                                    <select
-                                        className={`sima-sales-table__verif ${sales.verifikasi === "Berhasil"
-                                            ? "sima-sales-table__verif--berhasil"
-                                            : "sima-sales-table__verif--belum"
-                                            }`}
-                                        value={sales.verifikasi}
-                                        onChange={(e) =>
-                                            handleVerifikasiChange(
-                                                sales.id,
-                                                e.target.value
-                                            )
-                                        }
-                                    >
-                                        <option value="Berhasil">
-                                            Berhasil Verifikasi
-                                        </option>
-                                        <option value="Belum">
-                                            Tidak Berhasil Verifikasi
-                                        </option>
-                                    </select>
-                                </td>
-
-                                <td className="sima-sales-table__col-center">
-                                    <div className="sima-sales-table__aksi">
-
-                                        <button
-                                            type="button"
-                                            className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--edit"
-                                            onClick={() => handleEdit(sales)}
-                                            title={`Edit ${sales.namaSales}`}
+                                    {/* LINK WHATSAPP */}
+                                    <td>
+                                        <a
+                                            href={toWaLink(sales.noTelepon)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="sima-sales-table__wa-link"
+                                            title={`Chat WhatsApp ${sales.namaSales}`}
                                         >
-                                            <svg
-                                                width="16"
-                                                height="16"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            >
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" />
-                                            </svg>
-                                        </button>
+                                            {sales.noTelepon}
+                                        </a>
+                                    </td>
 
-                                        <button
-                                            type="button"
-                                            className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--delete"
-                                            onClick={() => handleDelete(sales)}
-                                            title={`Hapus ${sales.namaSales}`}
+                                    <td>{sales.alamat}</td>
+
+                                    <td className="sima-sales-table__col-center">
+                                        <DocPhoto
+                                            src={sales.fotoKtp}
+                                            alt={`KTP ${sales.namaSales}`}
+                                            onPreview={openPreview}
+                                        />
+                                    </td>
+
+                                    <td className="sima-sales-table__col-center">
+                                        <DocPhoto
+                                            src={sales.fotoSimA}
+                                            alt={`SIM A ${sales.namaSales}`}
+                                            onPreview={openPreview}
+                                        />
+                                    </td>
+
+                                    <td className="sima-sales-table__col-center">
+                                        <DocPhoto
+                                            src={sales.fotoSimC}
+                                            alt={`SIM C ${sales.namaSales}`}
+                                            onPreview={openPreview}
+                                        />
+                                    </td>
+
+                                    <td className="sima-sales-table__col-center">
+                                        <select
+                                            className={`sima-sales-table__verif ${verifMeta.className}`}
+                                            value={sales.verifikasi}
+                                            disabled={verifLocked}
+                                            title={
+                                                verifLocked
+                                                    ? "Status verifikasi sudah final dan tidak bisa diubah"
+                                                    : undefined
+                                            }
+                                            onChange={(e) =>
+                                                handleVerifikasiChange(
+                                                    sales.id,
+                                                    e.target.value
+                                                )
+                                            }
                                         >
-                                            <svg
-                                                width="16"
-                                                height="16"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            >
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                <path d="M10 11v6" />
-                                                <path d="M14 11v6" />
-                                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                                            </svg>
-                                        </button>
+                                            <option value={VERIFIKASI_STATUS.MENUNGGU}>
+                                                Menunggu Verifikasi
+                                            </option>
+                                            <option value={VERIFIKASI_STATUS.BERHASIL}>
+                                                Berhasil Verifikasi
+                                            </option>
+                                            <option value={VERIFIKASI_STATUS.TIDAK_BERHASIL}>
+                                                Tidak Berhasil Verifikasi
+                                            </option>
+                                        </select>
+                                    </td>
 
-                                    </div>
-                                </td>
-                            </tr>
-                        ))
+                                    <td className="sima-sales-table__col-center">
+                                        <div className="sima-sales-table__aksi">
+
+                                            <button
+                                                type="button"
+                                                className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--edit"
+                                                onClick={() => handleEdit(sales)}
+                                                title={`Edit ${sales.namaSales}`}
+                                            >
+                                                <svg
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                    <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" />
+                                                </svg>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--delete"
+                                                onClick={() => handleDelete(sales)}
+                                                title={`Hapus ${sales.namaSales}`}
+                                            >
+                                                <svg
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <polyline points="3 6 5 6 21 6" />
+                                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                    <path d="M10 11v6" />
+                                                    <path d="M14 11v6" />
+                                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                                </svg>
+                                            </button>
+
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })
                     )}
                 </tbody>
             </table>

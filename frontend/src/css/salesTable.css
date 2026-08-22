@@ -123,12 +123,18 @@
     transition: background 0.15s ease, color 0.15s ease;
 }
 
+/* Status default: menunggu diverifikasi */
+.sima-sales-table__verif--menunggu {
+    background: rgba(217, 119, 6, 0.12);
+    color: #B45309;
+}
+
 .sima-sales-table__verif--berhasil {
     background: rgba(30, 158, 90, 0.12);
     color: #1E9E5A;
 }
 
-.sima-sales-table__verif--belum {
+.sima-sales-table__verif--tidak-berhasil {
     background: rgba(216, 38, 42, 0.1);
     color: var(--red);
 }
