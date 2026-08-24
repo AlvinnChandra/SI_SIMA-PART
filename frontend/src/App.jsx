@@ -7,7 +7,6 @@ import Katalog from "./pages/katalog";
 import Order from "./pages/order";
 import DataSales from "./pages/dataSales";
 import DataToko from "./pages/dataToko";
-import OrderSales from "./pages/laporanOrderSales";
 
 function App() {
   return (
@@ -20,7 +19,6 @@ function App() {
         <Route path="/order" element={<Order />} />
         <Route path="/dataSales" element={<DataSales />} />
         <Route path="/dataToko" element={<DataToko />} />
-        <Route path="/orderSales" element={<OrderSales />} />
       </Routes>
     </BrowserRouter>
   );
