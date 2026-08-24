@@ -7,7 +7,6 @@ const menuItems = [
     { label: "Orderan Masuk", path: "/order" },
     { label: "Data Toko", path: "/dataToko" },
     { label: "Data Sales", path: "/dataSales" },
-    { label: "Laporan Order Per Sales", path: "/orderSales" },
 ];
 
 function Header() {

@@ -153,3 +153,298 @@
         gap: 0.8rem 0;
     }
 }
+
+/* ---------- STEP INDICATOR ---------- */
+
+.sima-daftar__steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.8rem;
+}
+
+.sima-daftar__step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sima-daftar__step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--steel-line);
+    color: var(--steel);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sima-daftar__step.is-active .sima-daftar__step-num {
+    background: var(--red);
+    color: var(--white);
+}
+
+.sima-daftar__step-label {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--steel);
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.sima-daftar__step.is-active .sima-daftar__step-label {
+    color: var(--ink);
+}
+
+.sima-daftar__step-line {
+    flex: 1;
+    height: 1.5px;
+    background: var(--steel-line);
+    margin: 0 0.8rem;
+}
+
+/* ---------- TOMBOL KEMBALI + DAFTAR ---------- */
+
+.sima-daftar__btn-row {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.sima-daftar__btn-row .sima-login__submit {
+    flex: 1;
+}
+
+.sima-daftar__btn-back {
+    flex: 1;
+    padding: 0.9rem 1rem;
+    background: var(--white);
+    color: var(--navy);
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.sima-daftar__btn-back:hover:not(:disabled) {
+    border-color: var(--navy);
+    background: var(--steel-light);
+}
+
+.sima-daftar__btn-back:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ---------- STEP INDICATOR ---------- */
+.sima-daftar__steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.8rem;
+}
+
+.sima-daftar__step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sima-daftar__step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--steel-line);
+    color: var(--steel);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sima-daftar__step.is-active .sima-daftar__step-num {
+    background: var(--red);
+    color: var(--white);
+}
+
+.sima-daftar__step-label {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--steel);
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.sima-daftar__step.is-active .sima-daftar__step-label {
+    color: var(--ink);
+}
+
+.sima-daftar__step-line {
+    flex: 1;
+    height: 1.5px;
+    background: var(--steel-line);
+    margin: 0 0.8rem;
+}
+
+/* ---------- TOMBOL KEMBALI + DAFTAR ---------- */
+.sima-daftar__btn-row {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.sima-daftar__btn-row .sima-login__submit {
+    flex: 1;
+}
+
+.sima-daftar__btn-back {
+    flex: 1;
+    padding: 0.9rem 1rem;
+    background: var(--white);
+    color: var(--navy);
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.sima-daftar__btn-back:hover:not(:disabled) {
+    border-color: var(--navy);
+    background: var(--steel-light);
+}
+
+.sima-daftar__btn-back:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ---------- FOTO PROFIL (STEP 2) ---------- */
+.sima-daftar__profile-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.6rem;
+}
+
+.sima-daftar__profile-photo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.sima-daftar__profile-photo-circle {
+    position: relative;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    border: 1.5px dashed var(--steel-line);
+    background: var(--steel-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--steel);
+    overflow: hidden;
+}
+
+.sima-daftar__profile-photo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sima-daftar__profile-photo-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--red);
+    color: var(--white);
+    border: 2px solid var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.sima-daftar__profile-photo-remove:hover {
+    background: var(--red-dark);
+}
+
+.sima-daftar__profile-photo-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--navy);
+    cursor: pointer;
+}
+
+.sima-daftar__profile-photo-label:hover {
+    text-decoration: underline;
+}
+
+.sima-daftar__profile-photo-hint {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    color: var(--steel);
+}
+
+/* ---------- UPLOAD CV ---------- */
+.sima-daftar__cv-field {
+    margin-bottom: 1.2rem;
+}
+
+/* ---------- TOMBOL BATAL DI UPLOAD FIELD ---------- */
+.sima-daftar__upload-btn-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.sima-daftar__upload-btn-wrap .sima-daftar__upload-btn {
+    flex: 1;
+}
+
+.sima-daftar__upload-cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    border: 1.5px solid var(--steel-line);
+    background: var(--white);
+    color: var(--steel);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.sima-daftar__upload-cancel:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: #FDF1F1;
+}
