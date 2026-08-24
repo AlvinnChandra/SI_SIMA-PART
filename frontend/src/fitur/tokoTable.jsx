@@ -19,9 +19,171 @@ const dummyToko = [
 
 const ITEMS_PER_PAGE = 5;
 
+function IconAlertTriangle() {
+    return (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+        </svg>
+    );
+}
+
+// ---------- MODAL: KONFIRMASI HAPUS ----------
+function DeleteConfirmModal({ toko, onCancel, onConfirm }) {
+    return (
+        <div className="sima-table-modal-overlay" onClick={onCancel} role="button" tabIndex={-1}>
+            <div
+                className="sima-table-confirm"
+                onClick={(e) => e.stopPropagation()}
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="hapus-toko-title"
+            >
+                <span className="sima-table-confirm__icon">
+                    <IconAlertTriangle />
+                </span>
+
+                <h3 id="hapus-toko-title" className="sima-table-confirm__title">
+                    Hapus data toko?
+                </h3>
+
+                <p className="sima-table-confirm__desc">
+                    Data <strong>{toko.namaToko}</strong> akan dihapus permanen dan tidak
+                    bisa dikembalikan.
+                </p>
+
+                <div className="sima-table-confirm__actions">
+                    <button
+                        type="button"
+                        className="sima-table-modal__btn sima-table-modal__btn--ghost"
+                        onClick={onCancel}
+                    >
+                        Batal
+                    </button>
+                    <button
+                        type="button"
+                        className="sima-table-modal__btn sima-table-modal__btn--danger"
+                        onClick={onConfirm}
+                    >
+                        Ya, Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ---------- MODAL: EDIT TOKO (form sesuai field data) ----------
+function EditTokoModal({ toko, onClose, onSave }) {
+    const [form, setForm] = useState({ ...toko });
+
+    const handleChange = (field, value) => {
+        setForm((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(form);
+    };
+
+    return (
+        <div className="sima-table-modal-overlay" onClick={onClose} role="button" tabIndex={-1}>
+            <div
+                className="sima-table-modal"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="edit-toko-title"
+            >
+                <div className="sima-table-modal__header">
+                    <h3 id="edit-toko-title">Edit Data Toko</h3>
+                    <button
+                        type="button"
+                        className="sima-table-modal__close"
+                        onClick={onClose}
+                        aria-label="Tutup"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="sima-table-modal__body">
+
+                        <div className="sima-table-modal__field">
+                            <label htmlFor="namaToko">Nama Toko</label>
+                            <input
+                                id="namaToko"
+                                type="text"
+                                value={form.namaToko}
+                                onChange={(e) => handleChange("namaToko", e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="sima-table-modal__field">
+                            <label htmlFor="alamat">Alamat</label>
+                            <textarea
+                                id="alamat"
+                                rows={2}
+                                value={form.alamat}
+                                onChange={(e) => handleChange("alamat", e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="sima-table-modal__field">
+                            <label htmlFor="noTelepon">No Telepon</label>
+                            <input
+                                id="noTelepon"
+                                type="text"
+                                value={form.noTelepon}
+                                onChange={(e) => handleChange("noTelepon", e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="sima-table-modal__field">
+                            <span className="sima-table-modal__readonly-label">Input By</span>
+                            <span
+                                className={`sima-table__badge ${form.inputBy === "Admin"
+                                    ? "sima-table__badge--admin"
+                                    : "sima-table__badge--sales"
+                                    }`}
+                            >
+                                {form.inputBy}
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <div className="sima-table-modal__footer">
+                        <button
+                            type="button"
+                            className="sima-table-modal__btn sima-table-modal__btn--ghost"
+                            onClick={onClose}
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            className="sima-table-modal__btn sima-table-modal__btn--primary"
+                        >
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 function TokoTable() {
-    const [data] = useState(dummyToko);
+    const [data, setData] = useState(dummyToko);
     const [currentPage, setCurrentPage] = useState(1);
+    const [editingToko, setEditingToko] = useState(null); // objek toko yg diedit
+    const [deletingToko, setDeletingToko] = useState(null); // objek toko yg mau dihapus
 
     const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
@@ -29,13 +191,30 @@ function TokoTable() {
     const currentData = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     const handleEdit = (toko) => {
-        console.log("Edit toko:", toko);
-        // nanti buka modal edit di sini
+        setEditingToko(toko);
+    };
+
+    const handleSaveEdit = (updatedToko) => {
+        setData((prev) =>
+            prev.map((toko) => (toko.id === updatedToko.id ? updatedToko : toko))
+        );
+        setEditingToko(null);
+
+        // nanti di sini logic buat kirim perubahan data toko ke backend
+        console.log("Simpan edit toko:", updatedToko);
     };
 
     const handleDelete = (toko) => {
-        console.log("Hapus toko:", toko);
-        // nanti tampilkan konfirmasi hapus di sini
+        setDeletingToko(toko);
+    };
+
+    const confirmDelete = () => {
+        setData((prev) => prev.filter((t) => t.id !== deletingToko.id));
+
+        // nanti di sini logic buat kirim permintaan hapus ke backend
+        console.log("Hapus toko:", deletingToko.id);
+
+        setDeletingToko(null);
     };
 
     const goToPage = (page) => {
@@ -168,6 +347,25 @@ function TokoTable() {
                     </div>
 
                 </div>
+            )}
+
+            {/* ---------- MODAL EDIT ---------- */}
+            {editingToko && (
+                <EditTokoModal
+                    key={editingToko.id}
+                    toko={editingToko}
+                    onClose={() => setEditingToko(null)}
+                    onSave={handleSaveEdit}
+                />
+            )}
+
+            {/* ---------- MODAL KONFIRMASI HAPUS ---------- */}
+            {deletingToko && (
+                <DeleteConfirmModal
+                    toko={deletingToko}
+                    onCancel={() => setDeletingToko(null)}
+                    onConfirm={confirmDelete}
+                />
             )}
 
         </div>
