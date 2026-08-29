@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FaPen } from "react-icons/fa";
+import { FaPen, FaTrash } from "react-icons/fa";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
@@ -95,6 +95,9 @@ function Katalog() {
     // state untuk pop up tambah produk
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [addForm, setAddForm] = useState(EMPTY_FORM);
+
+    // state untuk pop up konfirmasi hapus — menyimpan produk yang mau dihapus
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
     // Kode SM-xxx dihitung ulang tiap kali daftar produk berubah, berdasarkan
     // urutan alfabetis nama. Semua tempat yang butuh "kode" (grid, search,
@@ -208,6 +211,21 @@ function Katalog() {
     const closeEditModal = () => {
         setEditingProduct(null);
         setEditForm(null);
+    };
+
+    // buka popup konfirmasi hapus — dicocokkan lewat nama (tanpa id) saat
+    // benar-benar dihapus nanti
+    const handleDeleteClick = (product) => {
+        setDeleteTarget(product);
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteTarget(null);
+    };
+
+    const confirmDelete = () => {
+        setProducts((prev) => prev.filter((p) => p.nama !== deleteTarget.nama));
+        setDeleteTarget(null);
     };
 
     // buka pop up tambah produk
@@ -355,15 +373,26 @@ function Katalog() {
                                                 alt={product.nama}
                                                 className="h-full w-full object-cover"
                                             />
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleEditClick(product);
-                                                }}
-                                                className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100"
-                                            >
-                                                <FaPen size={12} color={HEADING} />
-                                            </button>
+                                            <div className="absolute left-1.5 top-1.5 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditClick(product);
+                                                    }}
+                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                >
+                                                    <FaPen size={12} color={HEADING} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteClick(product);
+                                                    }}
+                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                >
+                                                    <FaTrash size={12} color={ACCENT} />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col gap-1 p-2.5">
@@ -742,6 +771,49 @@ function Katalog() {
                                     Tutup
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Pop up konfirmasi hapus produk */}
+            {deleteTarget && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: OVERLAY_BG }}
+                    onClick={closeDeleteModal}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-lg bg-white p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="mb-2 text-lg font-semibold" style={{ color: HEADING }}>
+                            Hapus Produk
+                        </h2>
+                        <p className="text-sm" style={{ color: LABEL }}>
+                            Yakin mau hapus{" "}
+                            <span className="font-semibold" style={{ color: HEADING }}>
+                                {deleteTarget.nama}
+                            </span>
+                            ? Tindakan ini tidak bisa dibatalkan.
+                        </p>
+
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={closeDeleteModal}
+                                className="rounded-md border px-4 py-2 text-sm font-medium"
+                                style={{ borderColor: BORDER, color: LABEL }}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDelete}
+                                className="rounded-md px-4 py-2 text-sm font-semibold text-white"
+                                style={{ background: ACCENT }}
+                            >
+                                Hapus
+                            </button>
                         </div>
                     </div>
                 </div>
