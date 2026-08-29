@@ -92,6 +92,8 @@
 }
 
 .sima-login__logo {
+    display: block;
+    margin: 0 auto;
     height: 120px;
     width: auto;
     filter: brightness(0) invert(1);
