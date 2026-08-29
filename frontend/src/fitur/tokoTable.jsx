@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../css/tokoTable.css";
 
 // ---------- DATA DUMMY ----------
-const dummyToko = [
+export const dummyToko = [
     { id: 1, namaToko: "Toko Jaya Motor", alamat: "Jl. Sudirman No. 12, Jakarta Pusat", noTelepon: "0812-3456-7890", inputBy: "Admin" },
     { id: 2, namaToko: "Berkah Spare Part", alamat: "Jl. Ahmad Yani No. 45, Bandung", noTelepon: "0813-2233-4455", inputBy: "Sales" },
     { id: 3, namaToko: "Sinar Motor Parts", alamat: "Jl. Diponegoro No. 8, Surabaya", noTelepon: "0857-1122-3344", inputBy: "Sales" },
@@ -179,8 +179,7 @@ function EditTokoModal({ toko, onClose, onSave }) {
     );
 }
 
-function TokoTable() {
-    const [data, setData] = useState(dummyToko);
+function TokoTable({ data, setData }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [editingToko, setEditingToko] = useState(null); // objek toko yg diedit
     const [deletingToko, setDeletingToko] = useState(null); // objek toko yg mau dihapus
@@ -189,6 +188,11 @@ function TokoTable() {
 
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const currentData = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    // reset ke halaman 1 setiap kali hasil filter/search (data) berubah
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [data]);
 
     const handleEdit = (toko) => {
         setEditingToko(toko);
