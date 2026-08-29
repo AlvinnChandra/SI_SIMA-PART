@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
@@ -6,20 +6,38 @@ import AddButton from "../components/AddButton";
 import ExportPdfButton from "../components/exportPDF";
 import ExportExcelButton from "../components/exportExcel";
 import AddTokoModal from "../fitur/addTokoModal";
-import TokoTable from "../fitur/tokoTable";
+import TokoTable, { dummyToko } from "../fitur/tokoTable";
 import "../css/global.css";
 
 function DataToko() {
     const [keyword, setKeyword] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [tokoData, setTokoData] = useState(dummyToko);
+
+    const filteredToko = useMemo(() => {
+        const k = keyword.trim().toLowerCase();
+        if (!k) return tokoData;
+        return tokoData.filter(
+            (toko) =>
+                toko.namaToko.toLowerCase().includes(k) ||
+                toko.alamat.toLowerCase().includes(k) ||
+                toko.noTelepon.toLowerCase().includes(k)
+        );
+    }, [tokoData, keyword]);
 
     const handleAddToko = () => {
         setIsModalOpen(true);
     };
 
     const handleSaveToko = (data) => {
+        setTokoData((prev) => [
+            ...prev,
+            { ...data, id: Date.now(), inputBy: "Admin" },
+        ]);
+        setIsModalOpen(false);
+
+        // nanti di sini logic buat kirim data ke backend
         console.log("Data toko baru:", data);
-        // nanti di sini logic buat kirim data ke backend / update state list toko
     };
 
     const handleExportPdf = () => {
@@ -49,7 +67,7 @@ function DataToko() {
                     onSearch={setKeyword}
                 />
 
-                <TokoTable />
+                <TokoTable data={filteredToko} setData={setTokoData} />
 
             </main>
             <Footer />

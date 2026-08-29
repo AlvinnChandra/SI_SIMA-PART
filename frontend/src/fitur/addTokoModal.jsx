@@ -1,136 +1,104 @@
-import { useState } from "react";
-import Modal from "../components/modal";
+import { useState, useEffect } from "react";
+import "../css/tokoTable.css";
+
+const emptyForm = { namaToko: "", alamat: "", noTelepon: "" };
 
 function AddTokoModal({ isOpen, onClose, onSave }) {
-    const [form, setForm] = useState({
-        namaToko: "",
-        alamat: "",
-        noTelepon: "",
-    });
+    const [form, setForm] = useState(emptyForm);
 
-    const [errors, setErrors] = useState({});
+    // reset form tiap kali modal dibuka
+    useEffect(() => {
+        if (isOpen) setForm(emptyForm);
+    }, [isOpen]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+    if (!isOpen) return null;
 
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-    };
-
-    const validate = () => {
-        const newErrors = {};
-
-        if (!form.namaToko.trim()) {
-            newErrors.namaToko = "Nama toko wajib diisi.";
-        }
-        if (!form.alamat.trim()) {
-            newErrors.alamat = "Alamat wajib diisi.";
-        }
-        if (!form.noTelepon.trim()) {
-            newErrors.noTelepon = "No telepon wajib diisi.";
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+    const handleChange = (field, value) => {
+        setForm((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        if (!validate()) return;
-
-        if (onSave) {
-            onSave(form);
-        }
-
-        // Reset form & tutup modal
-        setForm({ namaToko: "", alamat: "", noTelepon: "" });
-        onClose();
-    };
-
-    const handleClose = () => {
-        setForm({ namaToko: "", alamat: "", noTelepon: "" });
-        setErrors({});
-        onClose();
+        onSave(form);
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} title="Tambah Toko">
-            <form onSubmit={handleSubmit}>
-
-                <div className="sima-modal__field">
-                    <label className="sima-modal__label" htmlFor="namaToko">
-                        Nama Toko
-                    </label>
-                    <input
-                        id="namaToko"
-                        name="namaToko"
-                        type="text"
-                        className="sima-modal__input"
-                        placeholder="Masukkan nama toko"
-                        value={form.namaToko}
-                        onChange={handleChange}
-                    />
-                    {errors.namaToko && (
-                        <p className="sima-modal__error-text">{errors.namaToko}</p>
-                    )}
-                </div>
-
-                <div className="sima-modal__field">
-                    <label className="sima-modal__label" htmlFor="alamat">
-                        Alamat
-                    </label>
-                    <textarea
-                        id="alamat"
-                        name="alamat"
-                        className="sima-modal__textarea"
-                        placeholder="Masukkan alamat lengkap toko"
-                        value={form.alamat}
-                        onChange={handleChange}
-                    />
-                    {errors.alamat && (
-                        <p className="sima-modal__error-text">{errors.alamat}</p>
-                    )}
-                </div>
-
-                <div className="sima-modal__field">
-                    <label className="sima-modal__label" htmlFor="noTelepon">
-                        No Telepon
-                    </label>
-                    <input
-                        id="noTelepon"
-                        name="noTelepon"
-                        type="tel"
-                        className="sima-modal__input"
-                        placeholder="Contoh: 0812xxxxxxx"
-                        value={form.noTelepon}
-                        onChange={handleChange}
-                    />
-                    {errors.noTelepon && (
-                        <p className="sima-modal__error-text">{errors.noTelepon}</p>
-                    )}
-                </div>
-
-                <div className="sima-modal__footer">
+        <div className="sima-table-modal-overlay" onClick={onClose} role="button" tabIndex={-1}>
+            <div
+                className="sima-table-modal"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="tambah-toko-title"
+            >
+                <div className="sima-table-modal__header">
+                    <h3 id="tambah-toko-title">Tambah Data Toko</h3>
                     <button
                         type="button"
-                        className="sima-modal__btn-cancel"
-                        onClick={handleClose}
+                        className="sima-table-modal__close"
+                        onClick={onClose}
+                        aria-label="Tutup"
                     >
-                        Batal
-                    </button>
-                    <button
-                        type="submit"
-                        className="sima-modal__btn-save"
-                    >
-                        Simpan
+                        ×
                     </button>
                 </div>
 
-            </form>
-        </Modal>
+                <form onSubmit={handleSubmit}>
+                    <div className="sima-table-modal__body">
+
+                        <div className="sima-table-modal__field">
+                            <label htmlFor="namaToko">Nama Toko</label>
+                            <input
+                                id="namaToko"
+                                type="text"
+                                value={form.namaToko}
+                                onChange={(e) => handleChange("namaToko", e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="sima-table-modal__field">
+                            <label htmlFor="alamat">Alamat</label>
+                            <textarea
+                                id="alamat"
+                                rows={2}
+                                value={form.alamat}
+                                onChange={(e) => handleChange("alamat", e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="sima-table-modal__field">
+                            <label htmlFor="noTelepon">No Telepon</label>
+                            <input
+                                id="noTelepon"
+                                type="text"
+                                value={form.noTelepon}
+                                onChange={(e) => handleChange("noTelepon", e.target.value)}
+                                required
+                            />
+                        </div>
+
+                    </div>
+
+                    <div className="sima-table-modal__footer">
+                        <button
+                            type="button"
+                            className="sima-table-modal__btn sima-table-modal__btn--ghost"
+                            onClick={onClose}
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            className="sima-table-modal__btn sima-table-modal__btn--primary"
+                        >
+                            Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }
 
