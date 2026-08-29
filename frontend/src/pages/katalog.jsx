@@ -14,10 +14,33 @@ import "../css/global.css";
 
 const PAGE_SIZE = 10;
 
+// Ubah nama produk jadi "seed" yang aman dipakai di URL.
+// Semua karakter non-alfanumerik (termasuk "/", "\", "#", "?", dll) diganti
+// jadi "-" supaya tidak merusak struktur path di CDN gambar (mis. "/" yang
+// di-encode jadi %2F sering dianggap separator path oleh server, bukan
+// karakter biasa, sehingga gambar gagal dimuat).
+function toSeed(nama) {
+    return (nama || "produk")
+        .normalize("NFKD")
+        .replace(/[^a-zA-Z0-9]+/g, "-") // ganti semua non-alfanumerik jadi "-"
+        .replace(/^-+|-+$/g, "")        // buang "-" di awal/akhir
+        .toLowerCase();
+}
+
 // Seed gambar pakai NAMA produk (bukan id, bukan kode) supaya stabil —
 // nama tidak berubah walau kode SM-xxx bergeser akibat produk baru disisipkan.
 const FALLBACK_IMG = (nama) =>
-    `https://picsum.photos/seed/${encodeURIComponent(nama || "produk")}/400/400`;
+    `https://picsum.photos/seed/${toSeed(nama)}/400/400`;
+
+// Format angka jadi "Rp 25.000" untuk ditampilkan di input.
+// Input yang disimpan di state tetap berupa string angka mentah (mis. "25000"),
+// cuma tampilannya yang diformat.
+function formatRupiah(value) {
+    if (value === "" || value === null || value === undefined) return "";
+    const number = Number(value);
+    if (Number.isNaN(number)) return "";
+    return `Rp ${number.toLocaleString("id-ID")}`;
+}
 
 // Catatan penting: TIDAK ada field "id" di sini sesuai permintaan.
 // Identitas produk memakai "nama" (diasumsikan unik). Kode SM-xxx dihitung
@@ -176,6 +199,13 @@ function Katalog() {
         setEditForm((prev) => ({ ...prev, [field]: value }));
     };
 
+    // handler khusus harga di form Edit: buang semua karakter selain angka,
+    // simpan angka mentah di state (biar gampang di-convert Number() saat submit)
+    const handleEditHargaChange = (e) => {
+        const raw = e.target.value.replace(/[^0-9]/g, "");
+        setEditForm((prev) => ({ ...prev, harga: raw }));
+    };
+
     // ganti foto produk saat edit (preview via base64, disimpan di memory saja)
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
@@ -238,6 +268,17 @@ function Katalog() {
         setAddForm((prev) => ({ ...prev, [field]: value }));
     };
 
+    // handler khusus harga di form Tambah: sama seperti di Edit, hanya simpan
+    // digit-nya saja, tampilannya diformat pakai formatRupiah() di JSX
+    const handleAddHargaChange = (e) => {
+        const raw = e.target.value.replace(/[^0-9]/g, "");
+        setAddForm((prev) => ({ ...prev, harga: raw }));
+    };
+
+    // upload foto produk baru (preview via base64, disimpan di memory saja).
+    // Sebelum diupload, addForm.gambar tetap null → kotak foto tampil kosong,
+    // TIDAK pakai FALLBACK_IMG di form ini (beda dengan kartu grid/preview
+    // yang boleh pakai fallback kalau belum ada foto).
     const handleAddPhotoChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -501,9 +542,11 @@ function Katalog() {
                                     Harga
                                 </label>
                                 <input
-                                    type="number"
-                                    value={editForm.harga}
-                                    onChange={(e) => handleEditFormChange("harga", e.target.value)}
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={formatRupiah(editForm.harga)}
+                                    onChange={handleEditHargaChange}
+                                    placeholder="Rp 25.000"
                                     className="w-full rounded-md border px-3 py-2 text-sm"
                                     style={{ borderColor: BORDER }}
                                 />
@@ -586,14 +629,25 @@ function Katalog() {
                         </h2>
 
                         <form onSubmit={handleAddSubmit} className="flex flex-col gap-3">
-                            {/* Foto produk */}
+                            {/* Foto produk — kosong sampai user upload sendiri, TIDAK
+                                pakai FALLBACK_IMG di sini (beda dengan kartu grid & preview
+                                yang boleh pakai gambar fallback kalau produk belum punya foto) */}
                             <div className="flex flex-col items-center gap-2">
-                                <img
-                                    src={addForm.gambar || FALLBACK_IMG(addForm.nama)}
-                                    alt="Preview produk baru"
-                                    className="h-28 w-28 rounded-md border object-cover"
-                                    style={{ borderColor: BORDER }}
-                                />
+                                {addForm.gambar ? (
+                                    <img
+                                        src={addForm.gambar}
+                                        alt="Preview produk baru"
+                                        className="h-28 w-28 rounded-md border object-cover"
+                                        style={{ borderColor: BORDER }}
+                                    />
+                                ) : (
+                                    <div
+                                        className="flex h-28 w-28 items-center justify-center rounded-md border border-dashed px-2 text-center text-xs"
+                                        style={{ borderColor: BORDER, color: "#98A2B3" }}
+                                    >
+                                        Belum ada foto
+                                    </div>
+                                )}
                                 <label
                                     className="cursor-pointer rounded-md border px-3 py-1.5 text-xs font-medium"
                                     style={{ borderColor: BORDER, color: LABEL }}
@@ -641,11 +695,12 @@ function Katalog() {
                                     Harga
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
                                     required
-                                    value={addForm.harga}
-                                    onChange={(e) => handleAddFormChange("harga", e.target.value)}
-                                    placeholder="Contoh: 25000"
+                                    value={formatRupiah(addForm.harga)}
+                                    onChange={handleAddHargaChange}
+                                    placeholder="Rp 25.000"
                                     className="w-full rounded-md border px-3 py-2 text-sm"
                                     style={{ borderColor: BORDER }}
                                 />
