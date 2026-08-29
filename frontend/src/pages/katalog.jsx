@@ -41,7 +41,7 @@ const DUMMY_PRODUCTS = [
     { kode: "SM-449", nama: "Tombol Klakson", harga: 5500, qty: "1 Pcs", kategori: "Lainnya", kendaraan: "Universal" },
 ];
 
-// warna untuk modal edit
+// warna untuk modal edit & preview
 const OVERLAY_BG = "rgba(16, 24, 40, 0.5)";
 const HEADING = "#101828";
 const LABEL = "#344054";
@@ -59,6 +59,9 @@ function Katalog() {
     // state untuk pop up edit
     const [editingProduct, setEditingProduct] = useState(null);
     const [editForm, setEditForm] = useState(null);
+
+    // state untuk pop up preview foto
+    const [previewProduct, setPreviewProduct] = useState(null);
 
     const categories = useMemo(
         () => [...new Set(products.map((p) => p.kategori))],
@@ -207,7 +210,11 @@ function Katalog() {
                     </aside>
 
                     <div className="flex-1">
-                        <ProductGrid products={paginatedProducts} onEdit={handleEditClick} />
+                        <ProductGrid
+                            products={paginatedProducts}
+                            onEdit={handleEditClick}
+                            onPreview={setPreviewProduct}
+                        />
 
                         <div className="mt-8">
                             <Pagination
@@ -355,6 +362,64 @@ function Katalog() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Pop up preview foto (landscape: foto kiri, keterangan kanan) */}
+            {previewProduct && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: OVERLAY_BG }}
+                    onClick={() => setPreviewProduct(null)}
+                >
+                    <div
+                        className="flex w-full max-w-4xl overflow-hidden rounded-lg bg-white"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-1/2 shrink-0 bg-gray-100">
+                            <img
+                                src={previewProduct.gambar || FALLBACK_IMG(previewProduct.kode)}
+                                alt={previewProduct.nama}
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
+
+                        <div className="flex w-1/2 flex-col gap-1 p-5">
+                            <span className="font-mono text-xs" style={{ color: "#B0B0B0" }}>
+                                {previewProduct.kode}
+                            </span>
+                            <h3 className="text-lg font-semibold" style={{ color: HEADING }}>
+                                {previewProduct.nama}
+                            </h3>
+                            <p className="text-xl font-bold" style={{ color: ACCENT }}>
+                                Rp {previewProduct.harga.toLocaleString("id-ID")}
+                            </p>
+
+                            <div className="mt-2 flex flex-col gap-1 text-sm" style={{ color: LABEL }}>
+                                <p>
+                                    <span className="font-medium">Qty:</span> {previewProduct.qty}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Kategori:</span>{" "}
+                                    {previewProduct.kategori}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Kendaraan:</span>{" "}
+                                    {previewProduct.kendaraan}
+                                </p>
+                            </div>
+
+                            <div className="mt-auto flex justify-end pt-4">
+                                <button
+                                    onClick={() => setPreviewProduct(null)}
+                                    className="rounded-md border px-4 py-2 text-sm font-medium"
+                                    style={{ borderColor: BORDER, color: LABEL }}
+                                >
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

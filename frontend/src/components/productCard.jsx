@@ -10,13 +10,16 @@ function formatRupiah(n) {
     return "Rp " + n.toLocaleString("id-ID");
 }
 
-export default function ProductCard({ product, onEdit }) {
+export default function ProductCard({ product, onEdit, onPreview }) {
     const imageSrc = product.gambar || `https://picsum.photos/seed/${product.kode}/400/400`;
 
     return (
         <div className="group flex cursor-pointer flex-col overflow-hidden rounded-sm border border-gray-200 bg-white transition-shadow hover:shadow-md">
             {/* image */}
-            <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+            <div
+                className="relative aspect-square w-full overflow-hidden bg-gray-100"
+                onClick={() => onPreview(product)}
+            >
                 <img
                     src={imageSrc}
                     alt={product.nama}
