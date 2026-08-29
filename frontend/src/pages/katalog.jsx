@@ -12,7 +12,9 @@ import CheckboxFilter from "../components/checkboxFilter";
 import PriceSort from "../components/priceSort";
 import "../css/global.css";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
+
+const FALLBACK_IMG = (kode) => `https://picsum.photos/seed/${kode}/400/400`;
 
 const DUMMY_PRODUCTS = [
     { kode: "SM-417", nama: "Per Shock Breaker RXK", harga: 25000, qty: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "RXK" },
@@ -39,21 +41,33 @@ const DUMMY_PRODUCTS = [
     { kode: "SM-449", nama: "Tombol Klakson", harga: 5500, qty: "1 Pcs", kategori: "Lainnya", kendaraan: "Universal" },
 ];
 
+// warna untuk modal edit
+const OVERLAY_BG = "rgba(16, 24, 40, 0.5)";
+const HEADING = "#101828";
+const LABEL = "#344054";
+const BORDER = "#D0D5DD";
+const ACCENT = "#EE4D2D";
+
 function Katalog() {
+    const [products, setProducts] = useState(DUMMY_PRODUCTS);
     const [keyword, setKeyword] = useState("");
     const [activeCategory, setActiveCategory] = useState("Semua");
     const [selectedKendaraan, setSelectedKendaraan] = useState([]);
     const [priceSort, setPriceSort] = useState("default");
     const [currentPage, setCurrentPage] = useState(1);
 
+    // state untuk pop up edit
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [editForm, setEditForm] = useState(null);
+
     const categories = useMemo(
-        () => [...new Set(DUMMY_PRODUCTS.map((p) => p.kategori))],
-        []
+        () => [...new Set(products.map((p) => p.kategori))],
+        [products]
     );
 
     const kendaraanOptions = useMemo(
-        () => [...new Set(DUMMY_PRODUCTS.map((p) => p.kendaraan))].sort(),
-        []
+        () => [...new Set(products.map((p) => p.kendaraan))].sort(),
+        [products]
     );
 
     const handleAddProduk = () => console.log("Tambah produk diklik");
@@ -80,8 +94,46 @@ function Katalog() {
         setCurrentPage(1);
     };
 
+    // buka pop up edit
+    const handleEditClick = (product) => {
+        setEditingProduct(product);
+        setEditForm(product);
+    };
+
+    const handleEditFormChange = (field, value) => {
+        setEditForm((prev) => ({ ...prev, [field]: value }));
+    };
+
+    // ganti foto produk (preview via base64, disimpan di memory saja)
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            setEditForm((prev) => ({ ...prev, gambar: reader.result }));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        setProducts((prev) =>
+            prev.map((p) =>
+                p.kode === editForm.kode ? { ...editForm, harga: Number(editForm.harga) } : p
+            )
+        );
+        setEditingProduct(null);
+        setEditForm(null);
+    };
+
+    const closeEditModal = () => {
+        setEditingProduct(null);
+        setEditForm(null);
+    };
+
     const filteredProducts = useMemo(() => {
-        let result = DUMMY_PRODUCTS;
+        let result = products;
 
         if (activeCategory !== "Semua") {
             result = result.filter((p) => p.kategori === activeCategory);
@@ -105,7 +157,7 @@ function Katalog() {
         }
 
         return result;
-    }, [keyword, activeCategory, selectedKendaraan, priceSort]);
+    }, [products, keyword, activeCategory, selectedKendaraan, priceSort]);
 
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
 
@@ -155,7 +207,7 @@ function Katalog() {
                     </aside>
 
                     <div className="flex-1">
-                        <ProductGrid products={paginatedProducts} />
+                        <ProductGrid products={paginatedProducts} onEdit={handleEditClick} />
 
                         <div className="mt-8">
                             <Pagination
@@ -168,6 +220,144 @@ function Katalog() {
                 </div>
             </main>
             <Footer />
+
+            {/* Pop up edit produk */}
+            {editingProduct && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: OVERLAY_BG }}
+                    onClick={closeEditModal}
+                >
+                    <div
+                        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="mb-4 text-lg font-semibold" style={{ color: HEADING }}>
+                            Edit Produk
+                        </h2>
+
+                        <form onSubmit={handleEditSubmit} className="flex flex-col gap-3">
+                            {/* Foto produk */}
+                            <div className="flex flex-col items-center gap-2">
+                                <img
+                                    src={editForm.gambar || FALLBACK_IMG(editForm.kode)}
+                                    alt={editForm.nama}
+                                    className="h-28 w-28 rounded-md border object-cover"
+                                    style={{ borderColor: BORDER }}
+                                />
+                                <label
+                                    className="cursor-pointer rounded-md border px-3 py-1.5 text-xs font-medium"
+                                    style={{ borderColor: BORDER, color: LABEL }}
+                                >
+                                    Ganti Foto
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium" style={{ color: LABEL }}>
+                                    Kode
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.kode}
+                                    disabled
+                                    className="w-full rounded-md border bg-gray-100 px-3 py-2 text-sm"
+                                    style={{ borderColor: BORDER }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium" style={{ color: LABEL }}>
+                                    Nama Produk
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.nama}
+                                    onChange={(e) => handleEditFormChange("nama", e.target.value)}
+                                    className="w-full rounded-md border px-3 py-2 text-sm"
+                                    style={{ borderColor: BORDER }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium" style={{ color: LABEL }}>
+                                    Harga
+                                </label>
+                                <input
+                                    type="number"
+                                    value={editForm.harga}
+                                    onChange={(e) => handleEditFormChange("harga", e.target.value)}
+                                    className="w-full rounded-md border px-3 py-2 text-sm"
+                                    style={{ borderColor: BORDER }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium" style={{ color: LABEL }}>
+                                    Qty
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.qty}
+                                    onChange={(e) => handleEditFormChange("qty", e.target.value)}
+                                    className="w-full rounded-md border px-3 py-2 text-sm"
+                                    style={{ borderColor: BORDER }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium" style={{ color: LABEL }}>
+                                    Kategori
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.kategori}
+                                    onChange={(e) => handleEditFormChange("kategori", e.target.value)}
+                                    className="w-full rounded-md border px-3 py-2 text-sm"
+                                    style={{ borderColor: BORDER }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium" style={{ color: LABEL }}>
+                                    Kendaraan
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.kendaraan}
+                                    onChange={(e) => handleEditFormChange("kendaraan", e.target.value)}
+                                    className="w-full rounded-md border px-3 py-2 text-sm"
+                                    style={{ borderColor: BORDER }}
+                                />
+                            </div>
+
+                            <div className="mt-2 flex justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={closeEditModal}
+                                    className="rounded-md border px-4 py-2 text-sm font-medium"
+                                    style={{ borderColor: BORDER, color: LABEL }}
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="rounded-md px-4 py-2 text-sm font-semibold text-white"
+                                    style={{ background: ACCENT }}
+                                >
+                                    Simpan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

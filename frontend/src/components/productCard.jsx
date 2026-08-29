@@ -1,3 +1,5 @@
+import { FaPen } from "react-icons/fa";
+
 const ACCENT = "#EE4D2D";
 const ACCENT_BADGE_BG = "#FFD6BC";
 const NAME = "#222222";
@@ -5,10 +7,10 @@ const META = "#9E9E9E";
 const KODE = "#B0B0B0";
 
 function formatRupiah(n) {
-  return "Rp " + n.toLocaleString("id-ID");
+    return "Rp " + n.toLocaleString("id-ID");
 }
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onEdit }) {
     const imageSrc = product.gambar || `https://picsum.photos/seed/${product.kode}/400/400`;
 
     return (
@@ -28,6 +30,15 @@ export default function ProductCard({ product }) {
                         -{product.diskon}%
                     </span>
                 )}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(product);
+                    }}
+                    className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100"
+                >
+                    <FaPen size={12} color={NAME} />
+                </button>
             </div>
 
             {/* text content */}
@@ -44,9 +55,9 @@ export default function ProductCard({ product }) {
                     {formatRupiah(product.harga)}
                 </p>
 
-                <div className="flex items-center justify-between text-xs" style={{ color: META }}>
-                <span>{product.qty}</span>
-                {product.terjual && <span>{product.terjual} terjual</span>}
+                <div className="flex items-center justify-center text-xs" style={{ color: META }}>
+                    <span>{product.qty}</span>
+                    {product.terjual && <span className="ml-2">{product.terjual} terjual</span>}
                 </div>
             </div>
         </div>

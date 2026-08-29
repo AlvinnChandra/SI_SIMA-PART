@@ -1,5 +1,5 @@
 const HEADING = "#101828";
-const BODY = "#f3f4f6";
+const BODY = "#667085";
 const ACCENT = "#EE4D2D";
 
 export default function CheckboxFilter({ title, options = [], selected = [], onChange }) {

@@ -2,7 +2,7 @@ import { FaList } from "react-icons/fa";
 
 const ALL_LABEL = "Semua";
 
-const BODY = "#f3f4f6";
+const BODY = "#667085";
 const ACCENT_TEXT = "#16171d";
 const ACCENT_BG = "#f3f4f6";
 
