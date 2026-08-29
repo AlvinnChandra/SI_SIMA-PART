@@ -46,7 +46,7 @@ export default function ProductCard({ product, onEdit, onPreview }) {
 
             {/* text content */}
             <div className="flex flex-col gap-1 p-2.5">
-                <span className="font-mono text-[10px] tracking-wide" style={{ color: KODE }}>
+                <span className="font-mono text-xs font-medium tracking-wide" style={{ color: "#667085" }}>
                     {product.kode}
                 </span>
 
