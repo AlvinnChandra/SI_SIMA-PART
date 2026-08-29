@@ -1,0 +1,389 @@
+/* ============ PAGE HEADER ============ */
+.page-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.page-header-row h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.page-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ============ STATUS TABS ============ */
+.order-status-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 20px 0;
+    border-bottom: 1px solid #e5e5e5;
+    flex-wrap: wrap;
+}
+
+.status-tab {
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.status-tab:hover {
+    color: #1a1a1a;
+}
+
+.status-tab.active {
+    color: #2563eb;
+    border-bottom: 2px solid #2563eb;
+}
+
+/* ============ ORDER TABLE ============ */
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    margin-top: 16px;
+}
+
+.order-table thead {
+    background: #f9fafb;
+}
+
+.order-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.order-table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.order-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ============ STATUS BADGE ============ */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-badge.status-masuk {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.status-badge.status-disiapkan {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-badge.status-selesai {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* ============ EMPTY STATE ============ */
+.empty-state {
+    text-align: center;
+    padding: 40px 0;
+    color: #999;
+    font-size: 14px;
+}
+
+/* ============ PAGINATION ============ */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+    padding: 12px 0;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    padding: 8px 14px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-numbers {
+    display: flex;
+    gap: 6px;
+}
+
+.pagination-number {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-number:hover {
+    background: #f3f4f6;
+}
+
+.pagination-number.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+/* ---------- BADGE STATUS ORDER (tambahan, pakai base sima-table__badge) ---------- */
+
+.status-badge--masuk {
+    background: rgba(234, 179, 8, 0.14);
+    color: #b45309;
+}
+
+.status-badge--disiapkan {
+    background: rgba(30, 58, 138, 0.1);
+    color: var(--navy);
+}
+
+.status-badge--selesai {
+    background: rgba(30, 158, 90, 0.12);
+    color: #1E9E5A;
+}
+
+/* ---------- MODAL DETAIL PESANAN (tambahan) ---------- */
+
+.sima-table-modal--wide {
+    max-width: 1100px;
+    width: 92vw;
+}
+
+.sima-table-modal__info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--steel-line);
+}
+
+.sima-table-modal__info-grid p {
+    margin: 0.15rem 0 0;
+    font-size: 0.9rem;
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.sima-table-modal__footer--between {
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sima-table-modal__total {
+    font-size: 0.9rem;
+    color: var(--steel);
+}
+
+.sima-table-modal__total strong {
+    color: var(--ink);
+    font-size: 1rem;
+}
+
+/* ---------- MODAL DETAIL PESANAN: scroll + search item (tambahan, FIXED) ---------- */
+
+/* Modal jadi tinggi tetap, body-nya yang scroll (bukan halaman) */
+.sima-table-modal--tall {
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.sima-table-modal--tall .sima-table-modal__body {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    /* WAJIB: tanpa ini flex item tidak mau menyusut, jadi scroll tidak jalan */
+}
+
+/* Badge jumlah item di sebelah judul modal */
+.sima-table-modal__item-count {
+    margin-left: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--steel);
+    background: rgba(30, 58, 138, 0.08);
+    padding: 2px 8px;
+    border-radius: 999px;
+    vertical-align: middle;
+}
+
+/* Search box untuk cari barang di dalam modal */
+.sima-table-modal__item-search {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--steel-line);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.sima-table-modal__item-search:focus {
+    outline: none;
+    border-color: var(--navy);
+}
+
+/* Wrapper tabel item: scroll internal, tinggi menyesuaikan sisa ruang modal */
+.sima-table-wrap--scroll {
+    max-height: 50vh;
+    overflow-y: auto;
+    border: 1px solid var(--steel-line);
+    border-radius: 8px;
+    min-height: 0;
+}
+
+/* Header tabel nempel di atas pas scroll */
+.sima-table--sticky-head thead th {
+    position: sticky;
+    top: 0;
+    background: #f9fafb;
+    z-index: 1;
+}
+
+/* ---------- WRAPPER TOMBOL AKSI (tambahan) ---------- */
+.sima-table__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* ---------- BASE TOMBOL AKSI (tambahan) ---------- */
+.sima-table__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--steel-line);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.sima-table__btn svg {
+    display: block;
+}
+
+/* ---------- TOMBOL LIHAT DETAIL (view/edit) (tambahan) ---------- */
+.sima-table__btn--edit {
+    color: var(--navy, #1e3a8a);
+}
+
+.sima-table__btn--edit:hover {
+    background-color: rgba(30, 58, 138, 0.08);
+    border-color: var(--navy, #1e3a8a);
+}
+
+/* ---------- TOMBOL DELETE (tambahan) ---------- */
+.sima-table__btn--delete {
+    color: #dc2626;
+}
+
+.sima-table__btn--delete:hover {
+    background-color: #fee2e2;
+    border-color: #dc2626;
+}
+
+/* ---------- MODAL KONFIRMASI DELETE (tambahan) ---------- */
+.sima-table-modal--confirm .sima-table-modal__body p {
+    margin: 0 0 8px;
+}
+
+.sima-table-modal__warning-text {
+    color: #dc2626;
+    font-size: 0.85rem;
+}
+
+.sima-table-modal__btn--danger {
+    background-color: #dc2626;
+    color: #fff;
+    border: none;
+}
+
+.sima-table-modal__btn--danger:hover {
+    background-color: #b91c1c;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .order-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .page-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pagination {
+        gap: 10px;
+    }
+
+    .pagination-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
