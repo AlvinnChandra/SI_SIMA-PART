@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../css/salesTable.css";
 
 // Status verifikasi yang tersedia
@@ -520,17 +520,31 @@ function EditSalesModal({ sales, onClose, onSave }) {
     );
 }
 
-function SalesTable({ data = dummySales }) {
+function SalesTable({ data = dummySales, keyword = "" }) {
     const [salesData, setSalesData] = useState(data);
     const [currentPage, setCurrentPage] = useState(1);
     const [preview, setPreview] = useState(null); // { src, alt, fileName }
     const [editingSales, setEditingSales] = useState(null); // objek sales yg diedit
     const [deletingSales, setDeletingSales] = useState(null); // objek sales yg mau dihapus
 
-    const totalPages = Math.ceil(salesData.length / ITEMS_PER_PAGE);
+    // Filter data berdasarkan nama sales
+    const filteredSales = salesData.filter((sales) =>
+        sales.namaSales.toLowerCase().includes(keyword.toLowerCase().trim())
+    );
+
+    // Kembali ke halaman 1 setiap kali keyword pencarian berubah
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [keyword]);
+
+    // Pagination berdasarkan hasil pencarian
+    const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE);
 
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentData = salesData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const currentData = filteredSales.slice(
+        startIndex,
+        startIndex + ITEMS_PER_PAGE
+    );
 
     const handleVerifikasiChange = (id, value) => {
         setSalesData((prev) =>
@@ -608,7 +622,9 @@ function SalesTable({ data = dummySales }) {
                     {currentData.length === 0 ? (
                         <tr>
                             <td colSpan={12} className="sima-sales-table__empty">
-                                Belum ada data sales.
+                                {keyword.trim()
+                                    ? `Data sales dengan nama "${keyword}" tidak ditemukan.`
+                                    : "Belum ada data sales."}
                             </td>
                         </tr>
                     ) : (
@@ -779,9 +795,9 @@ function SalesTable({ data = dummySales }) {
                         Menampilkan {startIndex + 1}–
                         {Math.min(
                             startIndex + ITEMS_PER_PAGE,
-                            salesData.length
+                            filteredSales.length
                         )}{" "}
-                        dari {salesData.length} data
+                        dari {filteredSales.length} data
                     </span>
 
                     <div className="sima-sales-pagination__controls">

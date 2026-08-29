@@ -7,7 +7,6 @@ import ExportExcelButton from "../components/exportExcel";
 import SalesTable from "../fitur/salesTable";
 import "../css/global.css";
 
-
 function DataSales() {
     const [keyword, setKeyword] = useState("");
 
@@ -24,10 +23,12 @@ function DataSales() {
     return (
         <div className="dashboard-layout">
             <Header />
+
             <main className="dashboard-content">
 
                 <div className="page-header-row">
                     <h1>Data Sales</h1>
+
                     <div className="page-header-actions">
                         <ExportExcelButton onClick={handleExportExcel} />
                         <ExportPdfButton onClick={handleExportPdf} />
@@ -39,9 +40,10 @@ function DataSales() {
                     onSearch={setKeyword}
                 />
 
-                <SalesTable />
+                <SalesTable keyword={keyword} />
 
             </main>
+
             <Footer />
         </div>
     );
