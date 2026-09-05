@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useLayoutEffect } from "react";
 import "../css/salesTable.css";
 
 // Status verifikasi yang tersedia
@@ -91,6 +91,18 @@ const UPLOAD_FIELDS = [
     { key: "fotoSimC", label: "Foto SIM C", accept: "image/*", type: "image" },
     { key: "cv", label: "CV", accept: "application/pdf", type: "file" },
 ];
+
+// ---------- HOOK: KUNCI SCROLL BODY SAAT MODAL/LIGHTBOX TERBUKA ----------
+function useLockBodyScroll() {
+    useLayoutEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
+}
 
 function toWaLink(noTelepon) {
     if (!noTelepon) return null;
@@ -302,6 +314,8 @@ function CvFile({ src, namaSales }) {
 
 // ---------- MODAL: KONFIRMASI HAPUS ----------
 function DeleteConfirmModal({ sales, onCancel, onConfirm }) {
+    useLockBodyScroll();
+
     return (
         <div className="sima-sales-modal-overlay" onClick={onCancel} role="button" tabIndex={-1}>
             <div
@@ -349,6 +363,7 @@ function DeleteConfirmModal({ sales, onCancel, onConfirm }) {
 function EditSalesModal({ sales, onClose, onSave }) {
     const [form, setForm] = useState({ ...sales });
     const [uploading, setUploading] = useState(null); // key field yg lagi diproses
+    useLockBodyScroll();
 
     const handleTextChange = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -515,6 +530,48 @@ function EditSalesModal({ sales, onClose, onSave }) {
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    );
+}
+
+// ---------- LIGHTBOX PREVIEW (juga dianggap "popup" -> kunci scroll juga) ----------
+function LightboxPreview({ preview, onClose }) {
+    useLockBodyScroll();
+
+    return (
+        <div
+            className="sima-sales-table__lightbox"
+            onClick={onClose}
+            role="button"
+            tabIndex={-1}
+        >
+            <div
+                className="sima-sales-table__lightbox-inner"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    type="button"
+                    className="sima-sales-table__lightbox-close"
+                    onClick={onClose}
+                    aria-label="Tutup"
+                >
+                    ×
+                </button>
+
+                <img src={preview.src} alt={preview.alt} />
+                <p>{preview.alt}</p>
+
+                <a
+                    className="sima-sales-table__lightbox-download"
+                    href={preview.src}
+                    download={preview.fileName}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <IconDownload />
+                    Download
+                </a>
             </div>
         </div>
     );
@@ -867,40 +924,7 @@ function SalesTable({ data = dummySales, keyword = "" }) {
 
             {/* ---------- LIGHTBOX PREVIEW ---------- */}
             {preview && (
-                <div
-                    className="sima-sales-table__lightbox"
-                    onClick={closePreview}
-                    role="button"
-                    tabIndex={-1}
-                >
-                    <div
-                        className="sima-sales-table__lightbox-inner"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            className="sima-sales-table__lightbox-close"
-                            onClick={closePreview}
-                            aria-label="Tutup"
-                        >
-                            ×
-                        </button>
-
-                        <img src={preview.src} alt={preview.alt} />
-                        <p>{preview.alt}</p>
-
-                        <a
-                            className="sima-sales-table__lightbox-download"
-                            href={preview.src}
-                            download={preview.fileName}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <IconDownload />
-                            Download
-                        </a>
-                    </div>
-                </div>
+                <LightboxPreview preview={preview} onClose={closePreview} />
             )}
 
             {/* ---------- MODAL EDIT ---------- */}
