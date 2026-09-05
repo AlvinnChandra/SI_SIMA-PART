@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import "../css/tokoTable.css";
 
 // ---------- DATA DUMMY ----------
@@ -19,6 +19,18 @@ export const dummyToko = [
 
 const ITEMS_PER_PAGE = 5;
 
+// ---------- HOOK: KUNCI SCROLL BODY SAAT MODAL TERBUKA ----------
+function useLockBodyScroll() {
+    useLayoutEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
+}
+
 function IconAlertTriangle() {
     return (
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -31,6 +43,8 @@ function IconAlertTriangle() {
 
 // ---------- MODAL: KONFIRMASI HAPUS ----------
 function DeleteConfirmModal({ toko, onCancel, onConfirm }) {
+    useLockBodyScroll();
+
     return (
         <div className="sima-table-modal-overlay" onClick={onCancel} role="button" tabIndex={-1}>
             <div
@@ -77,6 +91,7 @@ function DeleteConfirmModal({ toko, onCancel, onConfirm }) {
 // ---------- MODAL: EDIT TOKO (form sesuai field data) ----------
 function EditTokoModal({ toko, onClose, onSave }) {
     const [form, setForm] = useState({ ...toko });
+    useLockBodyScroll();
 
     const handleChange = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
