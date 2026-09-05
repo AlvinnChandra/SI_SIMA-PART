@@ -201,6 +201,72 @@
     color: #1E9E5A;
 }
 
+/* ---------- STATUS DROPDOWN (badge status yang bisa diklik buat ganti status) ---------- */
+
+.status-dropdown__trigger {
+    cursor: pointer;
+    border: none;
+}
+
+.status-dropdown__trigger--open {
+    border-radius: 6px 6px 0 0;
+}
+
+.status-dropdown__trigger--locked {
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+.status-dropdown__menu {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    min-width: max-content;
+}
+
+/* Menu di-render via portal ke document.body dengan position: fixed,
+   jadi ditaruh di atas semua elemen lain dan tidak kepotong overflow tabel */
+.status-dropdown__menu--portal {
+    z-index: 1000;
+}
+
+.status-dropdown__option {
+    display: block;
+    width: 100%;
+    background: #fff;
+    border: none;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap;
+    color: #374151;
+}
+
+.status-dropdown__option:hover {
+    background: #f3f4f6;
+}
+
+/* Warna tiap opsi mengikuti warna badge status masing-masing */
+.status-dropdown__option--masuk.status-dropdown__option--active {
+    background: #f59e0b;
+    color: #fff;
+}
+
+.status-dropdown__option--disiapkan.status-dropdown__option--active {
+    background: var(--navy, #1e3a8a);
+    color: #fff;
+}
+
+.status-dropdown__option--selesai.status-dropdown__option--active {
+    background: #1E9E5A;
+    color: #fff;
+}
+
 /* ---------- MODAL DETAIL PESANAN (tambahan) ---------- */
 
 .sima-table-modal--wide {
@@ -283,9 +349,12 @@
 }
 
 /* Wrapper tabel item: scroll internal, tinggi menyesuaikan sisa ruang modal */
+/* !important dipakai karena base .sima-table-wrap di global.css kemungkinan
+   sudah set overflow: hidden (untuk lengkungan sudut tabel biasa), yang tanpa
+   ini akan menimpa overflow-y: auto di sini dan bikin konten kepotong tanpa scroll */
 .sima-table-wrap--scroll {
-    max-height: 50vh;
-    overflow-y: auto;
+    max-height: 50vh !important;
+    overflow-y: auto !important;
     border: 1px solid var(--steel-line);
     border-radius: 8px;
     min-height: 0;
@@ -305,6 +374,13 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
+}
+
+/* ---------- WRAPPER TOMBOL DI HEADER MODAL (Export PDF + tombol close) ---------- */
+.sima-table-modal__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 /* ---------- BASE TOMBOL AKSI (tambahan) ---------- */
