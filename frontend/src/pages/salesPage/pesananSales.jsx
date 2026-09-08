@@ -1031,7 +1031,7 @@ function PesananSales() {
         // Kirim payload ke backend/API
 
         bukaAlert(
-            "Pesanan tersimpan (cek console untuk payload)"
+            "Pesanan tersimpan"
         );
 
         hapusDraft();
