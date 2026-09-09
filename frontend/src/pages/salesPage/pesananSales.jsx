@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Header from "../../components/headerSales";
+import Footer from "../../components/footer";
 import { dummyToko } from "../../fitur/tokoTable";
 import "../../css/pesananSales.css";
 
@@ -1045,7 +1046,8 @@ function PesananSales() {
     // ==================================================
 
     return (
-        <>
+        <div className="page-wrapper">
+
             <Header />
 
             <main className="pesanan-container">
@@ -1975,6 +1977,7 @@ function PesananSales() {
 
             </main>
 
+            <Footer />
 
             <LeaveModal
                 show={showLeaveModal}
@@ -1990,7 +1993,7 @@ function PesananSales() {
                 onClose={tutupNotif}
             />
 
-        </>
+        </div>
     );
 }
 

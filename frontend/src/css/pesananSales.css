@@ -5,6 +5,22 @@
 
 
 /* =====================================================
+   PAGE WRAPPER
+   Membungkus Header + main + Footer supaya Footer
+   selalu nempel di paling bawah layar, walau konten
+   pendek (misal saat "Belum Ada Pesanan").
+===================================================== */
+
+.page-wrapper {
+    display: flex;
+
+    flex-direction: column;
+
+    min-height: 100vh;
+}
+
+
+/* =====================================================
    CONTAINER
 ===================================================== */
 
@@ -15,6 +31,13 @@
     padding: 50px 50px 45px;
     box-sizing: border-box;
     zoom: 1.05;
+
+    /*
+        Membuat <main> mengisi semua ruang kosong
+        di antara Header dan Footer, sehingga Footer
+        terdorong ke paling bawah halaman.
+    */
+    flex: 1;
 }
 
 
