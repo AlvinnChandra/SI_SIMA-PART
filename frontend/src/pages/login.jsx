@@ -57,6 +57,7 @@ function Login() {
             }
 
             // simpan token & data user
+            // simpan token & data user
             if (remember) {
                 localStorage.setItem("simaToken", data.token);
                 localStorage.setItem("simaUser", JSON.stringify(data.user));
@@ -65,7 +66,12 @@ function Login() {
                 sessionStorage.setItem("simaUser", JSON.stringify(data.user));
             }
 
-            navigate("/katalog");
+            // arahkan sesuai role
+            if (data.user.role === "admin") {
+                navigate("/katalog");
+            } else {
+                navigate("/katalogSales");
+            }
         } catch (err) {
             setError(err.message);
         } finally {
