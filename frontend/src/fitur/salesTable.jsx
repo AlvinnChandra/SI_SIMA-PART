@@ -1,85 +1,82 @@
 import { useEffect, useState, useLayoutEffect } from "react";
 import "../css/salesTable.css";
 
-// Status verifikasi yang tersedia
+const API_BASE_URL = "http://localhost:3000/api";
+const FILE_BASE_URL = "http://localhost:3000/uploads";
+
+// Status verifikasi yang tersedia (label di UI)
 const VERIFIKASI_STATUS = {
     MENUNGGU: "Menunggu",
     BERHASIL: "Berhasil",
     TIDAK_BERHASIL: "TidakBerhasil",
 };
 
-const dummySales = [
-    {
-        id: 1, namaSales: "Budi Santoso", nik: "3273010101900001", noTelepon: "0812-1111-2222", alamat: "Jl. Melati No. 5, Jakarta Selatan",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        cv: "https://placehold.co/pdf/cv-budi-santoso.pdf",
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 2, namaSales: "Siti Rahayu", nik: "3204020202920002", noTelepon: "0813-2222-3333", alamat: "Jl. Kenanga No. 10, Bandung",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        cv: null,
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 3, namaSales: "Ahmad Fauzi", nik: "3578030303950003", noTelepon: "0857-3333-4444", alamat: "Jl. Anggrek No. 7, Surabaya",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: null,
-        cv: "https://placehold.co/pdf/cv-ahmad-fauzi.pdf",
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 4, namaSales: "Dewi Lestari", nik: "3374040404880004", noTelepon: "0821-4444-5555", alamat: "Jl. Mawar No. 21, Semarang",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: null,
-        cv: null,
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 5, namaSales: "Rizky Pratama", nik: "3471050505930005", noTelepon: "0878-5555-6666", alamat: "Jl. Cempaka No. 3, Yogyakarta",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        cv: "https://placehold.co/pdf/cv-rizky-pratama.pdf",
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 6, namaSales: "Nur Aini", nik: "3573060606910006", noTelepon: "0812-6666-7777", alamat: "Jl. Flamboyan No. 17, Malang",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: null,
-        cv: null,
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 7, namaSales: "Hendra Wijaya", nik: "1271070707890007", noTelepon: "0813-7777-8888", alamat: "Jl. Mangga No. 55, Medan",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: null,
-        cv: null,
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 8, namaSales: "Putri Ayu", nik: "7371080808940008", noTelepon: "0857-8888-9999", alamat: "Jl. Jambu No. 9, Makassar",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: null,
-        cv: "https://placehold.co/pdf/cv-putri-ayu.pdf",
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 9, namaSales: "Fajar Nugroho", nik: "1671090909920009", noTelepon: "0821-9999-0000", alamat: "Jl. Rambutan No. 33, Palembang",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: "https://placehold.co/200x130?text=SIM+A", fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        cv: "https://placehold.co/pdf/cv-fajar-nugroho.pdf",
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-    {
-        id: 10, namaSales: "Indah Permata", nik: "5171100000970010", noTelepon: "0878-0000-1111", alamat: "Jl. Duku No. 14, Denpasar",
-        fotoProfil: "https://placehold.co/120x120?text=Foto",
-        fotoKtp: "https://placehold.co/200x130?text=KTP", fotoSimA: null, fotoSimC: "https://placehold.co/200x130?text=SIM+C",
-        cv: null,
-        verifikasi: VERIFIKASI_STATUS.MENUNGGU
-    },
-];
+// Mapping status backend ("pending" | "active" | "rejected")
+// ke label verifikasi yang dipakai di UI
+function statusToVerifikasi(status) {
+    if (status === "active") return VERIFIKASI_STATUS.BERHASIL;
+    if (status === "rejected") return VERIFIKASI_STATUS.TIDAK_BERHASIL;
+    return VERIFIKASI_STATUS.MENUNGGU;
+}
+
+// Mapping sebaliknya, dari pilihan UI ke status yang dikirim ke backend
+function verifikasiToStatus(verifikasi) {
+    if (verifikasi === VERIFIKASI_STATUS.BERHASIL) return "active";
+    if (verifikasi === VERIFIKASI_STATUS.TIDAK_BERHASIL) return "rejected";
+    return "pending";
+}
+
+// Ubah nama file (yang tersimpan di DB) jadi URL lengkap ke folder uploads
+function toFileUrl(filename) {
+    if (!filename) return null;
+    return `${FILE_BASE_URL}/${filename}`;
+}
+
+// Ubah 1 dokumen user dari backend jadi bentuk yang dipakai tabel ini
+function mapUserToSales(user) {
+    return {
+        id: user._id,
+        namaSales: user.namaLengkap,
+        nik: user.nik,
+        noTelepon: user.noTelepon,
+        alamat: user.alamat,
+        fotoProfil: toFileUrl(user.fotoProfile),
+        fotoKtp: toFileUrl(user.fotoKtp),
+        fotoSimA: toFileUrl(user.fotoSimA),
+        fotoSimC: toFileUrl(user.fotoSimC),
+        cv: toFileUrl(user.cv),
+        verifikasi: statusToVerifikasi(user.status),
+    };
+}
+
+function getAuthToken() {
+    return (
+        localStorage.getItem("simaToken") || sessionStorage.getItem("simaToken")
+    );
+}
+
+async function apiFetch(path, options = {}) {
+    const token = getAuthToken();
+
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers: {
+            ...(options.body instanceof FormData
+                ? {}
+                : { "Content-Type": "application/json" }),
+            Authorization: `Bearer ${token}`,
+            ...options.headers,
+        },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.message || "Terjadi kesalahan.");
+    }
+
+    return data;
+}
 
 const ITEMS_PER_PAGE = 5;
 
@@ -91,6 +88,15 @@ const UPLOAD_FIELDS = [
     { key: "fotoSimC", label: "Foto SIM C", accept: "image/*", type: "image" },
     { key: "cv", label: "CV", accept: "application/pdf", type: "file" },
 ];
+
+// Field foto/dokumen -> nama field yang dipakai backend saat upload ulang
+const UPLOAD_FIELD_TO_BACKEND_KEY = {
+    fotoProfil: "fotoProfile",
+    fotoKtp: "fotoKtp",
+    fotoSimA: "fotoSimA",
+    fotoSimC: "fotoSimC",
+    cv: "cv",
+};
 
 // ---------- HOOK: KUNCI SCROLL BODY SAAT MODAL/LIGHTBOX TERBUKA ----------
 function useLockBodyScroll() {
@@ -107,10 +113,8 @@ function useLockBodyScroll() {
 function toWaLink(noTelepon) {
     if (!noTelepon) return null;
 
-    // Bersihkan karakter selain angka (hapus strip, spasi, dll)
     const digitsOnly = noTelepon.replace(/\D/g, "");
 
-    // Ganti awalan 0 jadi 62
     const waNumber = digitsOnly.startsWith("0")
         ? "62" + digitsOnly.slice(1)
         : digitsOnly;
@@ -118,7 +122,6 @@ function toWaLink(noTelepon) {
     return `https://wa.me/${waNumber}`;
 }
 
-// Kelas CSS untuk tiap status verifikasi
 function getVerifikasiMeta(status) {
     switch (status) {
         case VERIFIKASI_STATUS.BERHASIL:
@@ -131,15 +134,10 @@ function getVerifikasiMeta(status) {
     }
 }
 
-// Status sudah final (Berhasil / Tidak Berhasil) -> tidak boleh diubah lagi,
-// termasuk tidak boleh balik lagi ke "Menunggu". Hanya status "Menunggu"
-// yang masih boleh diedit.
 function isVerifikasiLocked(status) {
     return status !== VERIFIKASI_STATUS.MENUNGGU;
 }
 
-// Bikin nama file yang rapi buat proses download,
-// misalnya "Budi_Santoso_KTP.jpg"
 function buildDownloadFileName(namaSales, label, src) {
     const cleanName = namaSales.trim().replace(/\s+/g, "_");
     const extMatch = src.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
@@ -147,10 +145,6 @@ function buildDownloadFileName(namaSales, label, src) {
     return `${cleanName}_${label}.${ext}`;
 }
 
-// Baca file yang dipilih user jadi data URL, biar bisa langsung dipreview
-// tanpa perlu upload ke server dulu.
-// nanti di sini logic buat upload file ini ke backend/storage, lalu
-// field-nya diisi dengan URL hasil upload (bukan data URL lagi)
 function readFileAsDataUrl(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -218,7 +212,6 @@ function IconUpload() {
     );
 }
 
-// Foto/dokumen (KTP, SIM A, SIM C) — bisa dilihat & didownload
 function DocPhoto({ src, alt, label, namaSales, onPreview }) {
     if (!src) {
         return (
@@ -254,7 +247,6 @@ function DocPhoto({ src, alt, label, namaSales, onPreview }) {
     );
 }
 
-// Foto profil sales — ditampilkan sebagai avatar bulat
 function ProfilePhoto({ src, namaSales, onPreview }) {
     if (!src) {
         return (
@@ -276,7 +268,6 @@ function ProfilePhoto({ src, namaSales, onPreview }) {
     );
 }
 
-// CV — dokumen (biasanya PDF), langsung dibuka/didownload, tanpa lightbox
 function CvFile({ src, namaSales }) {
     if (!src) {
         return (
@@ -312,7 +303,6 @@ function CvFile({ src, namaSales }) {
     );
 }
 
-// ---------- MODAL: KONFIRMASI HAPUS ----------
 function DeleteConfirmModal({ sales, onCancel, onConfirm }) {
     useLockBodyScroll();
 
@@ -359,10 +349,10 @@ function DeleteConfirmModal({ sales, onCancel, onConfirm }) {
     );
 }
 
-// ---------- MODAL: EDIT SALES (form sesuai field data) ----------
 function EditSalesModal({ sales, onClose, onSave }) {
     const [form, setForm] = useState({ ...sales });
-    const [uploading, setUploading] = useState(null); // key field yg lagi diproses
+    const [newFiles, setNewFiles] = useState({}); // key -> File asli, untuk dikirim ke backend
+    const [uploading, setUploading] = useState(null);
     useLockBodyScroll();
 
     const handleTextChange = (field, value) => {
@@ -375,6 +365,7 @@ function EditSalesModal({ sales, onClose, onSave }) {
         try {
             const dataUrl = await readFileAsDataUrl(file);
             setForm((prev) => ({ ...prev, [field]: dataUrl }));
+            setNewFiles((prev) => ({ ...prev, [field]: file }));
         } finally {
             setUploading(null);
         }
@@ -382,11 +373,16 @@ function EditSalesModal({ sales, onClose, onSave }) {
 
     const handleRemoveFile = (field) => {
         setForm((prev) => ({ ...prev, [field]: null }));
+        setNewFiles((prev) => {
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(form);
+        onSave(form, newFiles);
     };
 
     return (
@@ -413,7 +409,6 @@ function EditSalesModal({ sales, onClose, onSave }) {
                 <form onSubmit={handleSubmit}>
                     <div className="sima-sales-modal__body">
 
-                        {/* ---- FIELD TEKS ---- */}
                         <div className="sima-sales-modal__field">
                             <label htmlFor="namaSales">Nama Sales</label>
                             <input
@@ -462,7 +457,6 @@ function EditSalesModal({ sales, onClose, onSave }) {
                             />
                         </div>
 
-                        {/* ---- FIELD DOKUMEN ---- */}
                         <div className="sima-sales-modal__uploads">
                             {UPLOAD_FIELDS.map(({ key, label, accept, type }) => (
                                 <div className="sima-sales-modal__upload" key={key}>
@@ -535,7 +529,6 @@ function EditSalesModal({ sales, onClose, onSave }) {
     );
 }
 
-// ---------- LIGHTBOX PREVIEW (juga dianggap "popup" -> kunci scroll juga) ----------
 function LightboxPreview({ preview, onClose }) {
     useLockBodyScroll();
 
@@ -577,24 +570,41 @@ function LightboxPreview({ preview, onClose }) {
     );
 }
 
-function SalesTable({ data = dummySales, keyword = "" }) {
-    const [salesData, setSalesData] = useState(data);
+function SalesTable({ keyword = "" }) {
+    const [salesData, setSalesData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [preview, setPreview] = useState(null); // { src, alt, fileName }
-    const [editingSales, setEditingSales] = useState(null); // objek sales yg diedit
-    const [deletingSales, setDeletingSales] = useState(null); // objek sales yg mau dihapus
+    const [preview, setPreview] = useState(null);
+    const [editingSales, setEditingSales] = useState(null);
+    const [deletingSales, setDeletingSales] = useState(null);
 
-    // Filter data berdasarkan nama sales
+    // ---------- AMBIL DATA SALES DARI BACKEND ----------
+    const loadSales = async () => {
+        setLoading(true);
+        setErrorMsg("");
+        try {
+            const data = await apiFetch("/users/sales");
+            setSalesData(data.map(mapUserToSales));
+        } catch (err) {
+            setErrorMsg(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadSales();
+    }, []);
+
     const filteredSales = salesData.filter((sales) =>
         sales.namaSales.toLowerCase().includes(keyword.toLowerCase().trim())
     );
 
-    // Kembali ke halaman 1 setiap kali keyword pencarian berubah
     useEffect(() => {
         setCurrentPage(1);
     }, [keyword]);
 
-    // Pagination berdasarkan hasil pencarian
     const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE);
 
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -603,47 +613,81 @@ function SalesTable({ data = dummySales, keyword = "" }) {
         startIndex + ITEMS_PER_PAGE
     );
 
-    const handleVerifikasiChange = (id, value) => {
-        setSalesData((prev) =>
-            prev.map((sales) => {
-                // Guard: kalau status sales ini sudah final (bukan Menunggu),
-                // jangan biarkan diubah lagi -> tidak bisa balik ke semula.
-                if (sales.id !== id) return sales;
-                if (isVerifikasiLocked(sales.verifikasi)) return sales;
+    // ---------- UPDATE STATUS VERIFIKASI ----------
+    const handleVerifikasiChange = async (id, value) => {
+        const targetSales = salesData.find((s) => s.id === id);
+        if (!targetSales || isVerifikasiLocked(targetSales.verifikasi)) return;
 
-                return { ...sales, verifikasi: value };
-            })
+        // update tampilan dulu (optimistic), nanti dikoreksi kalau gagal
+        setSalesData((prev) =>
+            prev.map((sales) =>
+                sales.id === id ? { ...sales, verifikasi: value } : sales
+            )
         );
 
-        // nanti di sini logic buat kirim perubahan status verifikasi ke backend
-        console.log("Update verifikasi:", id, value);
+        try {
+            await apiFetch(`/users/sales/${id}/verifikasi`, {
+                method: "PATCH",
+                body: JSON.stringify({ status: verifikasiToStatus(value) }),
+            });
+        } catch (err) {
+            alert(err.message);
+            // gagal -> balikin ke status semula
+            setSalesData((prev) =>
+                prev.map((sales) =>
+                    sales.id === id ? { ...sales, verifikasi: targetSales.verifikasi } : sales
+                )
+            );
+        }
     };
 
     const handleEdit = (sales) => {
         setEditingSales(sales);
     };
 
-    const handleSaveEdit = (updatedSales) => {
-        setSalesData((prev) =>
-            prev.map((sales) => (sales.id === updatedSales.id ? updatedSales : sales))
-        );
-        setEditingSales(null);
+    // ---------- SIMPAN EDIT KE BACKEND ----------
+    const handleSaveEdit = async (updatedForm, newFiles) => {
+        try {
+            const formData = new FormData();
+            formData.append("namaLengkap", updatedForm.namaSales);
+            formData.append("nik", updatedForm.nik);
+            formData.append("noTelepon", updatedForm.noTelepon);
+            formData.append("alamat", updatedForm.alamat);
 
-        // nanti di sini logic buat kirim perubahan data sales (termasuk file baru) ke backend
-        console.log("Simpan edit sales:", updatedSales);
+            Object.entries(newFiles).forEach(([uiKey, file]) => {
+                const backendKey = UPLOAD_FIELD_TO_BACKEND_KEY[uiKey];
+                if (backendKey && file) formData.append(backendKey, file);
+            });
+
+            const result = await apiFetch(`/users/sales/${updatedForm.id}`, {
+                method: "PUT",
+                body: formData,
+            });
+
+            setSalesData((prev) =>
+                prev.map((sales) =>
+                    sales.id === updatedForm.id ? mapUserToSales(result.user) : sales
+                )
+            );
+            setEditingSales(null);
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     const handleDelete = (sales) => {
         setDeletingSales(sales);
     };
 
-    const confirmDelete = () => {
-        setSalesData((prev) => prev.filter((s) => s.id !== deletingSales.id));
-
-        // nanti di sini logic buat kirim permintaan hapus ke backend
-        console.log("Hapus sales:", deletingSales.id);
-
-        setDeletingSales(null);
+    const confirmDelete = async () => {
+        try {
+            await apiFetch(`/users/sales/${deletingSales.id}`, { method: "DELETE" });
+            setSalesData((prev) => prev.filter((s) => s.id !== deletingSales.id));
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setDeletingSales(null);
+        }
     };
 
     const goToPage = (page) => {
@@ -653,6 +697,14 @@ function SalesTable({ data = dummySales, keyword = "" }) {
 
     const openPreview = (src, alt, fileName) => setPreview({ src, alt, fileName });
     const closePreview = () => setPreview(null);
+
+    if (loading) {
+        return <p className="sima-sales-table__empty">Memuat data sales...</p>;
+    }
+
+    if (errorMsg) {
+        return <p className="sima-sales-table__empty">Gagal memuat data: {errorMsg}</p>;
+    }
 
     return (
         <div className="sima-sales-table-wrap">
@@ -709,7 +761,6 @@ function SalesTable({ data = dummySales, keyword = "" }) {
 
                                     <td>{sales.nik}</td>
 
-                                    {/* LINK WHATSAPP */}
                                     <td>
                                         <a
                                             href={toWaLink(sales.noTelepon)}
@@ -844,7 +895,6 @@ function SalesTable({ data = dummySales, keyword = "" }) {
                 </tbody>
             </table>
 
-            {/* ---------- PAGINATION ---------- */}
             {totalPages > 1 && (
                 <div className="sima-sales-pagination">
 
@@ -922,12 +972,10 @@ function SalesTable({ data = dummySales, keyword = "" }) {
                 </div>
             )}
 
-            {/* ---------- LIGHTBOX PREVIEW ---------- */}
             {preview && (
                 <LightboxPreview preview={preview} onClose={closePreview} />
             )}
 
-            {/* ---------- MODAL EDIT ---------- */}
             {editingSales && (
                 <EditSalesModal
                     key={editingSales.id}
@@ -937,7 +985,6 @@ function SalesTable({ data = dummySales, keyword = "" }) {
                 />
             )}
 
-            {/* ---------- MODAL KONFIRMASI HAPUS ---------- */}
             {deletingSales && (
                 <DeleteConfirmModal
                     sales={deletingSales}

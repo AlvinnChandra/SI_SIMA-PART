@@ -17,7 +17,11 @@ const userSchema = new mongoose.Schema(
         fotoSimA: String,
         fotoSimC: String,
         role: { type: String, default: "sales" },
-        status: { type: String, default: "pending" }, // pending/active
+        status: {
+            type: String,
+            enum: ["pending", "active", "rejected"],
+            default: "pending",
+        },
     },
     { timestamps: true }
 );
