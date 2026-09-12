@@ -29,10 +29,9 @@ function Login() {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validasi form
         if (!form.username || !form.password) {
             setError("Username dan kata sandi wajib diisi.");
             return;
@@ -41,22 +40,37 @@ function Login() {
         setLoading(true);
         setError("");
 
-        // Simulasi proses login
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const res = await fetch("http://localhost:3000/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: form.username,
+                    password: form.password,
+                }),
+            });
 
-            // Simpan status login jika "Ingat saya" dicentang
-            if (remember) {
-                localStorage.setItem("simaLogin", "true");
-                localStorage.setItem("simaUsername", form.username);
-            } else {
-                sessionStorage.setItem("simaLogin", "true");
-                sessionStorage.setItem("simaUsername", form.username);
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Login gagal.");
             }
 
-            // Masuk ke dashboard
+            // simpan token & data user
+            if (remember) {
+                localStorage.setItem("simaToken", data.token);
+                localStorage.setItem("simaUser", JSON.stringify(data.user));
+            } else {
+                sessionStorage.setItem("simaToken", data.token);
+                sessionStorage.setItem("simaUser", JSON.stringify(data.user));
+            }
+
             navigate("/katalog");
-        }, 1200);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
