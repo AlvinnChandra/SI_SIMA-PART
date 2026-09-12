@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import logoSima from "../assets/logoSima.png";
+import ProfileModalSales from "./profileModalSales";
 import "../css/headerSales.css";
 
 const API_BASE_URL = "http://localhost:3000";
@@ -24,10 +26,19 @@ function getStoredUser() {
     }
 }
 
+function updateStoredUser(updatedUser) {
+    if (localStorage.getItem("simaUser")) {
+        localStorage.setItem("simaUser", JSON.stringify(updatedUser));
+    } else if (sessionStorage.getItem("simaUser")) {
+        sessionStorage.setItem("simaUser", JSON.stringify(updatedUser));
+    }
+}
+
 function Header() {
     const navigate = useNavigate();
 
-    const user = getStoredUser();
+    const [user, setUser] = useState(getStoredUser());
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
     // Nama lengkap dari data user yang tersimpan saat login
     const namaLengkap = user?.namaLengkap || "Sales";
@@ -48,6 +59,12 @@ function Header() {
         sessionStorage.removeItem("simaUser");
 
         navigate("/");
+    };
+
+    const handleProfileSaved = (updatedUser) => {
+        setUser(updatedUser);
+        updateStoredUser(updatedUser);
+        setShowProfileModal(false);
     };
 
     return (
@@ -80,22 +97,34 @@ function Header() {
             {/* ---------- RIGHT: PROFILE ---------- */}
             <div className="sima-header__profile">
 
-                <div className="sima-header__greeting">
+                <button
+                    type="button"
+                    className="sima-header__greeting sima-header__greeting--btn"
+                    onClick={() => setShowProfileModal(true)}
+                    title="Edit profil"
+                >
                     <span className="sima-header__hi">Hi! Welcome</span>
                     <span className="sima-header__name">{namaLengkap}</span>
-                </div>
+                </button>
 
-                {fotoProfil ? (
-                    <img
-                        src={fotoProfil}
-                        alt={`Foto profil ${namaLengkap}`}
-                        className="sima-header__avatar sima-header__avatar--img"
-                    />
-                ) : (
-                    <div className="sima-header__avatar" aria-hidden="true">
-                        {initial}
-                    </div>
-                )}
+                <button
+                    type="button"
+                    className="sima-header__avatar-btn"
+                    onClick={() => setShowProfileModal(true)}
+                    title="Edit profil"
+                >
+                    {fotoProfil ? (
+                        <img
+                            src={fotoProfil}
+                            alt={`Foto profil ${namaLengkap}`}
+                            className="sima-header__avatar sima-header__avatar--img"
+                        />
+                    ) : (
+                        <div className="sima-header__avatar" aria-hidden="true">
+                            {initial}
+                        </div>
+                    )}
+                </button>
 
                 <button
                     type="button"
@@ -121,6 +150,14 @@ function Header() {
                 </button>
 
             </div>
+
+            {showProfileModal && (
+                <ProfileModalSales
+                    currentUser={user}
+                    onClose={() => setShowProfileModal(false)}
+                    onSaved={handleProfileSaved}
+                />
+            )}
 
         </header>
     );

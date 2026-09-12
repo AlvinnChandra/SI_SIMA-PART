@@ -146,3 +146,47 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+.sima-profile-modal__photo-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.sima-profile-modal__photo-preview {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--steel-line, #e5e8ee);
+    flex-shrink: 0;
+}
+
+.sima-profile-modal__photo-fallback {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--navy, #10203d);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.sima-profile-modal__photo-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: var(--steel-light, #f2f4f8);
+    color: var(--ink, #10203d);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sima-profile-modal__photo-btn:hover {
+    background: var(--steel-line, #e5e8ee);
+}
