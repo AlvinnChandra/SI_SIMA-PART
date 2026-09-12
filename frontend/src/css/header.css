@@ -104,6 +104,7 @@
     color: var(--ink);
 }
 
+/* Avatar: dipakai baik untuk inisial (div) maupun foto profil asli (img) */
 .sima-header__avatar {
     width: 52px;
     height: 52px;
@@ -126,6 +127,12 @@
     transform: scale(1.05);
 }
 
+/* Modifier khusus saat avatar berupa foto profil (elemen <img>) */
+.sima-header__avatar--img {
+    object-fit: cover;
+    background: var(--steel-light);
+}
+
 .sima-header__logout {
     width: 40px;
     height: 40px;
@@ -144,15 +151,6 @@
 .sima-header__logout:hover {
     background: var(--red);
     color: var(--white);
-}
-
-/* Jika nanti pakai foto profil asli, ganti div .sima-header__avatar
-   dengan <img> dan style berikut: */
-.sima-header__avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
 }
 
 /* ---------- RESPONSIVE ---------- */

@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Header from "../../components/headerSales";
 import Footer from "../../components/footer";
-import { dummyToko } from "../../fitur/tokoTable";
 import "../../css/pesananSales.css";
 
 import { MOCK_BARANG, DRAFT_KEY, bacaDraft } from "./pesananSalesData";
@@ -18,7 +17,7 @@ function PesananSales() {
     // STATE TOKO
     // ==================================================
 
-    const [daftarToko, setDaftarToko] = useState(dummyToko);
+    const [daftarToko, setDaftarToko] = useState([]);
 
     const [keywordToko, setKeywordToko] = useState("");
 

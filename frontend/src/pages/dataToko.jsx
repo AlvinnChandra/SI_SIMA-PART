@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
@@ -6,13 +6,74 @@ import AddButton from "../components/AddButton";
 import ExportPdfButton from "../components/exportPDF";
 import ExportExcelButton from "../components/exportExcel";
 import AddTokoModal from "../fitur/addTokoModal";
-import TokoTable, { dummyToko } from "../fitur/tokoTable";
+import TokoTable from "../fitur/tokoTable";
 import "../css/global.css";
+
+const API_BASE_URL = "http://localhost:3000/api";
+
+function getAuthToken() {
+    return (
+        localStorage.getItem("simaToken") || sessionStorage.getItem("simaToken")
+    );
+}
+
+async function apiFetch(path, options = {}) {
+    const token = getAuthToken();
+
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            ...options.headers,
+        },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.message || "Terjadi kesalahan.");
+    }
+
+    return data;
+}
+
+// Ubah 1 dokumen toko dari backend jadi bentuk yang dipakai tabel ini
+function mapTokoFromBackend(toko) {
+    return {
+        id: toko._id,
+        namaToko: toko.namaToko,
+        alamat: toko.alamat,
+        noTelepon: toko.noTelepon,
+        inputBy: toko.inputBy,
+        role: toko.role, // "admin" | "sales", dipakai buat styling badge
+    };
+}
 
 function DataToko() {
     const [keyword, setKeyword] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [tokoData, setTokoData] = useState(dummyToko);
+    const [tokoData, setTokoData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState("");
+
+    // ---------- AMBIL DATA TOKO DARI BACKEND ----------
+    const loadToko = async () => {
+        setLoading(true);
+        setErrorMsg("");
+        try {
+            const data = await apiFetch("/toko");
+            setTokoData(data.map(mapTokoFromBackend));
+        } catch (err) {
+            setErrorMsg(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadToko();
+    }, []);
 
     const filteredToko = useMemo(() => {
         const k = keyword.trim().toLowerCase();
@@ -29,15 +90,23 @@ function DataToko() {
         setIsModalOpen(true);
     };
 
-    const handleSaveToko = (data) => {
-        setTokoData((prev) => [
-            ...prev,
-            { ...data, id: Date.now(), inputBy: "Admin" },
-        ]);
-        setIsModalOpen(false);
+    // ---------- SIMPAN TOKO BARU KE BACKEND ----------
+    const handleSaveToko = async (data) => {
+        try {
+            const result = await apiFetch("/toko", {
+                method: "POST",
+                body: JSON.stringify({
+                    namaToko: data.namaToko,
+                    alamat: data.alamat,
+                    noTelepon: data.noTelepon,
+                }),
+            });
 
-        // nanti di sini logic buat kirim data ke backend
-        console.log("Data toko baru:", data);
+            setTokoData((prev) => [mapTokoFromBackend(result.toko), ...prev]);
+            setIsModalOpen(false);
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     const handleExportPdf = () => {
@@ -67,7 +136,13 @@ function DataToko() {
                     onSearch={setKeyword}
                 />
 
-                <TokoTable data={filteredToko} setData={setTokoData} />
+                {loading ? (
+                    <p className="sima-table__empty">Memuat data toko...</p>
+                ) : errorMsg ? (
+                    <p className="sima-table__empty">Gagal memuat data: {errorMsg}</p>
+                ) : (
+                    <TokoTable data={filteredToko} setData={setTokoData} />
+                )}
 
             </main>
             <Footer />

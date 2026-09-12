@@ -44,63 +44,6 @@ function useLockBodyScroll() {
     }, []);
 }
 
-function IconAlertTriangle() {
-    return (
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-        </svg>
-    );
-}
-
-// ---------- MODAL: KONFIRMASI HAPUS ----------
-function DeleteConfirmModal({ toko, onCancel, onConfirm }) {
-    useLockBodyScroll();
-
-    return (
-        <div className="sima-table-modal-overlay" onClick={onCancel} role="button" tabIndex={-1}>
-            <div
-                className="sima-table-confirm"
-                onClick={(e) => e.stopPropagation()}
-                role="alertdialog"
-                aria-modal="true"
-                aria-labelledby="hapus-toko-title"
-            >
-                <span className="sima-table-confirm__icon">
-                    <IconAlertTriangle />
-                </span>
-
-                <h3 id="hapus-toko-title" className="sima-table-confirm__title">
-                    Hapus data toko?
-                </h3>
-
-                <p className="sima-table-confirm__desc">
-                    Data <strong>{toko.namaToko}</strong> akan dihapus permanen dan tidak
-                    bisa dikembalikan.
-                </p>
-
-                <div className="sima-table-confirm__actions">
-                    <button
-                        type="button"
-                        className="sima-table-modal__btn sima-table-modal__btn--ghost"
-                        onClick={onCancel}
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        className="sima-table-modal__btn sima-table-modal__btn--danger"
-                        onClick={onConfirm}
-                    >
-                        Ya, Hapus
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 // ---------- MODAL: EDIT TOKO (form sesuai field data) ----------
 function EditTokoModal({ toko, onClose, onSave }) {
     const [form, setForm] = useState({ ...toko });
@@ -210,7 +153,6 @@ function EditTokoModal({ toko, onClose, onSave }) {
 function TokoTable({ data, setData }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [editingToko, setEditingToko] = useState(null); // objek toko yg diedit
-    const [deletingToko, setDeletingToko] = useState(null); // objek toko yg mau dihapus
 
     const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
@@ -255,22 +197,6 @@ function TokoTable({ data, setData }) {
             setEditingToko(null);
         } catch (err) {
             alert(err.message);
-        }
-    };
-
-    const handleDelete = (toko) => {
-        setDeletingToko(toko);
-    };
-
-    // ---------- HAPUS DI BACKEND ----------
-    const confirmDelete = async () => {
-        try {
-            await apiFetch(`/toko/${deletingToko.id}`, { method: "DELETE" });
-            setData((prev) => prev.filter((t) => t.id !== deletingToko.id));
-        } catch (err) {
-            alert(err.message);
-        } finally {
-            setDeletingToko(null);
         }
     };
 
@@ -322,21 +248,6 @@ function TokoTable({ data, setData }) {
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                                 <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="sima-table__btn sima-table__btn--delete"
-                                            onClick={() => handleDelete(toko)}
-                                            aria-label={`Hapus ${toko.namaToko}`}
-                                            title="Hapus"
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                <path d="M10 11v6" />
-                                                <path d="M14 11v6" />
-                                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                                             </svg>
                                         </button>
                                     </div>
@@ -413,15 +324,6 @@ function TokoTable({ data, setData }) {
                     toko={editingToko}
                     onClose={() => setEditingToko(null)}
                     onSave={handleSaveEdit}
-                />
-            )}
-
-            {/* ---------- MODAL KONFIRMASI HAPUS ---------- */}
-            {deletingToko && (
-                <DeleteConfirmModal
-                    toko={deletingToko}
-                    onCancel={() => setDeletingToko(null)}
-                    onConfirm={confirmDelete}
                 />
             )}
 

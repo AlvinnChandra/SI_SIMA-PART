@@ -87,6 +87,7 @@ exports.login = async (req, res) => {
                 username: user.username,
                 role: user.role,
                 status: user.status,
+                fotoProfile: user.fotoProfile,
             },
         });
     } catch (err) {
