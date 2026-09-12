@@ -45,7 +45,7 @@ export default function ProductCard({ product }) {
                 </p>
 
                 <div className="flex items-center justify-between text-xs" style={{ color: META }}>
-                <span>{product.qty}</span>
+                <span>{product.keterangan}</span>
                 {product.terjual && <span>{product.terjual} terjual</span>}
                 </div>
             </div>

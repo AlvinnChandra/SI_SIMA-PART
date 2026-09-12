@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import logoSima from "../assets/logoSima.png";
+import { apiFetch } from "../services/apiClient";
 import "../css/login.css";
 
 function Login() {
@@ -29,7 +30,7 @@ function Login() {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Validasi form
@@ -41,22 +42,23 @@ function Login() {
         setLoading(true);
         setError("");
 
-        // Simulasi proses login
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const data = await apiFetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: form.username, password: form.password }),
+            });
 
-            // Simpan status login jika "Ingat saya" dicentang
-            if (remember) {
-                localStorage.setItem("simaLogin", "true");
-                localStorage.setItem("simaUsername", form.username);
-            } else {
-                sessionStorage.setItem("simaLogin", "true");
-                sessionStorage.setItem("simaUsername", form.username);
-            }
+            const storage = remember ? localStorage : sessionStorage;
+            storage.setItem("simaToken", data.token);
+            storage.setItem("simaUsername", form.username);
 
-            // Masuk ke dashboard
             navigate("/katalog");
-        }, 1200);
+        } catch (err) {
+            setError(err.message || "Login gagal, cek username/password.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
