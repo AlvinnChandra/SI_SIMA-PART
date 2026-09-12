@@ -12,16 +12,6 @@ import "../css/global.css";
 
 const API_BASE_URL = "http://localhost:3000/api";
 
-// ======================================================
-// KONFIGURASI PASSWORD
-// ======================================================
-// [PENTING] Ini HANYA proteksi ringan di sisi frontend.
-// Password ini tetap terlihat oleh siapa pun yang membuka
-// source code / DevTools browser. Untuk data yang benar-benar
-// sensitif, validasi HARUS dilakukan di backend (misal cek
-// token/login sebelum data toko di-fetch dari API).
-const PASSWORD_DATATOKO = "SIMAPART";
-
 function getAuthToken() {
     return (
         localStorage.getItem("simaToken") || sessionStorage.getItem("simaToken")
@@ -65,24 +55,43 @@ function mapTokoFromBackend(toko) {
 // ======================================================
 // COMPONENT: GATE PASSWORD
 // ======================================================
-// [DIUBAH] Sekarang gate ini hanya mengisi AREA KONTEN
-// (di bawah Header), bukan overlay full-screen yang
-// menutupi seluruh halaman termasuk Header.
+// Password TIDAK lagi disimpan/dibandingkan di frontend.
+// Yang diminta di sini adalah password akun SIMA milik user
+// yang sedang login, dan itu diverifikasi langsung ke backend
+// (endpoint POST /api/auth/verify-password) memakai bcrypt.compare
+// terhadap password ter-hash di database. Jadi tidak ada password
+// apa pun yang tertulis di source code.
 // ======================================================
 
 function PasswordGate({ onUnlock }) {
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
+    const [checking, setChecking] = useState(false);
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
 
-        if (password === PASSWORD_DATATOKO) {
-            setError("");
+        if (!password) {
+            setError("Password wajib diisi.");
+            return;
+        }
+
+        setChecking(true);
+        setError("");
+
+        try {
+            await apiFetch("/auth/verify-password", {
+                method: "POST",
+                body: JSON.stringify({ password }),
+            });
+
             onUnlock();
-        } else {
-            setError("Password salah. Coba lagi.");
+        } catch (err) {
+            setError(err.message || "Password salah. Coba lagi.");
             setPassword("");
+        } finally {
+            setChecking(false);
         }
     }
 
@@ -96,20 +105,51 @@ function PasswordGate({ onUnlock }) {
                 </h2>
 
                 <p className="password-gate-text">
-                    Masukkan password untuk membuka halaman Data Toko.
+                    Masukkan password akun kamu untuk membuka halaman Data Toko.
                 </p>
 
-                <input
-                    type="password"
-                    autoFocus
-                    value={password}
-                    onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (error) setError("");
-                    }}
-                    placeholder="Password"
-                    className="password-gate-input"
-                />
+                <div
+                    className="password-gate-input-wrap"
+                    style={{ position: "relative", width: "100%" }}
+                >
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        autoFocus
+                        value={password}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            if (error) setError("");
+                        }}
+                        placeholder="Password akun"
+                        className="password-gate-input"
+                        style={{ paddingRight: "40px", width: "100%" }}
+                        disabled={checking}
+                    />
+                    <button
+                        type="button"
+                        className="password-gate-icon-btn"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={
+                            showPassword ? "Sembunyikan password" : "Tampilkan password"
+                        }
+                        tabIndex={-1}
+                        style={{
+                            position: "absolute",
+                            right: "10px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            color: "#6b7280",
+                            display: "flex",
+                            alignItems: "center",
+                        }}
+                    >
+                        <EyeIcon open={showPassword} />
+                    </button>
+                </div>
 
                 {error && (
                     <div className="password-gate-error">
@@ -120,11 +160,32 @@ function PasswordGate({ onUnlock }) {
                 <button
                     type="submit"
                     className="password-gate-button"
+                    disabled={checking}
                 >
-                    Buka Halaman
+                    {checking ? "Memeriksa..." : "Buka Halaman"}
                 </button>
             </form>
         </div>
+    );
+}
+
+function EyeIcon({ open }) {
+    if (open) {
+        return (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06" />
+                <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19" />
+                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+        );
+    }
+
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+            <circle cx="12" cy="12" r="3" />
+        </svg>
     );
 }
 
@@ -216,9 +277,8 @@ function DataToko() {
 
             {!isUnlocked ? (
 
-                // [DIUBAH] Header tetap tampil di atas, hanya
-                // area konten di bawahnya yang diganti dengan
-                // form password.
+                // Header tetap tampil di atas, hanya area konten
+                // di bawahnya yang diganti dengan form password.
                 <PasswordGate onUnlock={() => setIsUnlocked(true)} />
 
             ) : (

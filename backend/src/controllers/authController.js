@@ -195,3 +195,34 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ message: "Terjadi kesalahan server." });
     }
 };
+
+// ---------------- VERIFIKASI PASSWORD AKUN (untuk gate halaman tertentu) ----------------
+// Dipakai mis. di halaman "Data Toko" yang minta user memasukkan
+// ulang password akunnya sendiri sebelum membuka halaman.
+// req.user didapat dari middleware verifyToken (isi JWT), jadi ini
+// SELALU mengecek password milik akun yang sedang login, bukan
+// password statis yang disimpan di frontend.
+exports.verifyPassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: "Password wajib diisi." });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User tidak ditemukan." });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Password salah." });
+        }
+
+        res.status(200).json({ message: "Password sesuai." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
+};

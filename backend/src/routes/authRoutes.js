@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload");
 const verifyToken = require("../middlewares/authMiddleware");
-const { register, login, resetPassword, updateProfile } = require("../controllers/authController");
+const { register, login, resetPassword, updateProfile, verifyPassword } = require("../controllers/authController");
 
 router.post(
     "/register",
@@ -24,5 +24,8 @@ router.post("/reset-password", resetPassword);
 // upload.single("fotoProfile") tetap kompatibel dipakai admin (kirim JSON biasa,
 // bukan file) karena multer otomatis skip kalau request bukan multipart/form-data
 router.put("/profile", verifyToken, upload.single("fotoProfile"), updateProfile);
+
+// Verifikasi ulang password akun yang sedang login (mis. buat gate halaman Data Toko)
+router.post("/verify-password", verifyToken, verifyPassword);
 
 module.exports = router;
