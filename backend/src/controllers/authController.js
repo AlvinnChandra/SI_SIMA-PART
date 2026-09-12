@@ -96,6 +96,52 @@ exports.login = async (req, res) => {
     }
 };
 
+// ---------------- RESET PASSWORD (lupa kata sandi) ----------------
+// Username/email, nomor telepon, dan NIK harus cocok dengan SATU akun yang sama
+// di database sebelum kata sandi baru boleh disimpan.
+exports.resetPassword = async (req, res) => {
+    try {
+        const { usernameEmail, noTelepon, nik, newPassword } = req.body;
+
+        if (!usernameEmail || !noTelepon || !nik || !newPassword) {
+            return res.status(400).json({ message: "Semua field wajib diisi." });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "Kata sandi baru minimal 6 karakter." });
+        }
+
+        // cari akun berdasarkan username ATAU email
+        const user = await User.findOne({
+            $or: [{ username: usernameEmail }, { email: usernameEmail }],
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Username/email, nomor telepon, atau NIK tidak sesuai dengan data akun.",
+            });
+        }
+
+        // nomor telepon & NIK WAJIB cocok dengan akun yang ditemukan di atas
+        const noTeleponCocok = (user.noTelepon || "").trim() === noTelepon.trim();
+        const nikCocok = (user.nik || "").trim() === nik.trim();
+
+        if (!noTeleponCocok || !nikCocok) {
+            return res.status(400).json({
+                message: "Username/email, nomor telepon, atau NIK tidak sesuai dengan data akun.",
+            });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.status(200).json({ message: "Kata sandi berhasil diperbarui." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
+};
+
 // ---------------- UPDATE PROFIL (nama, password, & foto) ----------------
 exports.updateProfile = async (req, res) => {
     try {

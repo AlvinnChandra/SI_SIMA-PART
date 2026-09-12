@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload");
 const verifyToken = require("../middlewares/authMiddleware");
-const { register, login, updateProfile } = require("../controllers/authController");
+const { register, login, resetPassword, updateProfile } = require("../controllers/authController");
 
 router.post(
     "/register",
@@ -17,6 +17,9 @@ router.post(
 );
 
 router.post("/login", login);
+
+// Reset kata sandi: username/email + nomor telepon + NIK harus cocok dengan satu akun
+router.post("/reset-password", resetPassword);
 
 // upload.single("fotoProfile") tetap kompatibel dipakai admin (kirim JSON biasa,
 // bukan file) karena multer otomatis skip kalau request bukan multipart/form-data
