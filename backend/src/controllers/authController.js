@@ -95,3 +95,57 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: "Terjadi kesalahan server." });
     }
 };
+
+// ---------------- UPDATE PROFIL (nama, password, & foto) ----------------
+exports.updateProfile = async (req, res) => {
+    try {
+        const { namaLengkap, oldPassword, newPassword } = req.body;
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User tidak ditemukan." });
+        }
+
+        if (namaLengkap) {
+            user.namaLengkap = namaLengkap;
+        }
+
+        // Ganti password hanya kalau user mengisi newPassword
+        if (newPassword) {
+            if (!oldPassword) {
+                return res.status(400).json({
+                    message: "Password lama wajib diisi untuk mengganti password.",
+                });
+            }
+
+            const isMatch = await bcrypt.compare(oldPassword, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: "Password lama salah." });
+            }
+
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+
+        // Ganti foto profil kalau ada file baru yang diupload
+        if (req.file) {
+            user.fotoProfile = req.file.filename;
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: "Profil berhasil diperbarui.",
+            user: {
+                id: user._id,
+                namaLengkap: user.namaLengkap,
+                username: user.username,
+                role: user.role,
+                status: user.status,
+                fotoProfile: user.fotoProfile,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
+};

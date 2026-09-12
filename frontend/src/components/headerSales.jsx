@@ -2,8 +2,6 @@ import { useNavigate, NavLink } from "react-router-dom";
 import logoSima from "../assets/logoSima.png";
 import "../css/headerSales.css";
 
-const API_BASE_URL = "http://localhost:3000";
-
 const menuItems = [
     { label: "Katalog", path: "/katalogSales" },
     { label: "Pesanan", path: "/pesananSales" },
@@ -11,41 +9,24 @@ const menuItems = [
     { label: "DataToko", path: "/dataToko2" },
 ];
 
-function getStoredUser() {
-    const raw =
-        localStorage.getItem("simaUser") || sessionStorage.getItem("simaUser");
-
-    if (!raw) return null;
-
-    try {
-        return JSON.parse(raw);
-    } catch {
-        return null;
-    }
-}
-
 function Header() {
     const navigate = useNavigate();
 
-    const user = getStoredUser();
+    // Ambil username yang disimpan saat login (lihat Login.jsx)
+    const username =
+        localStorage.getItem("simaUsername") ||
+        sessionStorage.getItem("simaUsername") ||
+        "Admin";
 
-    // Nama lengkap dari data user yang tersimpan saat login
-    const namaLengkap = user?.namaLengkap || "Sales";
-
-    // Foto profil (kalau ada), diarahkan ke folder uploads backend
-    const fotoProfil = user?.fotoProfile
-        ? `${API_BASE_URL}/uploads/${user.fotoProfile}`
-        : null;
-
-    // Inisial untuk avatar fallback (kalau belum ada foto profil)
-    const initial = namaLengkap.charAt(0).toUpperCase();
+    // Inisial untuk avatar fallback (jika belum ada foto profil)
+    const initial = username.charAt(0).toUpperCase();
 
     const handleLogout = () => {
         // Bersihkan status login dari kedua storage
-        localStorage.removeItem("simaToken");
-        localStorage.removeItem("simaUser");
-        sessionStorage.removeItem("simaToken");
-        sessionStorage.removeItem("simaUser");
+        localStorage.removeItem("simaLogin");
+        localStorage.removeItem("simaUsername");
+        sessionStorage.removeItem("simaLogin");
+        sessionStorage.removeItem("simaUsername");
 
         navigate("/");
     };
@@ -82,20 +63,12 @@ function Header() {
 
                 <div className="sima-header__greeting">
                     <span className="sima-header__hi">Hi! Welcome</span>
-                    <span className="sima-header__name">{namaLengkap}</span>
+                    <span className="sima-header__name">{username}</span>
                 </div>
 
-                {fotoProfil ? (
-                    <img
-                        src={fotoProfil}
-                        alt={`Foto profil ${namaLengkap}`}
-                        className="sima-header__avatar sima-header__avatar--img"
-                    />
-                ) : (
-                    <div className="sima-header__avatar" aria-hidden="true">
-                        {initial}
-                    </div>
-                )}
+                <div className="sima-header__avatar" aria-hidden="true">
+                    {initial}
+                </div>
 
                 <button
                     type="button"

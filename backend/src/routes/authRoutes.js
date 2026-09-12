@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload");
-const { register, login } = require("../controllers/authController");
+const verifyToken = require("../middlewares/authMiddleware");
+const { register, login, updateProfile } = require("../controllers/authController");
 
 router.post(
     "/register",
@@ -16,5 +17,9 @@ router.post(
 );
 
 router.post("/login", login);
+
+// upload.single("fotoProfile") tetap kompatibel dipakai admin (kirim JSON biasa,
+// bukan file) karena multer otomatis skip kalau request bukan multipart/form-data
+router.put("/profile", verifyToken, upload.single("fotoProfile"), updateProfile);
 
 module.exports = router;
