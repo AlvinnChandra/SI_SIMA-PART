@@ -222,6 +222,42 @@
     border-color: var(--navy);
 }
 
+/* ---------- ROLE (SALES / ADMIN, DROPDOWN) ---------- */
+
+.sima-sales-table__role {
+    padding: 0.5rem 0.8rem;
+    border-radius: 20px;
+    border: 1.5px solid transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    text-align: center;
+    text-align-last: center;
+    min-width: 90px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-sales-table__role--sales {
+    background: rgba(30, 58, 138, 0.1);
+    color: var(--navy);
+}
+
+.sima-sales-table__role--admin {
+    background: rgba(216, 38, 42, 0.1);
+    color: var(--red);
+}
+
+.sima-sales-table__role:hover {
+    filter: brightness(0.96);
+}
+
+.sima-sales-table__role:focus {
+    border-color: var(--navy);
+}
+
 /* ---------- AKSI (EDIT / HAPUS) ---------- */
 
 .sima-sales-table__aksi {

@@ -6,6 +6,7 @@ const upload = require("../middlewares/upload");
 const {
     getSales,
     updateVerifikasi,
+    updateRole,
     updateSales,
     deleteSales,
 } = require("../controllers/userControllers");
@@ -21,6 +22,14 @@ router.patch(
     verifyToken,
     authorizeRoles("admin"),
     updateVerifikasi
+);
+
+// Update role user (sales <-> admin)
+router.patch(
+    "/sales/:id/role",
+    verifyToken,
+    authorizeRoles("admin"),
+    updateRole
 );
 
 // Update data sales (termasuk ganti file)

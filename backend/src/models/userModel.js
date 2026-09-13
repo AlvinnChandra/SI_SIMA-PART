@@ -22,6 +22,12 @@ const userSchema = new mongoose.Schema(
             enum: ["pending", "active", "rejected"],
             default: "pending",
         },
+
+        // true HANYA untuk akun admin utama/bawaan sistem (dibuat lewat seed script,
+        // bukan lewat alur registrasi sales biasa). Dipakai untuk MENYEMBUNYIKAN
+        // akun ini dari tabel "Data Sales", karena tabel itu hanya untuk
+        // sales & admin yang berasal dari promosi sales.
+        isMainAdmin: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

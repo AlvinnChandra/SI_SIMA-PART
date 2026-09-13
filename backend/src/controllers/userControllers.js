@@ -1,9 +1,10 @@
 const User = require("../models/userModel");
 
-// Ambil semua user dengan role "sales" (tanpa password)
+// Ambil semua user yang dikelola lewat tabel ini
+// (sales, maupun yang sudah dipromosikan jadi admin) — KECUALI admin utama/bawaan sistem
 exports.getSales = async (req, res) => {
     try {
-        const salesList = await User.find({ role: "sales" }).select("-password");
+        const salesList = await User.find({ isMainAdmin: { $ne: true } }).select("-password");
         res.status(200).json(salesList);
     } catch (err) {
         console.error(err);
@@ -12,6 +13,7 @@ exports.getSales = async (req, res) => {
 };
 
 // Update status verifikasi satu sales (hanya bisa sekali, dari "pending")
+// Admin biasa TETAP BOLEH melakukan ini
 exports.updateVerifikasi = async (req, res) => {
     try {
         const { id } = req.params;
@@ -42,7 +44,53 @@ exports.updateVerifikasi = async (req, res) => {
     }
 };
 
+// Update role satu user (mis. naikkan sales jadi admin, atau turunkan admin jadi sales lagi)
+// - Promosi "sales" -> "admin": boleh dilakukan admin biasa maupun admin utama.
+// - Mengubah role user yang statusnya SUDAH "admin" (termasuk menurunkan balik ke "sales"):
+//   HANYA boleh dilakukan oleh admin utama (isMainAdmin).
+exports.updateRole = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body; // "admin" atau "sales"
+
+        if (!["admin", "sales"].includes(role)) {
+            return res.status(400).json({ message: "Role tidak valid." });
+        }
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "Data user tidak ditemukan." });
+        }
+
+        if (user.isMainAdmin) {
+            return res.status(403).json({ message: "Role admin utama tidak bisa diubah." });
+        }
+
+        // Kalau target user statusnya sudah "admin", perubahan apapun terhadap
+        // role-nya (termasuk menurunkan ke "sales") hanya boleh dilakukan
+        // oleh admin utama.
+        if (user.role === "admin") {
+            const requester = await User.findById(req.user.id);
+
+            if (!requester || !requester.isMainAdmin) {
+                return res.status(403).json({
+                    message: "Hanya admin utama yang bisa mengubah role admin.",
+                });
+            }
+        }
+
+        user.role = role;
+        await user.save();
+
+        res.status(200).json({ message: "Role berhasil diperbarui.", user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
+};
+
 // Update data sales (nama, nik, no telepon, alamat, dan file baru jika ada)
+// Admin biasa TETAP BOLEH melakukan ini
 exports.updateSales = async (req, res) => {
     try {
         const { id } = req.params;
@@ -74,15 +122,23 @@ exports.updateSales = async (req, res) => {
     }
 };
 
-// Hapus data sales
+// Hapus data sales.
+// HANYA admin utama (isMainAdmin) yang dilindungi dan tidak bisa dihapus.
+// Admin biasa (hasil promosi dari sales) TETAP BOLEH dihapus lewat endpoint ini.
 exports.deleteSales = async (req, res) => {
     try {
         const { id } = req.params;
-        const deleted = await User.findOneAndDelete({ _id: id, role: "sales" });
 
-        if (!deleted) {
+        const target = await User.findById(id);
+        if (!target) {
             return res.status(404).json({ message: "Data sales tidak ditemukan." });
         }
+
+        if (target.isMainAdmin) {
+            return res.status(403).json({ message: "Admin utama tidak bisa dihapus." });
+        }
+
+        await target.deleteOne();
 
         res.status(200).json({ message: "Data sales berhasil dihapus." });
     } catch (err) {
