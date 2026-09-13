@@ -1,0 +1,1585 @@
+/* =====================================================
+   PESANAN SALES
+   Header / Navbar tidak diatur di file ini
+===================================================== */
+
+
+/* =====================================================
+   PAGE WRAPPER
+   Membungkus Header + main + Footer supaya Footer
+   selalu nempel di paling bawah layar, walau konten
+   pendek (misal saat "Belum Ada Pesanan").
+===================================================== */
+
+.page-wrapper {
+    display: flex;
+
+    flex-direction: column;
+
+    min-height: 100vh;
+}
+
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.pesanan-container {
+    width: 100%;
+    max-width: 1665px;
+    margin: 0 auto;
+    padding: 50px 50px 45px;
+    box-sizing: border-box;
+    zoom: 1.05;
+
+    /*
+        Membuat <main> mengisi semua ruang kosong
+        di antara Header dan Footer, sehingga Footer
+        terdorong ke paling bawah halaman.
+    */
+    flex: 1;
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.pesanan-title {
+    margin: 0 0 28px;
+
+    font-size: 22px;
+    font-weight: 700;
+
+    color: #111827;
+}
+
+
+/* =====================================================
+   2 COLUMN LAYOUT
+===================================================== */
+
+.pesanan-layout {
+    display: grid;
+
+    /*
+        Kiri  : 40%
+        Kanan : 60%
+    */
+    grid-template-columns: 0.8fr 1.2fr;
+
+    gap: 22px;
+
+    align-items: start;
+}
+
+
+.pesanan-left,
+.pesanan-right {
+    min-width: 0;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.pesanan-card {
+    width: 100%;
+
+    background: #ffffff;
+
+    border: 1px solid #d8e0ea;
+
+    border-radius: 9px;
+
+    padding: 28px 30px;
+
+    margin-bottom: 22px;
+
+    box-sizing: border-box;
+}
+
+
+.pesanan-right .pesanan-card {
+    margin-bottom: 0;
+}
+
+
+/* =====================================================
+   CARD HEADER
+===================================================== */
+
+.card-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 24px;
+}
+
+
+.card-header h2 {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin: 0 0 5px;
+
+    font-size: 17px;
+    font-weight: 700;
+
+    color: #111827;
+}
+
+
+.card-header p {
+    margin: 0;
+
+    font-size: 13px;
+    line-height: 1.5;
+
+    color: #7b8798;
+}
+
+
+/* =====================================================
+   ORDER HEADER
+===================================================== */
+
+.order-header {
+    margin-bottom: 22px;
+}
+
+
+.order-count {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 35px;
+    height: 35px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #e8f6ef;
+
+    color: #159957;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   BADGE DRAFT TERSIMPAN (di judul "Daftar Pesanan")
+===================================================== */
+
+.badge-draft {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    background: #fff4e0;
+
+    color: #b6740a;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 0.2px;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.form-group {
+    position: relative;
+
+    margin-bottom: 20px;
+}
+
+
+.form-label {
+    display: block;
+
+    margin-bottom: 9px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    color: #334155;
+}
+
+
+.label-optional {
+    margin-left: 5px;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+    font-weight: 400;
+}
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+.form-input {
+    width: 100%;
+    min-height: 44px;
+
+    padding: 10px 13px;
+
+    border: 1px solid #d7dee8;
+
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    color: #172033;
+
+    font-family: inherit;
+    font-size: 14px;
+
+    outline: none;
+
+    box-sizing: border-box;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.form-input::placeholder {
+    color: #9aa7ba;
+}
+
+
+.form-input:hover {
+    border-color: #bcc8d6;
+}
+
+
+.form-input:focus {
+    border-color: #8fa3bc;
+
+    box-shadow:
+        0 0 0 3px rgba(15, 39, 71, 0.06);
+}
+
+
+/* =====================================================
+   TEXTAREA
+===================================================== */
+
+.textarea-input {
+    min-height: 85px;
+
+    resize: vertical;
+
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.search-wrapper {
+    position: relative;
+
+    width: 100%;
+}
+
+
+.search-icon {
+    position: absolute;
+
+    left: 15px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    z-index: 2;
+
+    color: #73839a;
+
+    font-size: 20px;
+    line-height: 1;
+
+    pointer-events: none;
+}
+
+
+.search-input {
+    padding-left: 43px;
+}
+
+
+/* =====================================================
+   DROPDOWN
+===================================================== */
+
+.dropdown {
+    position: absolute;
+
+    top: calc(100% + 5px);
+
+    left: 0;
+    right: 0;
+
+    max-height: 250px;
+
+    overflow-y: auto;
+
+    z-index: 100;
+
+    background: #ffffff;
+
+    border: 1px solid #d8e0ea;
+
+    border-radius: 8px;
+
+    box-shadow:
+        0 8px 22px rgba(15, 39, 71, 0.10);
+}
+
+
+.dropdown-item {
+    padding: 13px 15px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    color: #172033;
+
+    border-bottom: 1px solid #edf1f5;
+
+    transition:
+        background 0.15s ease;
+}
+
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+
+.dropdown-item:hover {
+    background: #f5f7fa;
+}
+
+
+.dropdown-item strong {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #172033;
+
+    font-size: 13px;
+}
+
+
+.dropdown-item .satuan {
+    display: block;
+
+    color: #8794a7;
+
+    font-size: 12px;
+
+    line-height: 1.4;
+}
+
+
+/* =====================================================
+   DROPDOWN - ITEM BARU
+===================================================== */
+
+.dropdown-item-new {
+    color: #168b55;
+
+    font-weight: 600;
+
+    background: #ffffff;
+}
+
+
+.dropdown-item-new:hover {
+    background: #effaf4;
+}
+
+
+/* =====================================================
+   SELECT
+===================================================== */
+
+select.form-input {
+    cursor: pointer;
+
+    appearance: auto;
+}
+
+
+/* =====================================================
+   TOKO TERPILIH
+===================================================== */
+
+.toko-terpilih {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 18px;
+
+    min-height: 78px;
+
+    padding: 15px 17px;
+
+    background: #f8fafc;
+
+    border: 1px solid #d8e0ea;
+
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+
+.toko-info {
+    min-width: 0;
+}
+
+
+.toko-nama {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 5px;
+
+    margin-bottom: 6px;
+
+    color: #12213a;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    line-height: 1.4;
+}
+
+
+.toko-detail {
+    margin-top: 3px;
+
+    color: #718096;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   BADGE BARU
+===================================================== */
+
+.badge-baru {
+    display: inline-flex;
+
+    align-items: center;
+
+    width: fit-content;
+
+    padding: 4px 8px;
+
+    margin-left: 5px;
+
+    border-radius: 20px;
+
+    background: #e4f5ec;
+
+    color: #168b55;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   FORM TOKO BARU
+===================================================== */
+
+.form-toko-baru {
+    margin-top: 18px;
+
+    padding: 20px;
+
+    background: #f8fafc;
+
+    border: 1px solid #dce4ed;
+
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+
+.new-store-title {
+    margin-bottom: 18px;
+
+    color: #172033;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+
+.form-toko-baru .form-group:last-of-type {
+    margin-bottom: 18px;
+}
+
+
+/* =====================================================
+   FORM BARANG
+===================================================== */
+
+.barang-form-bottom {
+    margin-top: 5px;
+}
+
+
+.qty-row {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 14px;
+
+    align-items: end;
+
+    margin-bottom: 15px;
+}
+
+
+.qty-row .form-group {
+    margin-bottom: 0;
+}
+
+
+/* =====================================================
+   BUTTON PRIMARY
+===================================================== */
+
+.btn-primary {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 44px;
+
+    padding: 10px 20px;
+
+    background: #159957;
+
+    color: #ffffff;
+
+    border: 1px solid #159957;
+
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.1s ease;
+}
+
+
+.btn-primary:hover {
+    background: #10834a;
+
+    border-color: #10834a;
+}
+
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+
+.btn-primary:disabled {
+    background: #b8c5c0;
+
+    border-color: #b8c5c0;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+.btn-full {
+    width: 100%;
+}
+
+
+/* =====================================================
+   BUTTON SECONDARY
+===================================================== */
+
+.btn-secondary {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 40px;
+
+    padding: 9px 15px;
+
+    background: #ffffff;
+
+    color: #1d3557;
+
+    border: 1px solid #cfd8e3;
+
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.btn-secondary:hover {
+    background: #f5f7fa;
+
+    border-color: #bfcbd9;
+}
+
+
+/* =====================================================
+   BUTTON DANGER OUTLINE
+   Dipakai tombol "Lanjut Tanpa Simpan" di popup
+   konfirmasi pindah halaman.
+===================================================== */
+
+.btn-danger-outline {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 40px;
+
+    padding: 9px 15px;
+
+    background: #ffffff;
+
+    color: #e53935;
+
+    border: 1px solid #f1b6b6;
+
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.btn-danger-outline:hover {
+    background: #fff3f3;
+
+    border-color: #e88a8a;
+}
+
+
+/* =====================================================
+   TABLE WRAPPER
+===================================================== */
+
+/*
+    Bagian ini yang membuat daftar pesanan
+    maksimal menampilkan sekitar 8 item.
+
+    Kalau item lebih dari 8:
+    -> muncul scrollbar
+    -> card tidak memanjang
+*/
+
+.table-wrapper {
+    width: 100%;
+
+    /*
+        Header = sekitar 48px
+        8 baris = sekitar 60px x 8
+
+        Total sekitar 528px
+    */
+    max-height: 529px;
+
+    overflow-y: auto;
+    overflow-x: auto;
+
+    border: 1px solid #d8e0ea;
+
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   CUSTOM SCROLLBAR
+===================================================== */
+
+.table-wrapper::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #f5f7fa;
+
+    border-radius: 10px;
+}
+
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+
+    border-radius: 10px;
+}
+
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #aeb9c8;
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.pesanan-table {
+    width: 100%;
+
+    min-width: 500px;
+
+    border-collapse: collapse;
+
+    table-layout: auto;
+}
+
+
+/* =====================================================
+   TABLE HEADER
+===================================================== */
+
+/*
+    Header dibuat sticky supaya ketika user scroll,
+    tulisan NO / BARANG / QTY / SATUAN / AKSI
+    tetap terlihat.
+*/
+
+.pesanan-table thead {
+    position: sticky;
+
+    top: 0;
+
+    z-index: 5;
+
+    background: #eef2f7;
+}
+
+
+.pesanan-table th {
+    height: 48px;
+
+    padding: 0 14px;
+
+    text-align: left;
+
+    border-bottom: 1px solid #d8e0ea;
+
+    background: #eef2f7;
+
+    color: #53657c;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.8px;
+
+    white-space: nowrap;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   TABLE BODY
+===================================================== */
+
+.pesanan-table td {
+    height: 60px;
+
+    padding: 10px 14px;
+
+    border-bottom: 1px solid #e2e7ee;
+
+    color: #172033;
+
+    font-size: 13px;
+
+    vertical-align: middle;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+}
+
+
+.pesanan-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+.pesanan-table tbody tr:hover td {
+    background: #fafbfd;
+}
+
+
+/* =====================================================
+   TABLE COLUMNS
+===================================================== */
+
+.col-no {
+    width: 48px;
+
+    text-align: center !important;
+}
+
+
+.col-qty {
+    width: 55px;
+
+    text-align: center !important;
+}
+
+
+.col-satuan {
+    width: 70px;
+
+    text-align: center !important;
+}
+
+
+.col-action {
+    width: 90px;
+
+    text-align: center !important;
+}
+
+
+/* =====================================================
+   BARANG NAME
+===================================================== */
+
+.barang-name {
+    color: #13233d;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    line-height: 1.4;
+}
+
+
+/* =====================================================
+   ACTION BUTTON GROUP
+   Wadah tombol di kolom AKSI (Edit + Hapus,
+   atau Simpan + Batal saat mode edit)
+===================================================== */
+
+.action-buttons {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+}
+
+
+/* =====================================================
+   TOMBOL AKSI DASAR (Edit / Hapus / Simpan / Batal)
+   Semua tombol icon di kolom AKSI berbagi bentuk
+   dasar yang sama, warnanya saja yang beda.
+===================================================== */
+
+.btn-hapus,
+.btn-edit,
+.btn-simpan-edit,
+.btn-batal-edit {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    padding: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #d9e1eb;
+
+    border-radius: 7px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+/* =====================================================
+   DELETE BUTTON
+===================================================== */
+
+.btn-hapus {
+    color: #e53935;
+}
+
+
+.btn-hapus:hover {
+    background: #fff3f3;
+
+    border-color: #efb5b5;
+}
+
+
+/* =====================================================
+   EDIT BUTTON
+===================================================== */
+
+.btn-edit {
+    color: #2563eb;
+}
+
+
+.btn-edit:hover {
+    background: #eff6ff;
+
+    border-color: #bfdbfe;
+}
+
+
+/* =====================================================
+   SIMPAN EDIT BUTTON
+===================================================== */
+
+.btn-simpan-edit {
+    color: #159957;
+
+    font-weight: 700;
+}
+
+
+.btn-simpan-edit:hover {
+    background: #eafaf1;
+
+    border-color: #a7e2c0;
+}
+
+
+/* =====================================================
+   BATAL EDIT BUTTON
+===================================================== */
+
+.btn-batal-edit {
+    color: #e53935;
+
+    font-weight: 700;
+}
+
+
+.btn-batal-edit:hover {
+    background: #fff3f3;
+
+    border-color: #efb5b5;
+}
+
+
+/* =====================================================
+   ROW SEDANG DIEDIT
+===================================================== */
+
+.row-editing td {
+    background: #fffbeb !important;
+}
+
+
+/* =====================================================
+   INPUT & SELECT SAAT MODE EDIT (di dalam tabel)
+===================================================== */
+
+.edit-qty-input {
+    width: 68px;
+
+    min-height: 34px;
+
+    padding: 4px 6px;
+
+    text-align: center;
+}
+
+
+.edit-satuan-select {
+    min-height: 34px;
+
+    padding: 4px 6px;
+
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   PESANAN FOOTER
+===================================================== */
+
+.pesanan-footer {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-top: 20px;
+}
+
+
+.total-items {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    color: #718096;
+
+    font-size: 13px;
+}
+
+
+.total-items strong {
+    color: #1d3557;
+
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   LINK "BUANG DRAFT"
+   Muncul di sebelah teks "Total X item" ketika
+   ada draft tersimpan di localStorage.
+===================================================== */
+
+.link-buang-draft {
+    background: none;
+
+    border: none;
+
+    padding: 0;
+
+    margin: 0;
+
+    color: #b45309;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    text-decoration: underline;
+
+    cursor: pointer;
+}
+
+
+.link-buang-draft:hover {
+    color: #92400e;
+}
+
+
+/* =====================================================
+   FOOTER ACTIONS
+   Wadah tombol "Simpan Draft" + "Simpan Pesanan"
+===================================================== */
+
+.footer-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    flex-shrink: 0;
+}
+
+
+.btn-draft {
+    min-height: 44px;
+
+    padding: 10px 18px;
+
+    white-space: nowrap;
+}
+
+
+.btn-simpan {
+    min-width: 155px;
+}
+
+
+/* =====================================================
+   EMPTY STATE
+===================================================== */
+
+.empty-pesanan {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 300px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    border: 1px dashed #d5dde7;
+
+    border-radius: 8px;
+
+    background: #fafbfd;
+
+    box-sizing: border-box;
+}
+
+
+.empty-icon {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 55px;
+    height: 55px;
+
+    margin-bottom: 15px;
+
+    border-radius: 50%;
+
+    background: #eef2f7;
+
+    font-size: 23px;
+}
+
+
+.empty-title {
+    margin-bottom: 7px;
+
+    color: #27364d;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+
+.empty-text {
+    max-width: 300px;
+
+    color: #8a97a8;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+
+/* =====================================================
+   POPUP KONFIRMASI PINDAH HALAMAN
+   Muncul saat user klik menu navigasi (Katalog / History
+   Order / DataToko) padahal masih ada barang di pesanan
+   yang belum disimpan sebagai draft.
+===================================================== */
+
+.leave-modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.5);
+
+    z-index: 1000;
+
+    box-sizing: border-box;
+}
+
+
+.leave-modal {
+    width: 100%;
+    max-width: 420px;
+
+    padding: 30px 28px 26px;
+
+    background: #ffffff;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 20px 45px rgba(15, 23, 42, 0.25);
+
+    box-sizing: border-box;
+
+    text-align: center;
+}
+
+
+.leave-modal-icon {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 52px;
+    height: 52px;
+
+    margin: 0 auto 16px;
+
+    border-radius: 50%;
+
+    background: #fff4e0;
+
+    font-size: 24px;
+}
+
+
+.leave-modal-title {
+    margin: 0 0 10px;
+
+    color: #12213a;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
+.leave-modal-text {
+    margin: 0 0 24px;
+
+    color: #64748b;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+.leave-modal-text strong {
+    color: #1d3557;
+
+    font-weight: 700;
+}
+
+
+.leave-modal-actions {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+}
+
+
+.leave-modal-actions .btn-primary,
+.leave-modal-actions .btn-secondary,
+.leave-modal-actions .btn-danger-outline {
+    width: 100%;
+
+    min-height: 44px;
+}
+
+
+/* =====================================================
+   RESPONSIVE - TABLET
+===================================================== */
+
+@media (max-width: 1100px) {
+
+    .pesanan-container {
+        padding-left: 30px;
+
+        padding-right: 30px;
+    }
+
+
+    .pesanan-layout {
+        grid-template-columns: 1fr 1.25fr;
+
+        gap: 18px;
+    }
+
+
+    .pesanan-card {
+        padding: 24px 22px;
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE - SMALL TABLET
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .pesanan-layout {
+        grid-template-columns: 1fr;
+    }
+
+
+    .pesanan-right .pesanan-card {
+        margin-bottom: 22px;
+    }
+
+
+    /*
+        Di layar kecil tetap batasi tinggi
+        supaya tidak terlalu panjang
+    */
+
+    .table-wrapper {
+        max-height: 529px;
+    }
+
+
+    .empty-pesanan {
+        min-height: 220px;
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE - MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .pesanan-container {
+        padding: 30px 15px 35px;
+    }
+
+
+    .pesanan-title {
+        margin-bottom: 22px;
+
+        font-size: 20px;
+    }
+
+
+    .pesanan-card {
+        padding: 20px 17px;
+
+        margin-bottom: 17px;
+    }
+
+
+    .card-header {
+        margin-bottom: 20px;
+    }
+
+
+    .card-header h2 {
+        font-size: 16px;
+    }
+
+
+    .card-header p {
+        font-size: 12px;
+    }
+
+
+    /* TOKO */
+
+    .toko-terpilih {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .btn-secondary {
+        width: 100%;
+    }
+
+
+    /* QTY */
+
+    .qty-row {
+        grid-template-columns: 1fr;
+    }
+
+
+    /* FOOTER */
+
+    .pesanan-footer {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .total-items {
+        justify-content: space-between;
+    }
+
+
+    .footer-actions {
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+
+    .btn-draft,
+    .btn-simpan {
+        width: 100%;
+    }
+
+
+    /*
+        Tetap bisa scroll horizontal
+        kalau tabel terlalu lebar
+    */
+
+    .table-wrapper {
+        max-height: 529px;
+
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+
+    /* POPUP PINDAH HALAMAN */
+
+    .leave-modal {
+        padding: 26px 20px 22px;
+    }
+
+}
+
+
+/* =====================================================
+   VERY SMALL MOBILE
+===================================================== */
+
+@media (max-width: 400px) {
+
+    .pesanan-container {
+        padding-left: 10px;
+
+        padding-right: 10px;
+    }
+
+
+    .pesanan-card {
+        padding: 17px 14px;
+    }
+
+
+    .form-input {
+        font-size: 13px;
+    }
+
+
+    .pesanan-table {
+        min-width: 480px;
+    }
+
+}

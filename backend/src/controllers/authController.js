@@ -1,87 +1,228 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const cloudinary = require("../config/cloudinary");
 const User = require("../models/userModel");
 
-async function uploadIfExists(file) {
-  if (!file) return null;
-  const result = await cloudinary.uploader.upload(file[0].path, { folder: "sima_users" });
-  return result.secure_url;
-}
+// ---------------- REGISTER ----------------
+exports.register = async (req, res) => {
+    try {
+        const { namaLengkap, username, email, password, tempatLahir, tanggalLahir, nik, noTelepon, alamat } = req.body;
 
-const register = async (req, res) => {
-  try {
-    const {
-      namaLengkap, username, email, password,
-      tempatLahir, tanggalLahir, nik, noTelepon, alamat,
-    } = req.body;
-    // role SENGAJA tidak diambil dari req.body — selalu "user"
+        const existing = await User.findOne({ $or: [{ email }, { username }, { nik }] });
+        if (existing) {
+            return res.status(400).json({ message: "Email, username, atau NIK sudah terdaftar." });
+        }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    const fotoProfil = await uploadIfExists(req.files?.fotoProfil);
-    const cv = await uploadIfExists(req.files?.cv);
-    const ktp = await uploadIfExists(req.files?.ktp);
-    const simA = await uploadIfExists(req.files?.simA);
-    const simC = await uploadIfExists(req.files?.simC);
+        const files = req.files || {};
 
-    const newUser = new User({
-      namaLengkap, username, email, password: hashedPassword,
-      tempatLahir, tanggalLahir, nik, noTelepon, alamat,
-      fotoProfil, cv, ktp, simA, simC,
-      role: "user",
-    });
-
-    await newUser.save();
-    res.status(201).json({ message: `User registered with username ${username}` });
-  } catch (error) {
-    res.status(500).json({ message: "Error registering user", error: error.message });
-  }
-};
-
-const login = async (req, res) => {
-    try{
-        const { username, password } = req.body;
-        const user = await User.findOne({
-            $or: [{ username}, { email: username }] // Allow login with either username or email
+        const newUser = new User({
+            namaLengkap,
+            username,
+            email,
+            password: hashedPassword,
+            tempatLahir,
+            tanggalLahir,
+            nik,
+            noTelepon,
+            alamat,
+            fotoProfile: files.fotoProfile?.[0]?.filename,
+            cv: files.cv?.[0]?.filename,
+            fotoKtp: files.fotoKtp?.[0]?.filename,
+            fotoSimA: files.fotoSimA?.[0]?.filename,
+            fotoSimC: files.fotoSimC?.[0]?.filename,
         });
-        if (!user) {
-            return res.status(404).json({ message: `User with username/ email ${username} not found` });
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid password" });
-        }
-        // Generate JWT token
-        const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-        );
-        res.status(200).json({ message: "Login successful", token });
-    } catch (error) {
-        res.status(500).json({ message: "Error logging in", error: error.message });
+
+        await newUser.save();
+
+        res.status(201).json({ message: "Registrasi berhasil" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
     }
 };
 
-const createAdmin = async (req, res) => {
-  try {
-    const { namaLengkap, username, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+// ---------------- LOGIN ----------------
+exports.login = async (req, res) => {
+    try {
+        const { username, password } = req.body;
 
-    const newAdmin = new User({
-      namaLengkap,
-      username,
-      email,
-      password: hashedPassword,
-      role: "admin", // dikunci, sama seperti register dikunci ke "user"
-    });
+        if (!username || !password) {
+            return res.status(400).json({ message: "Username dan kata sandi wajib diisi." });
+        }
 
-    await newAdmin.save();
-    res.status(201).json({ message: `Admin ${username} berhasil dibuat` });
-  } catch (error) {
-    res.status(500).json({ message: "Error creating admin", error: error.message });
-  }
+        // cari berdasarkan username ATAU email, biar fleksibel
+        const user = await User.findOne({
+            $or: [{ username }, { email: username }],
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Username/email atau kata sandi salah." });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Username/email atau kata sandi salah." });
+        }
+
+        // hanya akun dengan status "active" yang boleh masuk
+        if (user.status !== "active") {
+            return res.status(403).json({
+                message: "Akun kamu belum aktif. Silakan tunggu verifikasi dari admin.",
+            });
+        }
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        res.status(200).json({
+            message: "Login berhasil",
+            token,
+            user: {
+                id: user._id,
+                namaLengkap: user.namaLengkap,
+                username: user.username,
+                role: user.role,
+                status: user.status,
+                fotoProfile: user.fotoProfile,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
 };
 
-module.exports = { register, login, createAdmin };
+// ---------------- RESET PASSWORD (lupa kata sandi) ----------------
+// Username/email, nomor telepon, dan NIK harus cocok dengan SATU akun yang sama
+// di database sebelum kata sandi baru boleh disimpan.
+exports.resetPassword = async (req, res) => {
+    try {
+        const { usernameEmail, noTelepon, nik, newPassword } = req.body;
+
+        if (!usernameEmail || !noTelepon || !nik || !newPassword) {
+            return res.status(400).json({ message: "Semua field wajib diisi." });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "Kata sandi baru minimal 6 karakter." });
+        }
+
+        // cari akun berdasarkan username ATAU email
+        const user = await User.findOne({
+            $or: [{ username: usernameEmail }, { email: usernameEmail }],
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Username/email, nomor telepon, atau NIK tidak sesuai dengan data akun.",
+            });
+        }
+
+        // nomor telepon & NIK WAJIB cocok dengan akun yang ditemukan di atas
+        const noTeleponCocok = (user.noTelepon || "").trim() === noTelepon.trim();
+        const nikCocok = (user.nik || "").trim() === nik.trim();
+
+        if (!noTeleponCocok || !nikCocok) {
+            return res.status(400).json({
+                message: "Username/email, nomor telepon, atau NIK tidak sesuai dengan data akun.",
+            });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.status(200).json({ message: "Kata sandi berhasil diperbarui." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
+};
+
+// ---------------- UPDATE PROFIL (nama, password, & foto) ----------------
+exports.updateProfile = async (req, res) => {
+    try {
+        const { namaLengkap, oldPassword, newPassword } = req.body;
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User tidak ditemukan." });
+        }
+
+        if (namaLengkap) {
+            user.namaLengkap = namaLengkap;
+        }
+
+        // Ganti password hanya kalau user mengisi newPassword
+        if (newPassword) {
+            if (!oldPassword) {
+                return res.status(400).json({
+                    message: "Password lama wajib diisi untuk mengganti password.",
+                });
+            }
+
+            const isMatch = await bcrypt.compare(oldPassword, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: "Password lama salah." });
+            }
+
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+
+        // Ganti foto profil kalau ada file baru yang diupload
+        if (req.file) {
+            user.fotoProfile = req.file.filename;
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: "Profil berhasil diperbarui.",
+            user: {
+                id: user._id,
+                namaLengkap: user.namaLengkap,
+                username: user.username,
+                role: user.role,
+                status: user.status,
+                fotoProfile: user.fotoProfile,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
+};
+
+// ---------------- VERIFIKASI PASSWORD AKUN (untuk gate halaman tertentu) ----------------
+// Dipakai mis. di halaman "Data Toko" yang minta user memasukkan
+// ulang password akunnya sendiri sebelum membuka halaman.
+// req.user didapat dari middleware verifyToken (isi JWT), jadi ini
+// SELALU mengecek password milik akun yang sedang login, bukan
+// password statis yang disimpan di frontend.
+exports.verifyPassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: "Password wajib diisi." });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User tidak ditemukan." });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Password salah." });
+        }
+
+        res.status(200).json({ message: "Password sesuai." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Terjadi kesalahan server." });
+    }
+};

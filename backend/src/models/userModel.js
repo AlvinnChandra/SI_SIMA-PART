@@ -6,23 +6,28 @@ const userSchema = new mongoose.Schema(
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    tempatLahir: { type: String, required: true },
-    tanggalLahir: { type: Date, required: true },
+    tempatLahir: String,
+    tanggalLahir: Date,
     nik: { type: String, required: true, unique: true },
-    noTelepon: { type: String, required: true },
-    alamat: { type: String, required: true },
-    fotoProfil: { type: String, default: null },
-    fotoProfilCloudinaryId: { type: String, default: null },
-    cv: { type: String, default: null },
-    ktp: { type: String, required: true },
-    simA: { type: String, default: null },
-    simC: { type: String, default: null },
-    role: {
+    noTelepon: String,
+    alamat: String,
+    fotoProfile: String,
+    cv: String,
+    fotoKtp: String,
+    fotoSimA: String,
+    fotoSimC: String,
+    role: { type: String, default: "sales" },
+    status: {
       type: String,
-      required: true,
-      enum: ["admin", "user"],
-      default: "user",
+      enum: ["pending", "active", "rejected"],
+      default: "pending",
     },
+
+    // true HANYA untuk akun admin utama/bawaan sistem (dibuat lewat seed script,
+    // bukan lewat alur registrasi sales biasa). Dipakai untuk MENYEMBUNYIKAN
+    // akun ini dari tabel "Data Sales", karena tabel itu hanya untuk
+    // sales & admin yang berasal dari promosi sales.
+    isMainAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

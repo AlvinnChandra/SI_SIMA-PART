@@ -1,22 +1,31 @@
 const express = require("express");
-const upload = require("../middlewares/multer");
-const verifyToken = require("../middlewares/authMiddleware");
-const authorizeRoles = require("../middlewares/roleMiddleware");
-const { register, login, createAdmin } = require("../controllers/authController");
 const router = express.Router();
+const upload = require("../middlewares/upload");
+const verifyToken = require("../middlewares/authMiddleware");
+const { register, login, resetPassword, updateProfile, verifyPassword } = require("../controllers/authController");
 
 router.post(
   "/register",
   upload.fields([
-    { name: "fotoProfil", maxCount: 1 },
+    { name: "fotoProfile", maxCount: 1 },
     { name: "cv", maxCount: 1 },
-    { name: "ktp", maxCount: 1 },
-    { name: "simA", maxCount: 1 },
-    { name: "simC", maxCount: 1 },
+    { name: "fotoKtp", maxCount: 1 },
+    { name: "fotoSimA", maxCount: 1 },
+    { name: "fotoSimC", maxCount: 1 },
   ]),
   register
 );
+
 router.post("/login", login);
-router.post("/create-admin", verifyToken, authorizeRoles("admin"), createAdmin);
+
+// Reset kata sandi: username/email + nomor telepon + NIK harus cocok dengan satu akun
+router.post("/reset-password", resetPassword);
+
+// upload.single("fotoProfile") tetap kompatibel dipakai admin (kirim JSON biasa,
+// bukan file) karena multer otomatis skip kalau request bukan multipart/form-data
+router.put("/profile", verifyToken, upload.single("fotoProfile"), updateProfile);
+
+// Verifikasi ulang password akun yang sedang login (mis. buat gate halaman Data Toko)
+router.post("/verify-password", verifyToken, verifyPassword);
 
 module.exports = router;

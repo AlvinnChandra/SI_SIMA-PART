@@ -139,7 +139,7 @@ function Daftar() {
         setStep(1);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const validationError = validateStep2();
@@ -151,16 +151,34 @@ function Daftar() {
         setLoading(true);
         setError("");
 
-        // Simulasi proses pendaftaran
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const formData = new FormData();
 
-            console.log("Data pendaftaran:", form);
-            console.log("File diunggah:", files);
-            // nanti di sini logic buat kirim data + file ke backend
+            Object.entries(form).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+
+            Object.entries(files).forEach(([key, file]) => {
+                if (file) formData.append(key, file);
+            });
+
+            const res = await fetch("http://localhost:3000/api/auth/register", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Registrasi gagal.");
+            }
 
             setShowSuccess(true);
-        }, 1200);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const closeSuccessAndGoLogin = () => {

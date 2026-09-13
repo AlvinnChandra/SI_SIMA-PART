@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import logoSima from "../assets/logoSima.png";
+import ProfileModal from "./profileModal";
 import "../css/header.css";
+
+const API_BASE_URL = "http://localhost:3000";
 
 const menuItems = [
     { label: "Katalog", path: "/katalog" },
@@ -9,26 +13,61 @@ const menuItems = [
     { label: "Data Sales", path: "/dataSales" },
 ];
 
+function getStoredUser() {
+    const raw =
+        localStorage.getItem("simaUser") || sessionStorage.getItem("simaUser");
+
+    if (!raw) return null;
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return null;
+    }
+}
+
+// Update user yang tersimpan (localStorage atau sessionStorage, tergantung
+// mana yang dipakai saat login), supaya nama baru langsung tampil tanpa
+// perlu logout-login ulang.
+function updateStoredUser(updatedUser) {
+    if (localStorage.getItem("simaUser")) {
+        localStorage.setItem("simaUser", JSON.stringify(updatedUser));
+    } else if (sessionStorage.getItem("simaUser")) {
+        sessionStorage.setItem("simaUser", JSON.stringify(updatedUser));
+    }
+}
+
 function Header() {
     const navigate = useNavigate();
 
-    // Ambil username yang disimpan saat login (lihat Login.jsx)
-    const username =
-        localStorage.getItem("simaUsername") ||
-        sessionStorage.getItem("simaUsername") ||
-        "Admin";
+    const [user, setUser] = useState(getStoredUser());
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
-    // Inisial untuk avatar fallback (jika belum ada foto profil)
-    const initial = username.charAt(0).toUpperCase();
+    // Nama lengkap dari data user yang tersimpan saat login
+    const namaLengkap = user?.namaLengkap || "Admin";
+
+    // Foto profil (kalau ada), diarahkan ke folder uploads backend
+    const fotoProfil = user?.fotoProfile
+        ? `${API_BASE_URL}/uploads/${user.fotoProfile}`
+        : null;
+
+    // Inisial untuk avatar fallback (kalau belum ada foto profil)
+    const initial = namaLengkap.charAt(0).toUpperCase();
 
     const handleLogout = () => {
         // Bersihkan status login dari kedua storage
-        localStorage.removeItem("simaLogin");
-        localStorage.removeItem("simaUsername");
-        sessionStorage.removeItem("simaLogin");
-        sessionStorage.removeItem("simaUsername");
+        localStorage.removeItem("simaToken");
+        localStorage.removeItem("simaUser");
+        sessionStorage.removeItem("simaToken");
+        sessionStorage.removeItem("simaUser");
 
         navigate("/");
+    };
+
+    const handleProfileSaved = (updatedUser) => {
+        setUser(updatedUser);
+        updateStoredUser(updatedUser);
+        setShowProfileModal(false);
     };
 
     return (
@@ -61,14 +100,34 @@ function Header() {
             {/* ---------- RIGHT: PROFILE ---------- */}
             <div className="sima-header__profile">
 
-                <div className="sima-header__greeting">
+                <button
+                    type="button"
+                    className="sima-header__greeting sima-header__greeting--btn"
+                    onClick={() => setShowProfileModal(true)}
+                    title="Edit profil"
+                >
                     <span className="sima-header__hi">Hi! Welcome</span>
-                    <span className="sima-header__name">{username}</span>
-                </div>
+                    <span className="sima-header__name">{namaLengkap}</span>
+                </button>
 
-                <div className="sima-header__avatar" aria-hidden="true">
-                    {initial}
-                </div>
+                <button
+                    type="button"
+                    className="sima-header__avatar-btn"
+                    onClick={() => setShowProfileModal(true)}
+                    title="Edit profil"
+                >
+                    {fotoProfil ? (
+                        <img
+                            src={fotoProfil}
+                            alt={`Foto profil ${namaLengkap}`}
+                            className="sima-header__avatar sima-header__avatar--img"
+                        />
+                    ) : (
+                        <div className="sima-header__avatar" aria-hidden="true">
+                            {initial}
+                        </div>
+                    )}
+                </button>
 
                 <button
                     type="button"
@@ -94,6 +153,14 @@ function Header() {
                 </button>
 
             </div>
+
+            {showProfileModal && (
+                <ProfileModal
+                    currentUser={user}
+                    onClose={() => setShowProfileModal(false)}
+                    onSaved={handleProfileSaved}
+                />
+            )}
 
         </header>
     );

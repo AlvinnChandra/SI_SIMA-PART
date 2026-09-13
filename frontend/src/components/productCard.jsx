@@ -1,3 +1,5 @@
+import { FaPen } from "react-icons/fa";
+
 const ACCENT = "#EE4D2D";
 const ACCENT_BADGE_BG = "#FFD6BC";
 const NAME = "#222222";
@@ -5,16 +7,19 @@ const META = "#9E9E9E";
 const KODE = "#B0B0B0";
 
 function formatRupiah(n) {
-  return "Rp " + n.toLocaleString("id-ID");
+    return "Rp " + n.toLocaleString("id-ID");
 }
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onEdit, onPreview }) {
     const imageSrc = product.gambar || `https://picsum.photos/seed/${product.kode}/400/400`;
 
     return (
         <div className="group flex cursor-pointer flex-col overflow-hidden rounded-sm border border-gray-200 bg-white transition-shadow hover:shadow-md">
             {/* image */}
-            <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+            <div
+                className="relative aspect-square w-full overflow-hidden bg-gray-100"
+                onClick={() => onPreview(product)}
+            >
                 <img
                     src={imageSrc}
                     alt={product.nama}
@@ -28,11 +33,20 @@ export default function ProductCard({ product }) {
                         -{product.diskon}%
                     </span>
                 )}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(product);
+                    }}
+                    className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100"
+                >
+                    <FaPen size={12} color={NAME} />
+                </button>
             </div>
 
             {/* text content */}
             <div className="flex flex-col gap-1 p-2.5">
-                <span className="font-mono text-[10px] tracking-wide" style={{ color: KODE }}>
+                <span className="font-mono text-xs font-medium tracking-wide" style={{ color: "#667085" }}>
                     {product.kode}
                 </span>
 
@@ -45,8 +59,8 @@ export default function ProductCard({ product }) {
                 </p>
 
                 <div className="flex items-center justify-between text-xs" style={{ color: META }}>
-                <span>{product.keterangan}</span>
-                {product.terjual && <span>{product.terjual} terjual</span>}
+                    <span>{product.keterangan}</span>
+                    {product.terjual && <span>{product.terjual} terjual</span>}
                 </div>
             </div>
         </div>

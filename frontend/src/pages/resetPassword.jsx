@@ -9,6 +9,8 @@ function ResetPassword() {
 
     const [form, setForm] = useState({
         usernameEmail: "",
+        noTelpon: "",
+        nik: "",
         newPassword: "",
         confirmPassword: "",
     });
@@ -37,6 +39,18 @@ function ResetPassword() {
             return "Username atau email wajib diisi.";
         }
 
+        if (!form.noTelpon.trim()) {
+            return "Nomor telepon wajib diisi.";
+        }
+
+        if (!/^[0-9+\s-]{9,15}$/.test(form.noTelpon.trim())) {
+            return "Format nomor telepon tidak valid.";
+        }
+
+        if (!form.nik.trim()) {
+            return "NIK wajib diisi.";
+        }
+
         if (!form.newPassword || form.newPassword.length < 6) {
             return "Kata sandi baru minimal 6 karakter.";
         }
@@ -48,7 +62,7 @@ function ResetPassword() {
         return "";
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const validationError = validate();
@@ -60,15 +74,40 @@ function ResetPassword() {
         setLoading(true);
         setError("");
 
-        // Simulasi proses reset password
-        setTimeout(() => {
+        try {
+            // Sesuaikan base URL ini dengan konfigurasi backend kamu
+            // (mis. import.meta.env.VITE_API_URL kalau sudah pakai .env)
+            const API_BASE_URL =
+                import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+            const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    usernameEmail: form.usernameEmail.trim(),
+                    noTelepon: form.noTelpon.trim(),
+                    nik: form.nik.trim(),
+                    newPassword: form.newPassword,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                // Backend mengembalikan pesan kalau username/email, no. telepon,
+                // atau NIK tidak cocok dengan data akun yang sama
+                setError(data.message || "Gagal mereset kata sandi.");
+                setLoading(false);
+                return;
+            }
+
             setLoading(false);
-
-            console.log("Reset password untuk:", form.usernameEmail);
-            // nanti di sini logic buat kirim data ke backend
-
             setShowSuccess(true);
-        }, 1200);
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+            setError("Tidak dapat terhubung ke server. Coba lagi nanti.");
+        }
     };
 
     const closeSuccessAndGoLogin = () => {
@@ -163,7 +202,7 @@ function ResetPassword() {
                     </h2>
 
                     <p className="sima-login__desc">
-                        Masukkan username/email kamu dan buat kata sandi baru.
+                        Masukkan data akun kamu dan buat kata sandi baru.
                     </p>
 
 
@@ -172,8 +211,12 @@ function ResetPassword() {
                         className={`sima-login__field ${error ? "sima-login__field--error" : ""
                             }`}
                     >
-                        <label className="sima-login__label" htmlFor="usernameEmail">
-                            Username / Email
+                        <label
+                            className="sima-login__label"
+                            htmlFor="usernameEmail"
+                            style={{ display: "flex", justifyContent: "flex-start", gap: "4px" }}
+                        >
+                            Username / Email <span style={{ color: "#e53935" }}>*</span>
                         </label>
 
                         <div className="sima-login__input-wrap">
@@ -191,13 +234,74 @@ function ResetPassword() {
                     </div>
 
 
+                    {/* ---------- NO TELPON ---------- */}
+                    <div
+                        className={`sima-login__field ${error ? "sima-login__field--error" : ""
+                            }`}
+                    >
+                        <label
+                            className="sima-login__label"
+                            htmlFor="noTelpon"
+                            style={{ display: "flex", justifyContent: "flex-start", gap: "4px" }}
+                        >
+                            Nomor Telepon <span style={{ color: "#e53935" }}>*</span>
+                        </label>
+
+                        <div className="sima-login__input-wrap">
+                            <input
+                                id="noTelpon"
+                                name="noTelpon"
+                                type="tel"
+                                inputMode="tel"
+                                autoComplete="tel"
+                                placeholder="08xxxxxxxxxx"
+                                className="sima-login__input"
+                                value={form.noTelpon}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+
+
+                    {/* ---------- NIK ---------- */}
+                    <div
+                        className={`sima-login__field ${error ? "sima-login__field--error" : ""
+                            }`}
+                    >
+                        <label
+                            className="sima-login__label"
+                            htmlFor="nik"
+                            style={{ display: "flex", justifyContent: "flex-start", gap: "4px" }}
+                        >
+                            NIK <span style={{ color: "#e53935" }}>*</span>
+                        </label>
+
+                        <div className="sima-login__input-wrap">
+                            <input
+                                id="nik"
+                                name="nik"
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="NIK sesuai KTP"
+                                className="sima-login__input"
+                                value={form.nik}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+
+
                     {/* ---------- NEW PASSWORD ---------- */}
                     <div
                         className={`sima-login__field ${error ? "sima-login__field--error" : ""
                             }`}
                     >
-                        <label className="sima-login__label" htmlFor="newPassword">
-                            Kata Sandi Baru
+                        <label
+                            className="sima-login__label"
+                            htmlFor="newPassword"
+                            style={{ display: "flex", justifyContent: "flex-start", gap: "4px" }}
+                        >
+                            Kata Sandi Baru <span style={{ color: "#e53935" }}>*</span>
                         </label>
 
                         <div className="sima-login__input-wrap">
@@ -230,8 +334,12 @@ function ResetPassword() {
                         className={`sima-login__field ${error ? "sima-login__field--error" : ""
                             }`}
                     >
-                        <label className="sima-login__label" htmlFor="confirmPassword">
-                            Konfirmasi Kata Sandi Baru
+                        <label
+                            className="sima-login__label"
+                            htmlFor="confirmPassword"
+                            style={{ display: "flex", justifyContent: "flex-start", gap: "4px" }}
+                        >
+                            Konfirmasi Kata Sandi Baru <span style={{ color: "#e53935" }}>*</span>
                         </label>
 
                         <div className="sima-login__input-wrap">

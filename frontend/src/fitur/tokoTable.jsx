@@ -1,23 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import "../css/tokoTable.css";
 
-// ---------- DATA DUMMY ----------
-const dummyToko = [
-    { id: 1, namaToko: "Toko Jaya Motor", alamat: "Jl. Sudirman No. 12, Jakarta Pusat", noTelepon: "0812-3456-7890", inputBy: "Admin" },
-    { id: 2, namaToko: "Berkah Spare Part", alamat: "Jl. Ahmad Yani No. 45, Bandung", noTelepon: "0813-2233-4455", inputBy: "Sales" },
-    { id: 3, namaToko: "Sinar Motor Parts", alamat: "Jl. Diponegoro No. 8, Surabaya", noTelepon: "0857-1122-3344", inputBy: "Sales" },
-    { id: 4, namaToko: "Maju Jaya Onderdil", alamat: "Jl. Gatot Subroto No. 21, Semarang", noTelepon: "0821-9988-7766", inputBy: "Admin" },
-    { id: 5, namaToko: "Cahaya Motor", alamat: "Jl. Veteran No. 3, Yogyakarta", noTelepon: "0878-5566-2211", inputBy: "Sales" },
-    { id: 6, namaToko: "Mitra Bengkel Sejahtera", alamat: "Jl. Pahlawan No. 17, Malang", noTelepon: "0812-7788-9900", inputBy: "Admin" },
-    { id: 7, namaToko: "Motor Jaya Abadi", alamat: "Jl. Merdeka No. 55, Medan", noTelepon: "0813-4455-6677", inputBy: "Sales" },
-    { id: 8, namaToko: "Sumber Rejeki Parts", alamat: "Jl. Kartini No. 9, Makassar", noTelepon: "0857-3344-5566", inputBy: "Admin" },
-    { id: 9, namaToko: "Anugerah Motor", alamat: "Jl. Imam Bonjol No. 33, Palembang", noTelepon: "0821-6677-8899", inputBy: "Sales" },
-    { id: 10, namaToko: "Karya Mandiri Onderdil", alamat: "Jl. Cendrawasih No. 14, Denpasar", noTelepon: "0878-1234-5678", inputBy: "Admin" },
-    { id: 11, namaToko: "Prima Jaya Motor", alamat: "Jl. Hasanuddin No. 6, Balikpapan", noTelepon: "0812-2211-3344", inputBy: "Sales" },
-    { id: 12, namaToko: "Rejeki Baru Parts", alamat: "Jl. Sisingamangaraja No. 27, Pekanbaru", noTelepon: "0813-9900-1122", inputBy: "Admin" },
-];
+const API_BASE_URL = "http://localhost:3000/api";
+
+function getAuthToken() {
+    return (
+        localStorage.getItem("simaToken") || sessionStorage.getItem("simaToken")
+    );
+}
+
+async function apiFetch(path, options = {}) {
+    const token = getAuthToken();
+
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            ...options.headers,
+        },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.message || "Terjadi kesalahan.");
+    }
+
+    return data;
+}
 
 const ITEMS_PER_PAGE = 5;
+
+// ---------- HOOK: KUNCI SCROLL BODY SAAT MODAL TERBUKA ----------
+function useLockBodyScroll() {
+    useLayoutEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
+}
 
 function IconAlertTriangle() {
     return (
@@ -31,6 +56,8 @@ function IconAlertTriangle() {
 
 // ---------- MODAL: KONFIRMASI HAPUS ----------
 function DeleteConfirmModal({ toko, onCancel, onConfirm }) {
+    useLockBodyScroll();
+
     return (
         <div className="sima-table-modal-overlay" onClick={onCancel} role="button" tabIndex={-1}>
             <div
@@ -77,6 +104,7 @@ function DeleteConfirmModal({ toko, onCancel, onConfirm }) {
 // ---------- MODAL: EDIT TOKO (form sesuai field data) ----------
 function EditTokoModal({ toko, onClose, onSave }) {
     const [form, setForm] = useState({ ...toko });
+    useLockBodyScroll();
 
     const handleChange = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -147,7 +175,7 @@ function EditTokoModal({ toko, onClose, onSave }) {
                         <div className="sima-table-modal__field">
                             <span className="sima-table-modal__readonly-label">Input By</span>
                             <span
-                                className={`sima-table__badge ${form.inputBy === "Admin"
+                                className={`sima-table__badge ${form.role === "admin"
                                     ? "sima-table__badge--admin"
                                     : "sima-table__badge--sales"
                                     }`}
@@ -179,8 +207,7 @@ function EditTokoModal({ toko, onClose, onSave }) {
     );
 }
 
-function TokoTable() {
-    const [data, setData] = useState(dummyToko);
+function TokoTable({ data, setData }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [editingToko, setEditingToko] = useState(null); // objek toko yg diedit
     const [deletingToko, setDeletingToko] = useState(null); // objek toko yg mau dihapus
@@ -190,31 +217,61 @@ function TokoTable() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const currentData = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
+    // reset ke halaman 1 setiap kali hasil filter/search (data) berubah
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [data]);
+
     const handleEdit = (toko) => {
         setEditingToko(toko);
     };
 
-    const handleSaveEdit = (updatedToko) => {
-        setData((prev) =>
-            prev.map((toko) => (toko.id === updatedToko.id ? updatedToko : toko))
-        );
-        setEditingToko(null);
+    // ---------- SIMPAN EDIT KE BACKEND ----------
+    const handleSaveEdit = async (updatedToko) => {
+        try {
+            const result = await apiFetch(`/toko/${updatedToko.id}`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    namaToko: updatedToko.namaToko,
+                    alamat: updatedToko.alamat,
+                    noTelepon: updatedToko.noTelepon,
+                }),
+            });
 
-        // nanti di sini logic buat kirim perubahan data toko ke backend
-        console.log("Simpan edit toko:", updatedToko);
+            setData((prev) =>
+                prev.map((toko) =>
+                    toko.id === updatedToko.id
+                        ? {
+                            id: result.toko._id,
+                            namaToko: result.toko.namaToko,
+                            alamat: result.toko.alamat,
+                            noTelepon: result.toko.noTelepon,
+                            inputBy: result.toko.inputBy,
+                            role: result.toko.role,
+                        }
+                        : toko
+                )
+            );
+            setEditingToko(null);
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     const handleDelete = (toko) => {
         setDeletingToko(toko);
     };
 
-    const confirmDelete = () => {
-        setData((prev) => prev.filter((t) => t.id !== deletingToko.id));
-
-        // nanti di sini logic buat kirim permintaan hapus ke backend
-        console.log("Hapus toko:", deletingToko.id);
-
-        setDeletingToko(null);
+    // ---------- HAPUS DI BACKEND ----------
+    const confirmDelete = async () => {
+        try {
+            await apiFetch(`/toko/${deletingToko.id}`, { method: "DELETE" });
+            setData((prev) => prev.filter((t) => t.id !== deletingToko.id));
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setDeletingToko(null);
+        }
     };
 
     const goToPage = (page) => {
@@ -286,7 +343,7 @@ function TokoTable() {
                                 </td>
                                 <td>
                                     <span
-                                        className={`sima-table__badge ${toko.inputBy === "Admin"
+                                        className={`sima-table__badge ${toko.role === "admin"
                                             ? "sima-table__badge--admin"
                                             : "sima-table__badge--sales"
                                             }`}
