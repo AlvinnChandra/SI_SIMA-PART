@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FaPen, FaTrash } from "react-icons/fa";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -10,6 +10,7 @@ import Pagination from "../components/pagination";
 import CategoryList from "../components/categoryList";
 import CheckboxFilter from "../components/checkboxFilter";
 import PriceSort from "../components/priceSort";
+import { getItems } from "../services/itemService";
 import "../css/global.css";
 
 const PAGE_SIZE = 10;
@@ -42,34 +43,6 @@ function formatRupiah(value) {
     return `Rp ${number.toLocaleString("id-ID")}`;
 }
 
-// Catatan penting: TIDAK ada field "id" di sini sesuai permintaan.
-// Identitas produk memakai "nama" (diasumsikan unik). Kode SM-xxx dihitung
-// ulang otomatis berdasarkan urutan alfabetis nama lewat productsWithKode.
-const DUMMY_PRODUCTS = [
-    { nama: "Per Shock Breaker RXK", harga: 25000, qty: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "RXK" },
-    { nama: "Per Shock Breaker Legenda", harga: 24000, qty: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "Legenda" },
-    { nama: "Per Shock Breaker Satria", harga: 24000, qty: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "Satria" },
-    { nama: "Per Shock Breaker GL Pro", harga: 45000, qty: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "GL Pro" },
-    { nama: "Per Shock Breaker TRS", harga: 65000, qty: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "TRS" },
-    { nama: "Per Shock Breaker Tiger", harga: 65000, qty: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "Tiger" },
-    { nama: "Per Standar Samping Grand", harga: 5000, qty: "1 Pcs", kategori: "Per Standar Samping", kendaraan: "Grand" },
-    { nama: "Per Standar Samping Yamaha", harga: 5000, qty: "1 Pcs", kategori: "Per Standar Samping", kendaraan: "Yamaha" },
-    { nama: "Per Standar Tengah GL", harga: 6000, qty: "1 Pcs", kategori: "Per Standar Tengah", kendaraan: "GL" },
-    { nama: "Per Standar Tengah Supra Fit", harga: 5000, qty: "1 Pcs", kategori: "Per Standar Tengah", kendaraan: "Supra Fit" },
-    { nama: "Per Stopper GL PRO", harga: 5000, qty: "1 Pcs", kategori: "Per Stopper", kendaraan: "GL Pro" },
-    { nama: "Per Stopper RXK", harga: 5000, qty: "1 Pcs", kategori: "Per Stopper", kendaraan: "RXK" },
-    { nama: "Per Versnelleng RXK", harga: 10000, qty: "1 Pcs", kategori: "Per Versnelleng", kendaraan: "RXK" },
-    { nama: "Switch Rem Depan Supra", harga: 12500, qty: "1 Pcs", kategori: "Switch Rem Depan", kendaraan: "Supra" },
-    { nama: "Switch Netral Grand", harga: 17500, qty: "1 Pcs", kategori: "Switch Netral", kendaraan: "Grand" },
-    { nama: "Switch Netral Tiger", harga: 17500, qty: "1 Pcs", kategori: "Switch Netral", kendaraan: "Tiger" },
-    { nama: "Tutup Magnit Grand (Hitam)", harga: 7500, qty: "1 Set 2 Pcs", kategori: "Tutup Magnit", kendaraan: "Grand" },
-    { nama: "Tutup Magnit Supra (Silver)", harga: 7500, qty: "1 Set 2 Pcs", kategori: "Tutup Magnit", kendaraan: "Supra" },
-    { nama: "Tutup Mesin Legenda (Plastik)", harga: 25000, qty: "1 Pcs", kategori: "Tutup Mesin", kendaraan: "Legenda" },
-    { nama: "Tutup Mesin Smash/Shogun", harga: 25000, qty: "1 Pcs", kategori: "Tutup Mesin", kendaraan: "Smash/Shogun" },
-    { nama: "Ring Komstir RC", harga: 5000, qty: "1 Pcs", kategori: "Lainnya", kendaraan: "RC" },
-    { nama: "Tombol Klakson", harga: 5500, qty: "1 Pcs", kategori: "Lainnya", kendaraan: "Universal" },
-];
-
 // warna untuk modal edit, tambah, & preview
 const OVERLAY_BG = "rgba(16, 24, 40, 0.5)";
 const HEADING = "#101828";
@@ -89,6 +62,10 @@ const EMPTY_FORM = {
 // Urutkan alfabetis lalu beri nomor SM-001, SM-002, dst.
 // Ini yang membuat kode selalu ngurut sesuai alfabet, walau produk baru
 // disisipkan di tengah daftar (bukan cuma nambah di akhir).
+// Catatan: kode ini dihitung di FRONTEND karena API (getItems) belum
+// tentu mengembalikan field "kode". Kalau nanti API sudah menyediakan
+// kode sendiri, logic sortAlfabetis/formatKode di bawah bisa dihapus
+// dan tinggal pakai field dari API langsung.
 function sortAlfabetis(list) {
     return [...list].sort((a, b) =>
         a.nama.localeCompare(b.nama, "id", { sensitivity: "base" })
@@ -100,12 +77,28 @@ function formatKode(index) {
 }
 
 function Katalog() {
-    const [products, setProducts] = useState(DUMMY_PRODUCTS);
+    const [products, setProducts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
+
     const [keyword, setKeyword] = useState("");
     const [activeCategory, setActiveCategory] = useState("Semua");
     const [selectedKendaraan, setSelectedKendaraan] = useState([]);
     const [priceSort, setPriceSort] = useState("default");
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Ambil data produk dari API. Selama belum ada endpoint create/update/
+    // delete produk, operasi CRUD di bawah (edit/tambah/hapus) SEMENTARA
+    // masih memodifikasi state "products" secara lokal saja (tidak
+    // dikirim ke server). Begitu endpoint-nya siap, ganti setProducts(...)
+    // di masing-masing handler dengan pemanggilan API, mirip pola
+    // apiFetch di salesTable.js.
+    useEffect(() => {
+        getItems()
+            .then(setProducts)
+            .catch((err) => setLoadError(err.message))
+            .finally(() => setIsLoading(false));
+    }, []);
 
     // state untuk pop up edit — editingProduct menyimpan REFERENSI produk asli
     // yang diklik, dipakai sebagai kunci pencocokan saat Simpan (bukan id)
@@ -220,6 +213,9 @@ function Katalog() {
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
+        // TODO: ganti jadi pemanggilan API update produk begitu endpointnya
+        // tersedia. Untuk sekarang, perubahan hanya tersimpan di state lokal
+        // dan akan hilang lagi kalau halaman di-refresh.
         setProducts((prev) =>
             prev.map((p) =>
                 p === editingProduct
@@ -254,6 +250,8 @@ function Katalog() {
     };
 
     const confirmDelete = () => {
+        // TODO: ganti jadi pemanggilan API hapus produk begitu endpointnya
+        // tersedia. Untuk sekarang, hanya menghapus dari state lokal.
         setProducts((prev) => prev.filter((p) => p.nama !== deleteTarget.nama));
         setDeleteTarget(null);
     };
@@ -293,6 +291,8 @@ function Katalog() {
     const handleAddSubmit = (e) => {
         e.preventDefault();
 
+        // TODO: ganti jadi pemanggilan API tambah produk begitu endpointnya
+        // tersedia. Untuk sekarang, hanya ditambahkan ke state lokal.
         const newProduct = {
             nama: addForm.nama,
             harga: Number(addForm.harga) || 0,
@@ -390,84 +390,100 @@ function Katalog() {
                     </aside>
 
                     <div className="flex-1">
-                        {paginatedProducts.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center gap-2 py-20 text-center">
-                                <p className="text-sm" style={{ color: "#475467" }}>
-                                    Tidak ada produk yang cocok.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                {paginatedProducts.map((product) => (
-                                    <div
-                                        key={product.nama}
-                                        className="group flex cursor-pointer flex-col overflow-hidden rounded-sm border border-gray-200 bg-white transition-shadow hover:shadow-md"
-                                    >
-                                        {/* Gambar kartu & gambar popup preview sama-sama pakai
-                                            FALLBACK_IMG(product.nama), jadi dijamin identik */}
-                                        <div
-                                            className="relative aspect-square w-full overflow-hidden bg-gray-100"
-                                            onClick={() => setPreviewProduct(product)}
-                                        >
-                                            <img
-                                                src={product.gambar || FALLBACK_IMG(product.nama)}
-                                                alt={product.nama}
-                                                className="h-full w-full object-cover"
-                                            />
-                                            <div className="absolute left-1.5 top-1.5 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEditClick(product);
-                                                    }}
-                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
-                                                >
-                                                    <FaPen size={12} color={HEADING} />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteClick(product);
-                                                    }}
-                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
-                                                >
-                                                    <FaTrash size={12} color={ACCENT} />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col gap-1 p-2.5">
-                                            <span
-                                                className="font-mono text-xs font-medium tracking-wide"
-                                                style={{ color: "#667085" }}
-                                            >
-                                                {product.kode}
-                                            </span>
-
-                                            <p className="line-clamp-2 text-sm leading-snug" style={{ color: HEADING }}>
-                                                {product.nama}
-                                            </p>
-
-                                            <p className="text-base font-semibold" style={{ color: ACCENT }}>
-                                                Rp {product.harga.toLocaleString("id-ID")}
-                                            </p>
-
-                                            <div className="flex items-center justify-center text-xs" style={{ color: "#9E9E9E" }}>
-                                                <span>{product.qty}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                        {isLoading && (
+                            <p className="py-10 text-center text-sm text-gray-500">
+                                Memuat produk...
+                            </p>
                         )}
 
-                        <div className="mt-8">
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                onPageChange={setCurrentPage}
-                            />
-                        </div>
+                        {!isLoading && loadError && (
+                            <p className="py-10 text-center text-sm text-red-500">
+                                {loadError}
+                            </p>
+                        )}
+
+                        {!isLoading && !loadError && (
+                            <>
+                                {paginatedProducts.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center gap-2 py-20 text-center">
+                                        <p className="text-sm" style={{ color: "#475467" }}>
+                                            Tidak ada produk yang cocok.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                        {paginatedProducts.map((product) => (
+                                            <div
+                                                key={product.nama}
+                                                className="group flex cursor-pointer flex-col overflow-hidden rounded-sm border border-gray-200 bg-white transition-shadow hover:shadow-md"
+                                            >
+                                                {/* Gambar kartu & gambar popup preview sama-sama pakai
+                                                    FALLBACK_IMG(product.nama), jadi dijamin identik */}
+                                                <div
+                                                    className="relative aspect-square w-full overflow-hidden bg-gray-100"
+                                                    onClick={() => setPreviewProduct(product)}
+                                                >
+                                                    <img
+                                                        src={product.gambar || FALLBACK_IMG(product.nama)}
+                                                        alt={product.nama}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <div className="absolute left-1.5 top-1.5 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditClick(product);
+                                                            }}
+                                                            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                        >
+                                                            <FaPen size={12} color={HEADING} />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteClick(product);
+                                                            }}
+                                                            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                        >
+                                                            <FaTrash size={12} color={ACCENT} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-col gap-1 p-2.5">
+                                                    <span
+                                                        className="font-mono text-xs font-medium tracking-wide"
+                                                        style={{ color: "#667085" }}
+                                                    >
+                                                        {product.kode}
+                                                    </span>
+
+                                                    <p className="line-clamp-2 text-sm leading-snug" style={{ color: HEADING }}>
+                                                        {product.nama}
+                                                    </p>
+
+                                                    <p className="text-base font-semibold" style={{ color: ACCENT }}>
+                                                        Rp {product.harga.toLocaleString("id-ID")}
+                                                    </p>
+
+                                                    <div className="flex items-center justify-center text-xs" style={{ color: "#9E9E9E" }}>
+                                                        <span>{product.qty}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="mt-8">
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </main>

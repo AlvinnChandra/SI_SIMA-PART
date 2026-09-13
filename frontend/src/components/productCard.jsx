@@ -58,9 +58,9 @@ export default function ProductCard({ product, onEdit, onPreview }) {
                     {formatRupiah(product.harga)}
                 </p>
 
-                <div className="flex items-center justify-center text-xs" style={{ color: META }}>
-                    <span>{product.qty}</span>
-                    {product.terjual && <span className="ml-2">{product.terjual} terjual</span>}
+                <div className="flex items-center justify-between text-xs" style={{ color: META }}>
+                    <span>{product.keterangan}</span>
+                    {product.terjual && <span>{product.terjual} terjual</span>}
                 </div>
             </div>
         </div>

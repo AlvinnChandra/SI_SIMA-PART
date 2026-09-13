@@ -5,15 +5,15 @@ const verifyToken = require("../middlewares/authMiddleware");
 const { register, login, resetPassword, updateProfile, verifyPassword } = require("../controllers/authController");
 
 router.post(
-    "/register",
-    upload.fields([
-        { name: "fotoProfile", maxCount: 1 },
-        { name: "cv", maxCount: 1 },
-        { name: "fotoKtp", maxCount: 1 },
-        { name: "fotoSimA", maxCount: 1 },
-        { name: "fotoSimC", maxCount: 1 },
-    ]),
-    register
+  "/register",
+  upload.fields([
+    { name: "fotoProfile", maxCount: 1 },
+    { name: "cv", maxCount: 1 },
+    { name: "fotoKtp", maxCount: 1 },
+    { name: "fotoSimA", maxCount: 1 },
+    { name: "fotoSimC", maxCount: 1 },
+  ]),
+  register
 );
 
 router.post("/login", login);
