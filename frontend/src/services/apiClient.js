@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:7001/api";
+const BASE_URL = "http://localhost:3000/api";
 
 function getToken() {
   return localStorage.getItem("simaToken") || sessionStorage.getItem("simaToken");
