@@ -7,6 +7,7 @@ import SearchBar from "../components/searchBar";
 import ExportPdfButton from "../components/exportPDF";
 import ExportExcelButton from "../components/exportExcel";
 import OrderStatusTabs from "../fitur/orderStatusTabs";
+import { apiFetch } from "../services/apiClient";
 import "../css/global.css";
 import "../css/order.css";
 
@@ -19,96 +20,45 @@ const STATUS_OPTIONS = [
     { value: "selesai", label: "Pesanan Selesai" },
 ];
 
-// ============ KATALOG PRODUK (sumber untuk generate item pesanan di modal detail) ============
-// "kemasan" = deskripsi asli dari katalog (mis. "1 Set 2 Pcs" / "1 Pcs"), dipakai
-// cuma buat nentuin satuan-nya SET atau PCS. Qty pesanan (angka) di-random terpisah.
-const DUMMY_PRODUCTS = [
-    { nama: "Per Shock Breaker RXK", harga: 25000, kemasan: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "RXK" },
-    { nama: "Per Shock Breaker Legenda", harga: 24000, kemasan: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "Legenda" },
-    { nama: "Per Shock Breaker Satria", harga: 24000, kemasan: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "Satria" },
-    { nama: "Per Shock Breaker GL Pro", harga: 45000, kemasan: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "GL Pro" },
-    { nama: "Per Shock Breaker TRS", harga: 65000, kemasan: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "TRS" },
-    { nama: "Per Shock Breaker Tiger", harga: 65000, kemasan: "1 Set 2 Pcs", kategori: "Per Shock Breaker", kendaraan: "Tiger" },
-    { nama: "Per Standar Samping Grand", harga: 5000, kemasan: "1 Pcs", kategori: "Per Standar Samping", kendaraan: "Grand" },
-    { nama: "Per Standar Samping Yamaha", harga: 5000, kemasan: "1 Pcs", kategori: "Per Standar Samping", kendaraan: "Yamaha" },
-    { nama: "Per Standar Tengah GL", harga: 6000, kemasan: "1 Pcs", kategori: "Per Standar Tengah", kendaraan: "GL" },
-    { nama: "Per Standar Tengah Supra Fit", harga: 5000, kemasan: "1 Pcs", kategori: "Per Standar Tengah", kendaraan: "Supra Fit" },
-    { nama: "Per Stopper GL PRO", harga: 5000, kemasan: "1 Pcs", kategori: "Per Stopper", kendaraan: "GL Pro" },
-    { nama: "Per Stopper RXK", harga: 5000, kemasan: "1 Pcs", kategori: "Per Stopper", kendaraan: "RXK" },
-    { nama: "Per Versnelleng RXK", harga: 10000, kemasan: "1 Pcs", kategori: "Per Versnelleng", kendaraan: "RXK" },
-    { nama: "Switch Rem Depan Supra", harga: 12500, kemasan: "1 Pcs", kategori: "Switch Rem Depan", kendaraan: "Supra" },
-    { nama: "Switch Netral Grand", harga: 17500, kemasan: "1 Pcs", kategori: "Switch Netral", kendaraan: "Grand" },
-    { nama: "Switch Netral Tiger", harga: 17500, kemasan: "1 Pcs", kategori: "Switch Netral", kendaraan: "Tiger" },
-    { nama: "Tutup Magnit Grand (Hitam)", harga: 7500, kemasan: "1 Set 2 Pcs", kategori: "Tutup Magnit", kendaraan: "Grand" },
-    { nama: "Tutup Magnit Supra (Silver)", harga: 7500, kemasan: "1 Set 2 Pcs", kategori: "Tutup Magnit", kendaraan: "Supra" },
-    { nama: "Tutup Mesin Legenda (Plastik)", harga: 25000, kemasan: "1 Pcs", kategori: "Tutup Mesin", kendaraan: "Legenda" },
-    { nama: "Tutup Mesin Smash/Shogun", harga: 25000, kemasan: "1 Pcs", kategori: "Tutup Mesin", kendaraan: "Smash/Shogun" },
-    { nama: "Ring Komstir RC", harga: 5000, kemasan: "1 Pcs", kategori: "Lainnya", kendaraan: "RC" },
-    { nama: "Tombol Klakson", harga: 5500, kemasan: "1 Pcs", kategori: "Lainnya", kendaraan: "Universal" },
-];
+// Mapping status di database (backend) <-> key yang dipakai di UI ini
+const STATUS_DB_TO_KEY = {
+    "Orderan Masuk": "masuk",
+    "Diproses": "disiapkan",
+    "Selesai": "selesai",
+    "Dibatalkan": "dibatalkan",
+};
 
-// Kalau deskripsi kemasannya mengandung kata "Set" (mis. "1 Set 2 Pcs") -> satuannya SET, selain itu PCS
-function getSatuan(kemasan) {
-    return kemasan.toLowerCase().includes("set") ? "SET" : "PCS";
-}
+const STATUS_KEY_TO_DB = {
+    masuk: "Orderan Masuk",
+    disiapkan: "Diproses",
+    selesai: "Selesai",
+    dibatalkan: "Dibatalkan",
+};
 
-// PRNG sederhana biar hasil random konsisten tiap render (seeded by order id)
-function mulberry32(seed) {
-    return function () {
-        seed |= 0;
-        seed = (seed + 0x6d2b79f5) | 0;
-        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+// Ubah 1 dokumen pesanan dari backend -> bentuk order yang dipakai komponen di halaman ini
+function transformPesanan(p) {
+    const statusKey = STATUS_DB_TO_KEY[p.status] || "masuk";
+    const statusOption = STATUS_OPTIONS.find((o) => o.value === statusKey);
+
+    const salesName = p.inputBy?.startsWith("Sales - ")
+        ? p.inputBy.replace("Sales - ", "")
+        : p.createdBy?.namaLengkap || p.inputBy || "-";
+
+    return {
+        id: p._id,
+        orderNumber: p.noPesanan || "-",
+        storeName: p.namaToko,
+        salesName,
+        orderDate: new Date(p.tanggalPesanan).toISOString().slice(0, 10),
+        status: statusKey,
+        statusLabel: statusOption ? statusOption.label : p.status,
+        items: (p.items || []).map((item) => ({
+            nama: item.nama,
+            qty: item.qty,
+            satuan: item.satuan,
+        })),
     };
 }
-
-// Generate 30-40 baris item pesanan random dari katalog, per order (seeded biar stabil)
-// Qty pesanan berupa angka random (mis. 5, 10, 15), satuannya ikut jenis kemasan produknya (SET/PCS)
-function buildOrderItems(seed) {
-    const rng = mulberry32(seed * 9973);
-    const itemCount = Math.floor(rng() * (40 - 30 + 1)) + 30; // 30-40 baris
-
-    const items = [];
-    for (let i = 0; i < itemCount; i++) {
-        const product = DUMMY_PRODUCTS[Math.floor(rng() * DUMMY_PRODUCTS.length)];
-        const qty = Math.floor(rng() * (20 - 5 + 1)) + 5; // angka qty pesanan, 5-20
-        items.push({
-            nama: product.nama,
-            qty,
-            satuan: getSatuan(product.kemasan),
-        });
-    }
-    return items;
-}
-
-// Dummy data pesanan awal, nanti diganti hasil fetch dari API
-// Semua order awalnya berstatus "Orderan Masuk"
-const INITIAL_ORDERS = [
-    { id: 1, orderNumber: "ORD-0001", storeName: "Toko Sumber Rejeki", salesName: "Budi Santoso", orderDate: "2025-08-20" },
-    { id: 2, orderNumber: "ORD-0002", storeName: "Toko Barokah", salesName: "Siti Aminah", orderDate: "2025-08-21" },
-    { id: 3, orderNumber: "ORD-0003", storeName: "Toko Maju Jaya", salesName: "Budi Santoso", orderDate: "2025-08-22" },
-    { id: 4, orderNumber: "ORD-0004", storeName: "Toko Berkah Abadi", salesName: "Dedi Kurniawan", orderDate: "2025-08-22" },
-    { id: 5, orderNumber: "ORD-0005", storeName: "Toko Mekar Sari", salesName: "Siti Aminah", orderDate: "2025-08-23" },
-    { id: 6, orderNumber: "ORD-0006", storeName: "Toko Anugerah", salesName: "Rahmat Hidayat", orderDate: "2025-08-23" },
-    { id: 7, orderNumber: "ORD-0007", storeName: "Toko Sejahtera", salesName: "Budi Santoso", orderDate: "2025-08-24" },
-    { id: 8, orderNumber: "ORD-0008", storeName: "Toko Cahaya Baru", salesName: "Dedi Kurniawan", orderDate: "2025-08-24" },
-    { id: 9, orderNumber: "ORD-0009", storeName: "Toko Rejeki Lancar", salesName: "Rahmat Hidayat", orderDate: "2025-08-25" },
-    { id: 10, orderNumber: "ORD-0010", storeName: "Toko Harapan Jaya", salesName: "Siti Aminah", orderDate: "2025-08-25" },
-    { id: 11, orderNumber: "ORD-0011", storeName: "Toko Amanah", salesName: "Budi Santoso", orderDate: "2025-08-26" },
-    { id: 12, orderNumber: "ORD-0012", storeName: "Toko Bintang Terang", salesName: "Dedi Kurniawan", orderDate: "2025-08-26" },
-    { id: 13, orderNumber: "ORD-0013", storeName: "Toko Sinar Jaya", salesName: "Rahmat Hidayat", orderDate: "2025-08-27" },
-    { id: 14, orderNumber: "ORD-0014", storeName: "Toko Makmur Sentosa", salesName: "Siti Aminah", orderDate: "2025-08-27" },
-    { id: 15, orderNumber: "ORD-0015", storeName: "Toko Karya Mandiri", salesName: "Budi Santoso", orderDate: "2025-08-27" },
-    { id: 16, orderNumber: "ORD-0016", storeName: "Toko Indah Permai", salesName: "Dedi Kurniawan", orderDate: "2025-08-28" },
-    { id: 17, orderNumber: "ORD-0017", storeName: "Toko Sumber Makmur", salesName: "Rahmat Hidayat", orderDate: "2025-08-28" },
-    { id: 18, orderNumber: "ORD-0018", storeName: "Toko Jaya Abadi", salesName: "Siti Aminah", orderDate: "2025-08-29" },
-].map((order) => ({
-    ...order,
-    status: "masuk",
-    statusLabel: "Orderan Masuk",
-    items: buildOrderItems(order.id), // tempel list item pesanan (30-40 baris) ke tiap order
-}));
 
 // Ambil bagian angka dari orderNumber, misal "ORD-0003" -> 3
 function getOrderNumberValue(orderNumber) {
@@ -139,9 +89,6 @@ function TrashIcon() {
 }
 
 // ============ STATUS DROPDOWN (badge yang bisa diklik buat ganti status) ============
-// Alur status selalu maju: sekali pindah ke status berikutnya, tidak bisa mundur lagi.
-// Menu dropdown dirender lewat portal ke document.body dengan posisi fixed,
-// supaya tidak kepotong oleh overflow wrapper tabel (sima-table-wrap) waktu barisnya sedikit.
 function StatusDropdown({ order, onStatusChange }) {
     const [isOpen, setIsOpen] = useState(false);
     const [menuPos, setMenuPos] = useState({ top: 0, left: 0, width: 0 });
@@ -149,12 +96,10 @@ function StatusDropdown({ order, onStatusChange }) {
     const menuRef = useRef(null);
 
     const currentIndex = STATUS_OPTIONS.findIndex((o) => o.value === order.status);
-    const isFinalStatus = currentIndex === STATUS_OPTIONS.length - 1; // "selesai" = status terakhir
+    const isFinalStatus = currentIndex === STATUS_OPTIONS.length - 1;
 
-    // Hanya status yang sama atau lebih maju yang boleh dipilih, status sebelumnya disembunyikan
     const availableOptions = STATUS_OPTIONS.filter((_, idx) => idx >= currentIndex);
 
-    // Hitung posisi tombol tiap kali dropdown dibuka, biar menu portal nempel pas di bawahnya
     const updateMenuPosition = () => {
         if (!triggerRef.current) return;
         const rect = triggerRef.current.getBoundingClientRect();
@@ -165,7 +110,6 @@ function StatusDropdown({ order, onStatusChange }) {
         });
     };
 
-    // Tutup dropdown kalau klik di luar area (baik tombolnya maupun menu portal-nya)
     useEffect(() => {
         function handleClickOutside(e) {
             if (
@@ -181,8 +125,6 @@ function StatusDropdown({ order, onStatusChange }) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Tutup dropdown kalau halaman di-scroll atau ukuran window berubah,
-    // supaya posisinya tidak "ngambang" salah tempat
     useEffect(() => {
         if (!isOpen) return;
         function handleReposition() {
@@ -202,7 +144,7 @@ function StatusDropdown({ order, onStatusChange }) {
     };
 
     const handleTriggerClick = () => {
-        if (isFinalStatus) return; // status terakhir, tidak ada lagi yang bisa dipilih
+        if (isFinalStatus) return;
         if (!isOpen) updateMenuPosition();
         setIsOpen((prev) => !prev);
     };
@@ -250,10 +192,8 @@ function StatusDropdown({ order, onStatusChange }) {
     );
 }
 
-// ============ MODAL DETAIL PESANAN (info toko + list item pesanan, scrollable) ============
+// ============ MODAL DETAIL PESANAN ============
 function OrderDetailModal({ order, isOpen, onClose, onExportPdf }) {
-    // Kunci scroll halaman di belakang selama modal terbuka,
-    // jadi yang bisa di-scroll cuma isi popup-nya saja
     useEffect(() => {
         if (!isOpen) return;
         const originalOverflow = document.body.style.overflow;
@@ -390,7 +330,7 @@ function DeleteConfirmModal({ order, isOpen, onCancel, onConfirm }) {
     );
 }
 
-// ============ ORDER TABLE (style sima-table) ============
+// ============ ORDER TABLE ============
 function OrderTable({ orders, startIndex, onViewDetail, onDelete, onStatusChange }) {
     if (orders.length === 0) {
         return (
@@ -449,7 +389,7 @@ function OrderTable({ orders, startIndex, onViewDetail, onDelete, onStatusChange
     );
 }
 
-// ============ PAGINATION (style sima-pagination) ============
+// ============ PAGINATION (tetap di file yang sama, tidak dipisah) ============
 function Pagination({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) {
     if (totalPages <= 1) return null;
 
@@ -509,7 +449,10 @@ function Pagination({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
 
 // ============ ORDER PAGE ============
 function Order() {
-    const [orders, setOrders] = useState(INITIAL_ORDERS);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [keyword, setKeyword] = useState("");
     const [activeStatus, setActiveStatus] = useState("semua");
     const [currentPage, setCurrentPage] = useState(1);
@@ -517,6 +460,29 @@ function Order() {
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [orderToDelete, setOrderToDelete] = useState(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+    // Ambil semua pesanan dari backend saat halaman dibuka
+    // Pakai apiFetch (services/apiClient.js) supaya token diambil otomatis
+    // dari key "simaToken" di localStorage/sessionStorage yang benar
+    // (sebelumnya di sini pakai fetch() manual dengan key "token" yang salah,
+    // itu penyebab error "Forbidden: Invalid token")
+    useEffect(() => {
+        const fetchOrders = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                // limit besar supaya semua data ketarik, filter & paging tetap di client
+                const body = await apiFetch("/pesanan?limit=9999");
+                setOrders(body.data.map(transformPesanan));
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOrders();
+    }, []);
 
     const handleExportPdf = () => {
         console.log("Export PDF diklik");
@@ -550,22 +516,42 @@ function Order() {
         setOrderToDelete(null);
     };
 
-    const handleConfirmDelete = () => {
+    // Hapus pesanan lewat API (pakai apiFetch)
+    const handleConfirmDelete = async () => {
         if (!orderToDelete) return;
-        setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
-        setIsDeleteOpen(false);
-        setOrderToDelete(null);
+
+        try {
+            await apiFetch(`/pesanan/${orderToDelete.id}`, { method: "DELETE" });
+            setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setIsDeleteOpen(false);
+            setOrderToDelete(null);
+        }
     };
 
-    // Ganti status pesanan dari dropdown
-    const handleStatusChange = (orderId, option) => {
-        setOrders((prev) =>
-            prev.map((o) =>
-                o.id === orderId
-                    ? { ...o, status: option.value, statusLabel: option.label }
-                    : o
-            )
-        );
+    // Ganti status pesanan lewat API (pakai apiFetch)
+    const handleStatusChange = async (orderId, option) => {
+        const statusDb = STATUS_KEY_TO_DB[option.value];
+
+        try {
+            await apiFetch(`/pesanan/${orderId}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: statusDb }),
+            });
+
+            setOrders((prev) =>
+                prev.map((o) =>
+                    o.id === orderId
+                        ? { ...o, status: option.value, statusLabel: option.label }
+                        : o
+                )
+            );
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     const filteredOrders = useMemo(() => {
@@ -580,26 +566,22 @@ function Order() {
             return matchKeyword && matchStatus;
         });
 
-        // Urutkan nomor order terbesar di paling atas
         return filtered.sort(
             (a, b) => getOrderNumberValue(b.orderNumber) - getOrderNumberValue(a.orderNumber)
         );
     }, [orders, keyword, activeStatus]);
 
     const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE));
-
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 
     const paginatedOrders = useMemo(() => {
         return filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [filteredOrders, startIndex]);
 
-    // Reset ke halaman 1 setiap kali filter/keyword berubah
     useEffect(() => {
         setCurrentPage(1);
     }, [keyword, activeStatus]);
 
-    // Kalau halaman sekarang jadi kosong setelah delete, mundur 1 halaman
     useEffect(() => {
         if (currentPage > totalPages) {
             setCurrentPage(totalPages);
@@ -625,23 +607,28 @@ function Order() {
 
                 <OrderStatusTabs activeStatus={activeStatus} onChange={setActiveStatus} />
 
-                <div className="sima-table-wrap">
-                    <OrderTable
-                        orders={paginatedOrders}
-                        startIndex={startIndex}
-                        onViewDetail={handleViewDetail}
-                        onDelete={handleDeleteClick}
-                        onStatusChange={handleStatusChange}
-                    />
+                {loading && <p className="sima-table__empty">Memuat data pesanan...</p>}
+                {error && <p className="sima-table__empty">{error}</p>}
 
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={filteredOrders.length}
-                        itemsPerPage={ITEMS_PER_PAGE}
-                        onPageChange={setCurrentPage}
-                    />
-                </div>
+                {!loading && !error && (
+                    <div className="sima-table-wrap">
+                        <OrderTable
+                            orders={paginatedOrders}
+                            startIndex={startIndex}
+                            onViewDetail={handleViewDetail}
+                            onDelete={handleDeleteClick}
+                            onStatusChange={handleStatusChange}
+                        />
+
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={filteredOrders.length}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
+                )}
             </main>
             <Footer />
 

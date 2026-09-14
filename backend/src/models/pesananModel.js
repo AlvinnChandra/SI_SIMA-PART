@@ -6,10 +6,6 @@ const mongoose = require("mongoose");
 
 const itemPesananSchema = new mongoose.Schema(
     {
-        // barangId disimpan sebagai String (bukan ObjectId ref) karena
-        // barang "baru" yang diketik manual oleh sales di frontend
-        // punya id sementara seperti "new-1694... " yang bukan ObjectId
-        // valid dan belum tentu ada di collection "items".
         barangId: {
             type: String,
             required: true,
@@ -37,8 +33,6 @@ const itemPesananSchema = new mongoose.Schema(
             default: "",
         },
 
-        // true kalau barang ini belum ada di katalog resmi (collection "items")
-        // saat pesanan dibuat, hanya dicatat manual oleh sales
         isBaru: {
             type: Boolean,
             default: false,
@@ -54,15 +48,19 @@ const itemPesananSchema = new mongoose.Schema(
 
 const pesananSchema = new mongoose.Schema(
     {
+        // Nomor pesanan otomatis, mis. "ORD-0018"
+        noPesanan: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+
         toko: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Toko",
             required: true,
         },
 
-        // Snapshot data toko disimpan langsung di sini (bukan cuma
-        // referensi), supaya histori pesanan tetap utuh & akurat
-        // walaupun data di collection "dataToko" nanti diedit/dihapus.
         namaToko: {
             type: String,
             required: true,
@@ -86,8 +84,6 @@ const pesananSchema = new mongoose.Schema(
             },
         },
 
-        // Tanggal pesanan dibuat (bisa diedit manual oleh sales
-        // di form, jadi disimpan terpisah dari createdAt)
         tanggalPesanan: {
             type: Date,
             required: true,
@@ -99,14 +95,11 @@ const pesananSchema = new mongoose.Schema(
             default: "Orderan Masuk",
         },
 
-        // Nama yang ditampilkan di kolom "Input By" (mis. di History Order)
-        // "Admin" kalau dibuat oleh admin, atau nama lengkap sales
         inputBy: {
             type: String,
             required: true,
         },
 
-        // Referensi ke user yang membuat pesanan ini (buat audit)
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
@@ -116,6 +109,4 @@ const pesananSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Parameter ke-3 "pesanan" supaya nulis ke koleksi "pesanan" persis
-// seperti yang terlihat di Compass, bukan "pesanans" (default pluralization)
 module.exports = mongoose.model("Pesanan", pesananSchema, "pesanan");

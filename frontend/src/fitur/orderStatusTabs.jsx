@@ -1,4 +1,3 @@
-// components/orderStatusTabs.jsx
 const STATUS_LIST = [
     { key: "semua", label: "Semua" },
     { key: "masuk", label: "Orderan Masuk" },
