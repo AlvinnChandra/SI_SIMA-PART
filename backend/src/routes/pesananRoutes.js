@@ -7,6 +7,7 @@ const {
     getPesanan,
     getPesananById,
     updateStatusPesanan,
+    deletePesanan, // tambahkan
 } = require("../controllers/pesananController");
 
 // Admin & sales sama-sama boleh lihat dan membuat pesanan
@@ -16,5 +17,8 @@ router.post("/", verifyToken, authorizeRoles("admin", "sales"), createPesanan);
 
 // Ubah status pesanan (mis. dari halaman History Order) hanya admin
 router.patch("/:id/status", verifyToken, authorizeRoles("admin"), updateStatusPesanan);
+
+// Hapus pesanan hanya admin
+router.delete("/:id", verifyToken, authorizeRoles("admin"), deletePesanan);
 
 module.exports = router;
