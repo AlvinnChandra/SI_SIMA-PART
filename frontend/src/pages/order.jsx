@@ -56,6 +56,8 @@ function transformPesanan(p) {
             nama: item.nama,
             qty: item.qty,
             satuan: item.satuan,
+            // Kalau catatan kosong/tidak ada dari DB, tampilkan "-"
+            catatan: item.catatan && item.catatan.trim() !== "" ? item.catatan : "-",
         })),
     };
 }
@@ -259,6 +261,7 @@ function OrderDetailModal({ order, isOpen, onClose, onExportPdf }) {
                                     <th>Nama Barang</th>
                                     <th className="sima-table__col-center">Qty</th>
                                     <th className="sima-table__col-center">Satuan</th>
+                                    <th>Catatan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -268,6 +271,7 @@ function OrderDetailModal({ order, isOpen, onClose, onExportPdf }) {
                                         <td className="sima-table__strong">{item.nama}</td>
                                         <td className="sima-table__col-center">{item.qty}</td>
                                         <td className="sima-table__col-center">{item.satuan}</td>
+                                        <td>{item.catatan}</td>
                                     </tr>
                                 ))}
                             </tbody>
