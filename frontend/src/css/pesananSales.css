@@ -160,6 +160,17 @@
 }
 
 
+.order-header-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    flex-shrink: 0;
+}
+
+
 .order-count {
     display: flex;
 
@@ -179,6 +190,37 @@
 
     font-size: 13px;
     font-weight: 700;
+}
+
+
+/* =====================================================
+   FIELD TANGGAL PESANAN
+===================================================== */
+
+.tanggal-pesanan-field {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.tanggal-pesanan-field .form-label {
+    margin-bottom: 0;
+
+    white-space: nowrap;
+}
+
+
+.tanggal-input {
+    min-height: 38px;
+
+    width: 155px;
+
+    padding: 7px 10px;
+
+    font-size: 13px;
 }
 
 
@@ -1524,6 +1566,32 @@ select.form-input {
 
     .card-header p {
         font-size: 12px;
+    }
+
+
+    /* ORDER HEADER + TANGGAL */
+
+    .order-header {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .order-header-right {
+        justify-content: space-between;
+
+        width: 100%;
+    }
+
+
+    .tanggal-pesanan-field {
+        flex: 1;
+    }
+
+
+    .tanggal-input {
+        width: 100%;
     }
 
 

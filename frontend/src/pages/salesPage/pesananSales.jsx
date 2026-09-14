@@ -7,6 +7,20 @@ import { DRAFT_KEY, bacaDraft, tentukanSatuanDefault } from "./pesananSalesData"
 import LeaveModal, { NotifModal } from "./leaveModal";
 import { getToko, createToko } from "../../services/tokoService";
 import { getItems } from "../../services/itemService";
+import { createPesanan } from "../../services/pesananService";
+
+
+// ======================================================
+// HELPER TANGGAL
+// ======================================================
+
+function tanggalHariIni() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+}
 
 
 // ======================================================
@@ -97,6 +111,16 @@ function PesananSales() {
     // "Buang Draft" hanya muncul kalau memang ada draft tersimpan)
     const [adaDraftTersimpan, setAdaDraftTersimpan] = useState(false);
 
+    // Loading saat mengirim pesanan ke server (tombol "Simpan Pesanan")
+    const [isSubmittingPesanan, setIsSubmittingPesanan] = useState(false);
+
+
+    // ==================================================
+    // STATE TANGGAL PESANAN
+    // ==================================================
+
+    const [tanggalPesanan, setTanggalPesanan] = useState(tanggalHariIni());
+
 
     // ==================================================
     // STATE POPUP "PINDAH HALAMAN" (KATALOG / HISTORY / DATATOKO)
@@ -138,23 +162,24 @@ function PesananSales() {
     // ==================================================
 
     const lastSavedSnapshotRef = useRef(
-        JSON.stringify({ tokoId: null, items: [] })
+        JSON.stringify({ tokoId: null, items: [], tanggal: tanggalHariIni() })
     );
 
-    function buatSnapshot(toko, items) {
+    function buatSnapshot(toko, items, tanggal) {
         return JSON.stringify({
             tokoId: toko ? toko._id : null,
             items: items.map((item) => ({
                 barangId: item.barangId,
                 qty: item.qty,
                 satuan: item.satuan
-            }))
+            })),
+            tanggal: tanggal || null
         });
     }
 
     function adaPerubahanBelumTersimpan() {
         return (
-            buatSnapshot(tokoDipilih, pesanan) !==
+            buatSnapshot(tokoDipilih, pesanan, tanggalPesanan) !==
             lastSavedSnapshotRef.current
         );
     }
@@ -230,11 +255,14 @@ function PesananSales() {
             setPesanan(draft.items);
         }
 
+        setTanggalPesanan(draft.tanggal || tanggalHariIni());
+
         setAdaDraftTersimpan(true);
 
         lastSavedSnapshotRef.current = buatSnapshot(
             draft.toko || null,
-            Array.isArray(draft.items) ? draft.items : []
+            Array.isArray(draft.items) ? draft.items : [],
+            draft.tanggal || tanggalHariIni()
         );
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -288,7 +316,7 @@ function PesananSales() {
             document.removeEventListener("click", handleDocumentClick, true);
         };
 
-    }, [pesanan, tokoDipilih]);
+    }, [pesanan, tokoDipilih, tanggalPesanan]);
 
 
     // ==================================================
@@ -317,7 +345,7 @@ function PesananSales() {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
 
-    }, [pesanan, tokoDipilih]);
+    }, [pesanan, tokoDipilih, tanggalPesanan]);
 
 
     // ==================================================
@@ -530,12 +558,29 @@ function PesananSales() {
         setQty("");
 
         setSatuanDipilih("SET");
+
+        // Tanggal pesanan direset ke hari ini juga
+        setTanggalPesanan(tanggalHariIni());
     }
 
 
     // ==================================================
     // PENCARIAN BARANG
     // ==================================================
+
+    // Cek apakah suatu barang (berdasarkan id ATAU nama) sudah
+    // ada di Daftar Pesanan, supaya tidak bisa ditambahkan dobel.
+    function sudahAdaDiPesanan(barang) {
+
+        const namaBarang = barang.nama.trim().toLowerCase();
+
+        return pesanan.some(
+            (item) =>
+                item.barangId === barang._id ||
+                item.nama.trim().toLowerCase() === namaBarang
+        );
+    }
+
 
     const hasilPencarian = useMemo(() => {
 
@@ -546,10 +591,12 @@ function PesananSales() {
         return daftarBarang.filter((barang) =>
             barang.nama
                 .toLowerCase()
-                .includes(keyword.toLowerCase())
+                .includes(keyword.toLowerCase()) &&
+            !sudahAdaDiPesanan(barang)
         );
 
-    }, [keyword, daftarBarang]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [keyword, daftarBarang, pesanan]);
 
 
     const barangTidakDitemukan =
@@ -711,6 +758,19 @@ function PesananSales() {
             return;
         }
 
+        const sudahAda = pesanan.some(
+            (item) =>
+                item.nama.trim().toLowerCase() ===
+                namaBaru.toLowerCase()
+        );
+
+        if (sudahAda) {
+            bukaAlert(
+                `"${namaBaru}" sudah ada dalam pesanan`
+            );
+            return;
+        }
+
         const barangBaru = {
             _id: `new-${Date.now()}`,
             nama: namaBaru,
@@ -738,6 +798,25 @@ function PesananSales() {
     function tambahKePesanan() {
 
         if (!barangDipilih) {
+            return;
+        }
+
+        // Pengaman terakhir: kalau ternyata barang ini sudah ada
+        // di pesanan (misalnya lolos dari filter dropdown), tolak
+        // dan kasih tahu user, jangan sampai jadi baris duplikat.
+        if (sudahAdaDiPesanan(barangDipilih)) {
+
+            bukaAlert(
+                `"${barangDipilih.nama}" sudah ada dalam pesanan`
+            );
+
+            setKeyword("");
+            setBarangDipilih(null);
+            setSatuanDipilih("SET");
+            setQty("");
+            setCatatan("");
+            setShowDropdown(false);
+
             return;
         }
 
@@ -914,6 +993,7 @@ function PesananSales() {
         const draft = {
             toko: tokoDipilih,
             items: pesanan,
+            tanggal: tanggalPesanan,
             savedAt: Date.now()
         };
 
@@ -928,7 +1008,8 @@ function PesananSales() {
 
             lastSavedSnapshotRef.current = buatSnapshot(
                 tokoDipilih,
-                pesanan
+                pesanan,
+                tanggalPesanan
             );
 
             if (tampilkanAlert) {
@@ -965,7 +1046,7 @@ function PesananSales() {
 
         setAdaDraftTersimpan(false);
 
-        lastSavedSnapshotRef.current = buatSnapshot(null, []);
+        lastSavedSnapshotRef.current = buatSnapshot(null, [], tanggalHariIni());
     }
 
 
@@ -1035,7 +1116,7 @@ function PesananSales() {
     // SIMPAN PESANAN
     // ==================================================
 
-    function simpanPesanan() {
+    async function simpanPesanan() {
 
         if (!tokoDipilih) {
 
@@ -1051,27 +1132,50 @@ function PesananSales() {
             return;
         }
 
+        if (isSubmittingPesanan) {
+            return;
+        }
+
         const payload = {
             toko: tokoDipilih,
-            items: pesanan
+            items: pesanan,
+            tanggal: tanggalPesanan
         };
 
-        console.log(
-            "Simpan pesanan:",
-            payload
-        );
+        setIsSubmittingPesanan(true);
 
-        // TODO:
-        // Kirim payload ke backend/API begitu endpoint "Orderan Masuk"
-        // sudah tersedia (belum ada di server.js saat ini).
+        try {
 
-        bukaAlert(
-            "Pesanan tersimpan"
-        );
+            await createPesanan(payload);
 
-        hapusDraft();
+            bukaAlert(
+                "Pesanan berhasil disimpan"
+            );
 
-        gantiToko();
+            hapusDraft();
+
+            // Izinkan navigasi supaya popup proteksi refresh/tutup tab
+            // tidak ikut nyegat perpindahan halaman ini.
+            izinkanNavigasiRef.current = true;
+
+            // Kasih jeda sebentar supaya alert "Pesanan berhasil disimpan"
+            // sempat terlihat sebelum pindah ke halaman History Pesanan.
+            setTimeout(() => {
+                window.location.assign("/historyOrder");
+            }, 600);
+
+        } catch (err) {
+
+            console.error("Gagal menyimpan pesanan:", err);
+
+            bukaAlert(
+                err.message || "Gagal menyimpan pesanan. Silakan coba lagi."
+            );
+
+        } finally {
+
+            setIsSubmittingPesanan(false);
+        }
     }
 
 
@@ -1713,13 +1817,41 @@ function PesananSales() {
                                 </div>
 
 
-                                {pesanan.length > 0 && (
+                                <div className="order-header-right">
 
-                                    <div className="order-count">
-                                        {pesanan.length}
+                                    <div className="tanggal-pesanan-field">
+
+                                        <label
+                                            className="form-label"
+                                            htmlFor="tanggalPesanan"
+                                        >
+                                            Tanggal Pesanan
+                                        </label>
+
+                                        <input
+                                            id="tanggalPesanan"
+                                            type="date"
+                                            value={tanggalPesanan}
+                                            onChange={(e) =>
+                                                setTanggalPesanan(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="form-input tanggal-input"
+                                        />
+
                                     </div>
 
-                                )}
+
+                                    {pesanan.length > 0 && (
+
+                                        <div className="order-count">
+                                            {pesanan.length}
+                                        </div>
+
+                                    )}
+
+                                </div>
 
                             </div>
 
@@ -2049,9 +2181,14 @@ function PesananSales() {
                                                 onClick={
                                                     simpanPesanan
                                                 }
+                                                disabled={
+                                                    isSubmittingPesanan
+                                                }
                                                 className="btn-primary btn-simpan"
                                             >
-                                                Simpan Pesanan
+                                                {isSubmittingPesanan
+                                                    ? "Menyimpan..."
+                                                    : "Simpan Pesanan"}
                                             </button>
 
                                         </div>

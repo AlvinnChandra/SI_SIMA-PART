@@ -7,6 +7,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const tokoRoutes = require("./src/routes/tokoRoutes");
 const itemRoutes = require("./src/routes/itemRoutes");
+const pesananRoutes = require("./src/routes/pesananRoutes");
 const dbConnect = require("./src/config/dbConnect");
 
 const app = express();
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/toko", tokoRoutes);
 app.use("/api/items", itemRoutes);
+app.use("/api/pesanan", pesananRoutes);
 
 app.get("/api/hello", (req, res) => {
     res.json({ message: "Hello dari Backend!" });
