@@ -1113,6 +1113,21 @@ function PesananSales() {
 
 
     // ==================================================
+    // VALIDASI QTY SEBELUM SIMPAN PESANAN
+    // ==================================================
+    // Mengembalikan daftar item yang qty-nya masih kosong/0,
+    // supaya "Simpan Pesanan" bisa ditolak dan sales diberi tahu
+    // barang mana saja yang qty-nya belum diisi.
+    // ==================================================
+
+    function cariItemQtyKosong() {
+        return pesanan.filter(
+            (item) => !item.qty || Number(item.qty) <= 0
+        );
+    }
+
+
+    // ==================================================
     // SIMPAN PESANAN
     // ==================================================
 
@@ -1128,6 +1143,22 @@ function PesananSales() {
         if (pesanan.length === 0) {
 
             bukaAlert("Belum ada barang di pesanan");
+
+            return;
+        }
+
+        // Cegah simpan kalau masih ada barang dengan qty 0/kosong
+        const itemQtyKosong = cariItemQtyKosong();
+
+        if (itemQtyKosong.length > 0) {
+
+            const daftarNama = itemQtyKosong
+                .map((item) => `"${item.nama}"`)
+                .join(", ");
+
+            bukaAlert(
+                `Qty belum diisi untuk barang: ${daftarNama}. Mohon isi qty semua barang terlebih dahulu sebelum menyimpan pesanan.`
+            );
 
             return;
         }
