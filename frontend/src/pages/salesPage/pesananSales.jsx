@@ -65,6 +65,10 @@ function PesananSales() {
 
     const [qty, setQty] = useState("");
 
+    // Catatan opsional untuk barang yang akan ditambahkan
+    // (mis. "warna merah", "contoh dulu", dll)
+    const [catatan, setCatatan] = useState("");
+
     // Ref input Qty di form "Tambah Barang", supaya begitu barang
     // terpilih, fokus otomatis pindah ke kolom Qty.
     const qtyInputRef = useRef(null);
@@ -78,6 +82,9 @@ function PesananSales() {
     const [editQty, setEditQty] = useState("");
 
     const [editSatuan, setEditSatuan] = useState("SET");
+
+    // Nilai sementara catatan saat mode edit
+    const [editCatatan, setEditCatatan] = useState("");
 
     // Ref input Qty saat edit, supaya bisa auto-focus (kursor kedip)
     const editQtyInputRef = useRef(null);
@@ -746,6 +753,7 @@ function PesananSales() {
             nama: barangDipilih.nama,
             satuan: satuanDipilih,
             qty: qtyFinal,
+            catatan: catatan.trim(),
             isBaru: !!barangDipilih.isBaru
         };
 
@@ -762,6 +770,8 @@ function PesananSales() {
         setSatuanDipilih("SET");
 
         setQty("");
+
+        setCatatan("");
 
         setShowDropdown(false);
     }
@@ -796,6 +806,8 @@ function PesananSales() {
         setEditQty(String(item.qty));
 
         setEditSatuan(item.satuan);
+
+        setEditCatatan(item.catatan || "");
     }
 
 
@@ -806,6 +818,8 @@ function PesananSales() {
         setEditQty("");
 
         setEditSatuan("SET");
+
+        setEditCatatan("");
     }
 
 
@@ -824,7 +838,8 @@ function PesananSales() {
                     ? {
                         ...item,
                         qty: qtyFinal,
-                        satuan: editSatuan
+                        satuan: editSatuan,
+                        catatan: editCatatan.trim()
                     }
                     : item
             )
@@ -1622,6 +1637,30 @@ function PesananSales() {
                                         </div>
 
 
+                                        <div className="form-group">
+
+                                            <label className="form-label">
+                                                Catatan
+                                                <span className="label-optional">
+                                                    (opsional)
+                                                </span>
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                value={catatan}
+                                                onChange={(e) =>
+                                                    setCatatan(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Cth: warna merah, contoh dulu"
+                                                className="form-input"
+                                            />
+
+                                        </div>
+
+
                                         <button
                                             type="button"
                                             onClick={
@@ -1714,6 +1753,10 @@ function PesananSales() {
 
                                                     <th className="col-satuan">
                                                         SATUAN
+                                                    </th>
+
+                                                    <th className="col-catatan">
+                                                        CATATAN
                                                     </th>
 
                                                     <th className="col-action">
@@ -1838,6 +1881,47 @@ function PesananSales() {
                                                                     ) : (
 
                                                                         item.satuan
+
+                                                                    )}
+
+                                                                </td>
+
+
+                                                                <td className="col-catatan">
+
+                                                                    {sedangDiedit ? (
+
+                                                                        <input
+                                                                            type="text"
+                                                                            value={
+                                                                                editCatatan
+                                                                            }
+                                                                            onChange={(e) =>
+                                                                                setEditCatatan(
+                                                                                    e.target.value
+                                                                                )
+                                                                            }
+                                                                            onKeyDown={
+                                                                                handleKeyDownEditQty
+                                                                            }
+                                                                            placeholder="Catatan..."
+                                                                            className="form-input edit-catatan-input"
+                                                                        />
+
+                                                                    ) : (
+
+                                                                        <span
+                                                                            className="catatan-text"
+                                                                            title={
+                                                                                item.catatan || ""
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                item.catatan
+                                                                                    ? item.catatan
+                                                                                    : "-"
+                                                                            }
+                                                                        </span>
 
                                                                     )}
 

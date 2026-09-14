@@ -819,7 +819,7 @@ select.form-input {
 .pesanan-table {
     width: 100%;
 
-    min-width: 500px;
+    min-width: 620px;
 
     border-collapse: collapse;
 
@@ -928,6 +928,13 @@ select.form-input {
     width: 70px;
 
     text-align: center !important;
+}
+
+
+.col-catatan {
+    width: 140px;
+
+    text-align: left !important;
 }
 
 
@@ -1102,6 +1109,36 @@ select.form-input {
     min-height: 34px;
 
     padding: 4px 6px;
+
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   KOLOM CATATAN
+===================================================== */
+
+.catatan-text {
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+
+    max-width: 140px;
+
+    color: #475569;
+
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+.edit-catatan-input {
+    min-height: 34px;
+
+    padding: 4px 8px;
 
     font-size: 12px;
 }
