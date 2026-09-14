@@ -917,6 +917,11 @@ select.form-input {
 }
 
 
+.col-barang {
+    text-align: center !important;
+}
+
+
 .col-qty {
     width: 55px;
 

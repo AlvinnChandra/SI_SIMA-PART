@@ -1743,7 +1743,7 @@ function PesananSales() {
                                                         NO
                                                     </th>
 
-                                                    <th>
+                                                    <th className="col-barang">
                                                         BARANG
                                                     </th>
 
@@ -1796,7 +1796,7 @@ function PesananSales() {
                                                                 </td>
 
 
-                                                                <td>
+                                                                <td className="col-barang">
 
                                                                     <div className="barang-name">
 
