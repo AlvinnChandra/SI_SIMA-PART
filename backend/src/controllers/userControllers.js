@@ -1,4 +1,28 @@
+const cloudinary = require("../config/cloudinary");
 const User = require("../models/userModel");
+
+// helper upload file ke cloudinary
+// resourceType: "image" untuk foto, "raw" untuk PDF (cv)
+const uploadToCloudinary = async (file, folder, resourceType = "image") => {
+    if (!file) return null;
+
+    const result = await cloudinary.uploader.upload(file.path, {
+        folder,
+        resource_type: resourceType,
+    });
+
+    return { url: result.secure_url, publicId: result.public_id };
+};
+
+// mapping field file -> folder cloudinary & resource type-nya,
+// dipakai bareng di updateSales & deleteSales
+const FILE_FIELDS = [
+    { key: "fotoProfile", idKey: "fotoProfileId", folder: "sima_users/foto_profile", resourceType: "image" },
+    { key: "cv", idKey: "cvId", folder: "sima_users/cv", resourceType: "raw" },
+    { key: "fotoKtp", idKey: "fotoKtpId", folder: "sima_users/ktp", resourceType: "image" },
+    { key: "fotoSimA", idKey: "fotoSimAId", folder: "sima_users/sim_a", resourceType: "image" },
+    { key: "fotoSimC", idKey: "fotoSimCId", folder: "sima_users/sim_c", resourceType: "image" },
+];
 
 // Ambil semua user yang dikelola lewat tabel ini
 // (sales, maupun yang sudah dipromosikan jadi admin) — KECUALI admin utama/bawaan sistem
@@ -107,11 +131,22 @@ exports.updateSales = async (req, res) => {
         if (alamat) user.alamat = alamat;
 
         const files = req.files || {};
-        if (files.fotoProfile?.[0]) user.fotoProfile = files.fotoProfile[0].filename;
-        if (files.fotoKtp?.[0]) user.fotoKtp = files.fotoKtp[0].filename;
-        if (files.fotoSimA?.[0]) user.fotoSimA = files.fotoSimA[0].filename;
-        if (files.fotoSimC?.[0]) user.fotoSimC = files.fotoSimC[0].filename;
-        if (files.cv?.[0]) user.cv = files.cv[0].filename;
+
+        for (const f of FILE_FIELDS) {
+            const file = files[f.key]?.[0];
+            if (!file) continue;
+
+            // hapus file lama di cloudinary dulu kalau ada, biar gak numpuk sampah
+            if (user[f.idKey]) {
+                await cloudinary.uploader.destroy(user[f.idKey], {
+                    resource_type: f.resourceType,
+                });
+            }
+
+            const uploaded = await uploadToCloudinary(file, f.folder, f.resourceType);
+            user[f.key] = uploaded.url;
+            user[f.idKey] = uploaded.publicId;
+        }
 
         await user.save();
 
@@ -136,6 +171,15 @@ exports.deleteSales = async (req, res) => {
 
         if (target.isMainAdmin) {
             return res.status(403).json({ message: "Admin utama tidak bisa dihapus." });
+        }
+
+        // bersihkan semua file terkait di cloudinary biar gak jadi sampah
+        for (const f of FILE_FIELDS) {
+            if (target[f.idKey]) {
+                await cloudinary.uploader.destroy(target[f.idKey], {
+                    resource_type: f.resourceType,
+                });
+            }
         }
 
         await target.deleteOne();

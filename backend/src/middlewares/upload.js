@@ -1,23 +1,26 @@
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 
-// sesuaikan jumlah ".." dengan lokasi file ini
-// contoh: kalau file ini ada di backend/src/middlewares/upload.js
-const uploadDir = path.join(__dirname, "..", "..", "uploads");
+const allowedImageExt = [".jpg", ".jpeg", ".png"];
 
-console.log("Upload folder:", uploadDir); // sementara, buat ngecek
+// diskStorage({}) tanpa destination/filename = file ditaruh di temp folder OS,
+// nanti kita upload dari situ ke Cloudinary (sama seperti middlewares/multer.js)
+module.exports = multer({
+    storage: multer.diskStorage({}),
+    fileFilter: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
 
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+        if (file.fieldname === "cv") {
+            if (ext !== ".pdf") {
+                return cb(new Error("File CV harus berformat PDF."), false);
+            }
+            return cb(null, true);
+        }
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
-    filename: (req, file, cb) => {
-        const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, unique + path.extname(file.originalname));
+        if (!allowedImageExt.includes(ext)) {
+            return cb(new Error("Format file tidak didukung."), false);
+        }
+
+        cb(null, true);
     },
 });
-
-module.exports = multer({ storage });

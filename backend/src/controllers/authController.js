@@ -1,6 +1,20 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const cloudinary = require("../config/cloudinary");
 const User = require("../models/userModel");
+
+// helper upload file ke cloudinary
+// resourceType: "image" untuk foto, "raw" untuk PDF (cv)
+const uploadToCloudinary = async (file, folder, resourceType = "image") => {
+    if (!file) return null;
+
+    const result = await cloudinary.uploader.upload(file.path, {
+        folder,
+        resource_type: resourceType,
+    });
+
+    return { url: result.secure_url, publicId: result.public_id };
+};
 
 // ---------------- REGISTER ----------------
 exports.register = async (req, res) => {
@@ -16,6 +30,14 @@ exports.register = async (req, res) => {
 
         const files = req.files || {};
 
+        const [fotoProfile, cv, fotoKtp, fotoSimA, fotoSimC] = await Promise.all([
+            uploadToCloudinary(files.fotoProfile?.[0], "sima_users/foto_profile"),
+            uploadToCloudinary(files.cv?.[0], "sima_users/cv", "raw"),
+            uploadToCloudinary(files.fotoKtp?.[0], "sima_users/ktp"),
+            uploadToCloudinary(files.fotoSimA?.[0], "sima_users/sim_a"),
+            uploadToCloudinary(files.fotoSimC?.[0], "sima_users/sim_c"),
+        ]);
+
         const newUser = new User({
             namaLengkap,
             username,
@@ -26,11 +48,16 @@ exports.register = async (req, res) => {
             nik,
             noTelepon,
             alamat,
-            fotoProfile: files.fotoProfile?.[0]?.filename,
-            cv: files.cv?.[0]?.filename,
-            fotoKtp: files.fotoKtp?.[0]?.filename,
-            fotoSimA: files.fotoSimA?.[0]?.filename,
-            fotoSimC: files.fotoSimC?.[0]?.filename,
+            fotoProfile: fotoProfile?.url,
+            fotoProfileId: fotoProfile?.publicId,
+            cv: cv?.url,
+            cvId: cv?.publicId,
+            fotoKtp: fotoKtp?.url,
+            fotoKtpId: fotoKtp?.publicId,
+            fotoSimA: fotoSimA?.url,
+            fotoSimAId: fotoSimA?.publicId,
+            fotoSimC: fotoSimC?.url,
+            fotoSimCId: fotoSimC?.publicId,
         });
 
         await newUser.save();
@@ -38,7 +65,7 @@ exports.register = async (req, res) => {
         res.status(201).json({ message: "Registrasi berhasil" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Terjadi kesalahan server." });
+        res.status(500).json({ message: err.message || "Terjadi kesalahan server." });
     }
 };
 
@@ -174,7 +201,14 @@ exports.updateProfile = async (req, res) => {
 
         // Ganti foto profil kalau ada file baru yang diupload
         if (req.file) {
-            user.fotoProfile = req.file.filename;
+            // hapus foto lama di cloudinary kalau ada, biar gak numpuk sampah
+            if (user.fotoProfileId) {
+                await cloudinary.uploader.destroy(user.fotoProfileId);
+            }
+
+            const uploaded = await uploadToCloudinary(req.file, "sima_users/foto_profile");
+            user.fotoProfile = uploaded.url;
+            user.fotoProfileId = uploaded.publicId;
         }
 
         await user.save();
