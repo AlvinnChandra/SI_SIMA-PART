@@ -754,9 +754,9 @@ select.form-input {
 
 /*
     Bagian ini yang membuat daftar pesanan
-    maksimal menampilkan sekitar 8 item.
+    maksimal menampilkan sekitar 6 item.
 
-    Kalau item lebih dari 8:
+    Kalau item lebih dari 6:
     -> muncul scrollbar
     -> card tidak memanjang
 */
@@ -766,11 +766,11 @@ select.form-input {
 
     /*
         Header = sekitar 48px
-        8 baris = sekitar 60px x 8
+        6 baris = sekitar 60px x 6
 
-        Total sekitar 528px
+        Total sekitar 360px (+1px border)
     */
-    max-height: 529px;
+    max-height: 409px;
 
     overflow-y: auto;
     overflow-x: auto;
@@ -1434,7 +1434,7 @@ select.form-input {
     */
 
     .table-wrapper {
-        max-height: 529px;
+        max-height: 409px;
     }
 
 
@@ -1539,7 +1539,7 @@ select.form-input {
     */
 
     .table-wrapper {
-        max-height: 529px;
+        max-height: 409px;
 
         overflow-x: auto;
         overflow-y: auto;
