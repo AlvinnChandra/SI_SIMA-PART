@@ -184,12 +184,6 @@ const UPLOAD_FIELD_TO_BACKEND_KEY = {
 // ============================================================
 // ROLE LOCK
 // ============================================================
-// Catatan: dropdown role sengaja TIDAK dikunci lagi di frontend,
-// biar role bisa diubah bolak-balik (sales -> admin -> sales, dst).
-// Validasi "hanya admin utama yang boleh mengubah role admin"
-// tetap dijaga di backend (endpoint PATCH /users/sales/:id/role),
-// jadi kalau memang tidak boleh, user akan melihat pesan error
-// lewat toast di bawah dan pilihan otomatis di-rollback.
 
 function isRoleLocked() {
     return false;
@@ -290,6 +284,18 @@ function buildDownloadFileName(namaSales, label, src) {
     const ext = extMatch ? extMatch[1] : "jpg";
 
     return `${cleanName}_${label}.${ext}`;
+}
+
+// ============================================================
+// NAMA FILE PDF
+// ============================================================
+
+function buildCvFileName(namaSales) {
+    const cleanName = String(namaSales || "Sales")
+        .trim()
+        .replace(/\s+/g, "_");
+
+    return `${cleanName}_CV.pdf`;
 }
 
 // ============================================================
@@ -479,11 +485,8 @@ function IconClose() {
 }
 
 // ============================================================
-// TOAST (pengganti window.alert() bawaan browser)
+// TOAST
 // ============================================================
-// Tampil sebagai notifikasi kecil di pojok kanan atas, auto-hilang
-// setelah beberapa detik. Tidak ada label "localhost:xxxx says"
-// seperti alert() bawaan, karena ini komponen React biasa.
 
 function Toast({ toast, onClose }) {
     useEffect(() => {
@@ -528,7 +531,9 @@ function Toast({ toast, onClose }) {
                 {isError ? <IconXCircle /> : <IconCheckCircle />}
             </span>
 
-            <span style={{ flex: 1 }}>{toast.message}</span>
+            <span style={{ flex: 1 }}>
+                {toast.message}
+            </span>
 
             <button
                 type="button"
@@ -585,7 +590,8 @@ function DocPhoto({
                             namaSales,
                             label,
                             src
-                        )
+                        ),
+                        "image"
                     )
                 }
                 title={`Lihat ${alt}`}
@@ -596,7 +602,11 @@ function DocPhoto({
             <a
                 className="sima-sales-table__download-btn"
                 href={src}
-                download={buildDownloadFileName(namaSales, label, src)}
+                download={buildDownloadFileName(
+                    namaSales,
+                    label,
+                    src
+                )}
                 target="_blank"
                 rel="noopener noreferrer"
                 title={`Download ${alt}`}
@@ -640,7 +650,8 @@ function ProfilePhoto({
                         namaSales,
                         "FotoProfil",
                         src
-                    )
+                    ),
+                    "image"
                 )
             }
             title={`Lihat foto profil ${namaSales}`}
@@ -655,10 +666,14 @@ function ProfilePhoto({
 }
 
 // ============================================================
-// CV
+// CV PDF
 // ============================================================
 
-function CvFile({ src, namaSales }) {
+function CvFile({
+    src,
+    namaSales,
+    onPreview,
+}) {
     if (!src) {
         return (
             <span
@@ -670,28 +685,42 @@ function CvFile({ src, namaSales }) {
         );
     }
 
+    // CV selalu dianggap PDF
+    const fileName = buildCvFileName(namaSales);
+
     return (
         <div className="sima-sales-table__doc-actions">
-            <a
+
+            {/* TOMBOL LIHAT PDF */}
+            <button
+                type="button"
                 className="sima-sales-table__doc-icon-btn sima-sales-table__doc-icon-btn--filled"
-                href={src}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={() =>
+                    onPreview(
+                        src,
+                        `CV ${namaSales}`,
+                        fileName,
+                        "pdf"
+                    )
+                }
                 title={`Lihat CV ${namaSales}`}
             >
                 <IconFile />
-            </a>
+            </button>
 
+            {/* TOMBOL DOWNLOAD */}
             <a
                 className="sima-sales-table__download-btn"
                 href={src}
-                download={buildDownloadFileName(namaSales, "CV", src)}
+                download={fileName}
                 target="_blank"
                 rel="noopener noreferrer"
                 title={`Download CV ${namaSales}`}
+                onClick={(e) => e.stopPropagation()}
             >
                 <IconDownload />
             </a>
+
         </div>
     );
 }
@@ -951,6 +980,7 @@ function EditSalesModal({
                         </div>
 
                         <div className="sima-sales-modal__uploads">
+
                             {UPLOAD_FIELDS.map(
                                 ({
                                     key,
@@ -967,14 +997,12 @@ function EditSalesModal({
                                         </span>
 
                                         <div className="sima-sales-modal__upload-preview">
+
                                             {form[key] ? (
-                                                type ===
-                                                    "image" ? (
+                                                type === "image" ? (
                                                     <img
                                                         src={
-                                                            form[
-                                                            key
-                                                            ]
+                                                            form[key]
                                                         }
                                                         alt={label}
                                                     />
@@ -991,14 +1019,15 @@ function EditSalesModal({
                                                     file
                                                 </span>
                                             )}
+
                                         </div>
 
                                         <div className="sima-sales-modal__upload-actions">
+
                                             <label className="sima-sales-modal__upload-btn">
                                                 <IconUpload />
 
-                                                {uploading ===
-                                                    key
+                                                {uploading === key
                                                     ? "Memproses..."
                                                     : "Ganti File"}
 
@@ -1006,14 +1035,10 @@ function EditSalesModal({
                                                     type="file"
                                                     accept={accept}
                                                     hidden
-                                                    onChange={(
-                                                        e
-                                                    ) =>
+                                                    onChange={(e) =>
                                                         handleFileChange(
                                                             key,
-                                                            e
-                                                                .target
-                                                                .files?.[0]
+                                                            e.target.files?.[0]
                                                         )
                                                     }
                                                 />
@@ -1032,14 +1057,17 @@ function EditSalesModal({
                                                     Hapus
                                                 </button>
                                             )}
+
                                         </div>
                                     </div>
                                 )
                             )}
+
                         </div>
                     </div>
 
                     <div className="sima-sales-modal__footer">
+
                         <button
                             type="button"
                             className="sima-sales-modal__btn sima-sales-modal__btn--ghost"
@@ -1054,6 +1082,7 @@ function EditSalesModal({
                         >
                             Simpan Perubahan
                         </button>
+
                     </div>
                 </form>
             </div>
@@ -1084,6 +1113,8 @@ function LightboxPreview({
                     e.stopPropagation()
                 }
             >
+
+                {/* TOMBOL CLOSE */}
                 <button
                     type="button"
                     className="sima-sales-table__lightbox-close"
@@ -1093,14 +1124,43 @@ function LightboxPreview({
                     ×
                 </button>
 
-                <img
-                    src={preview.src}
-                    alt={preview.alt}
-                />
+                {/* ==================================================
+                    PDF
+                    ================================================== */}
 
-                <p>{preview.alt}</p>
+                {preview.type === "pdf" ? (
+                    <iframe
+                        className="sima-sales-table__lightbox-pdf"
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                            preview.src
+                        )}&embedded=true`}
+                        title={preview.alt}
+                        style={{
+                            width: "100%",
+                            height: "70vh",
+                            minHeight: 500,
+                            border: "none",
+                            borderRadius: 8,
+                            background: "#fff",
+                        }}
+                    />
+                ) : (
 
+                    /* ==================================================
+                       GAMBAR
+                       ================================================== */
 
+                    <img
+                        src={preview.src}
+                        alt={preview.alt}
+                    />
+                )}
+
+                <p>
+                    {preview.alt}
+                </p>
+
+                {/* DOWNLOAD */}
                 <a
                     className="sima-sales-table__lightbox-download"
                     href={preview.src}
@@ -1111,8 +1171,9 @@ function LightboxPreview({
                     <IconDownload />
                     Download
                 </a>
+
             </div>
-        </div >
+        </div>
     );
 }
 
@@ -1128,21 +1189,30 @@ function SalesTable({ keyword = "" }) {
     const [currentPage, setCurrentPage] = useState(1);
 
     const [preview, setPreview] = useState(null);
+
     const [editingSales, setEditingSales] =
         useState(null);
+
     const [deletingSales, setDeletingSales] =
         useState(null);
 
-    // Toast (pengganti alert() bawaan browser)
+    // Toast
     const [toast, setToast] = useState(null);
     const toastIdRef = useRef(0);
 
     const showToast = (type, message) => {
         toastIdRef.current += 1;
-        setToast({ id: toastIdRef.current, type, message });
+
+        setToast({
+            id: toastIdRef.current,
+            type,
+            message,
+        });
     };
 
-    const closeToast = () => setToast(null);
+    const closeToast = () => {
+        setToast(null);
+    };
 
     // ========================================================
     // LOAD SALES
@@ -1187,12 +1257,15 @@ function SalesTable({ keyword = "" }) {
         .toLowerCase()
         .trim();
 
-    const filteredSales = salesData.filter(
-        (sales) =>
-            String(sales.namaSales || "")
-                .toLowerCase()
-                .includes(searchKeyword)
-    );
+    const filteredSales =
+        salesData.filter(
+            (sales) =>
+                String(
+                    sales.namaSales || ""
+                )
+                    .toLowerCase()
+                    .includes(searchKeyword)
+        );
 
     useEffect(() => {
         setCurrentPage(1);
@@ -1203,7 +1276,8 @@ function SalesTable({ keyword = "" }) {
     // ========================================================
 
     const totalPages = Math.ceil(
-        filteredSales.length / ITEMS_PER_PAGE
+        filteredSales.length /
+        ITEMS_PER_PAGE
     );
 
     const startIndex =
@@ -1311,7 +1385,8 @@ function SalesTable({ keyword = "" }) {
             return;
         }
 
-        const oldRole = targetSales.role;
+        const oldRole =
+            targetSales.role;
 
         setSalesData((prev) =>
             prev.map((sales) =>
@@ -1372,7 +1447,8 @@ function SalesTable({ keyword = "" }) {
         newFiles
     ) => {
         try {
-            const formData = new FormData();
+            const formData =
+                new FormData();
 
             formData.append(
                 "namaLengkap",
@@ -1401,7 +1477,10 @@ function SalesTable({ keyword = "" }) {
                         uiKey
                         ];
 
-                    if (backendKey && file) {
+                    if (
+                        backendKey &&
+                        file
+                    ) {
                         formData.append(
                             backendKey,
                             file
@@ -1410,13 +1489,14 @@ function SalesTable({ keyword = "" }) {
                 }
             );
 
-            const result = await apiFetch(
-                `/users/sales/${updatedForm.id}`,
-                {
-                    method: "PUT",
-                    body: formData,
-                }
-            );
+            const result =
+                await apiFetch(
+                    `/users/sales/${updatedForm.id}`,
+                    {
+                        method: "PUT",
+                        body: formData,
+                    }
+                );
 
             if (result.user) {
                 setSalesData((prev) =>
@@ -1451,10 +1531,6 @@ function SalesTable({ keyword = "" }) {
     // ========================================================
     // DELETE
     // ========================================================
-    // Catatan: tidak ada pengecekan role di sini lagi.
-    // Modal konfirmasi selalu muncul untuk semua baris;
-    // kalau backend menolak (mis. karena targetnya admin),
-    // pesan errornya akan tampil lewat toast di bawah.
 
     const handleDelete = (sales) => {
         setDeletingSales(sales);
@@ -1518,12 +1594,14 @@ function SalesTable({ keyword = "" }) {
     const openPreview = (
         src,
         alt,
-        fileName
+        fileName,
+        type = "image"
     ) => {
         setPreview({
             src,
             alt,
             fileName,
+            type,
         });
     };
 
@@ -1562,11 +1640,16 @@ function SalesTable({ keyword = "" }) {
     return (
         <div className="sima-sales-table-wrap">
 
-            <Toast toast={toast} onClose={closeToast} />
+            <Toast
+                toast={toast}
+                onClose={closeToast}
+            />
 
             <table className="sima-sales-table">
+
                 <thead>
                     <tr>
+
                         <th className="sima-sales-table__col-no">
                             No
                         </th>
@@ -1618,13 +1701,16 @@ function SalesTable({ keyword = "" }) {
                         <th className="sima-sales-table__col-center">
                             Aksi
                         </th>
+
                     </tr>
                 </thead>
 
                 <tbody>
 
                     {currentData.length === 0 ? (
+
                         <tr>
+
                             <td
                                 colSpan={13}
                                 className="sima-sales-table__empty"
@@ -1633,10 +1719,14 @@ function SalesTable({ keyword = "" }) {
                                     ? `Data sales dengan nama "${keyword}" tidak ditemukan.`
                                     : "Belum ada data sales."}
                             </td>
+
                         </tr>
+
                     ) : (
+
                         currentData.map(
                             (sales, index) => {
+
                                 const verifMeta =
                                     getVerifikasiMeta(
                                         sales.verifikasi
@@ -1653,6 +1743,7 @@ function SalesTable({ keyword = "" }) {
                                     );
 
                                 return (
+
                                     <tr
                                         key={
                                             sales.id
@@ -1665,7 +1756,9 @@ function SalesTable({ keyword = "" }) {
                                                 1}
                                         </td>
 
+                                        {/* FOTO PROFIL */}
                                         <td className="sima-sales-table__col-center">
+
                                             <ProfilePhoto
                                                 src={
                                                     sales.fotoProfil
@@ -1677,22 +1770,30 @@ function SalesTable({ keyword = "" }) {
                                                     openPreview
                                                 }
                                             />
+
                                         </td>
 
+                                        {/* NAMA */}
                                         <td className="sima-sales-table__strong">
                                             {
                                                 sales.namaSales
                                             }
                                         </td>
 
+                                        {/* NIK */}
                                         <td>
                                             {
                                                 sales.nik
                                             }
                                         </td>
 
+                                        {/* TELEPON */}
                                         <td>
-                                            {toWaLink(sales.noTelepon) ? (
+
+                                            {toWaLink(
+                                                sales.noTelepon
+                                            ) ? (
+
                                                 <a
                                                     href={toWaLink(
                                                         sales.noTelepon
@@ -1706,18 +1807,23 @@ function SalesTable({ keyword = "" }) {
                                                         sales.noTelepon
                                                     }
                                                 </a>
+
                                             ) : (
                                                 "-"
                                             )}
+
                                         </td>
 
+                                        {/* ALAMAT */}
                                         <td>
                                             {
                                                 sales.alamat
                                             }
                                         </td>
 
+                                        {/* KTP */}
                                         <td className="sima-sales-table__col-center">
+
                                             <DocPhoto
                                                 src={
                                                     sales.fotoKtp
@@ -1731,9 +1837,12 @@ function SalesTable({ keyword = "" }) {
                                                     openPreview
                                                 }
                                             />
+
                                         </td>
 
+                                        {/* SIM A */}
                                         <td className="sima-sales-table__col-center">
+
                                             <DocPhoto
                                                 src={
                                                     sales.fotoSimA
@@ -1747,9 +1856,12 @@ function SalesTable({ keyword = "" }) {
                                                     openPreview
                                                 }
                                             />
+
                                         </td>
 
+                                        {/* SIM C */}
                                         <td className="sima-sales-table__col-center">
+
                                             <DocPhoto
                                                 src={
                                                     sales.fotoSimC
@@ -1763,9 +1875,12 @@ function SalesTable({ keyword = "" }) {
                                                     openPreview
                                                 }
                                             />
+
                                         </td>
 
+                                        {/* CV */}
                                         <td className="sima-sales-table__col-center">
+
                                             <CvFile
                                                 src={
                                                     sales.cv
@@ -1773,10 +1888,16 @@ function SalesTable({ keyword = "" }) {
                                                 namaSales={
                                                     sales.namaSales
                                                 }
+                                                onPreview={
+                                                    openPreview
+                                                }
                                             />
+
                                         </td>
 
+                                        {/* VERIFIKASI */}
                                         <td className="sima-sales-table__col-center">
+
                                             <select
                                                 className={`sima-sales-table__verif ${verifMeta.className}`}
                                                 value={
@@ -1801,6 +1922,7 @@ function SalesTable({ keyword = "" }) {
                                                     )
                                                 }
                                             >
+
                                                 <option
                                                     value={
                                                         VERIFIKASI_STATUS.MENUNGGU
@@ -1828,10 +1950,14 @@ function SalesTable({ keyword = "" }) {
                                                     Berhasil
                                                     Verifikasi
                                                 </option>
+
                                             </select>
+
                                         </td>
 
+                                        {/* ROLE */}
                                         <td className="sima-sales-table__col-center">
+
                                             <select
                                                 className={`sima-sales-table__role ${getRoleClassName(
                                                     sales.role
@@ -1854,6 +1980,7 @@ function SalesTable({ keyword = "" }) {
                                                     )
                                                 }
                                             >
+
                                                 <option value="sales">
                                                     Sales
                                                 </option>
@@ -1861,12 +1988,17 @@ function SalesTable({ keyword = "" }) {
                                                 <option value="admin">
                                                     Admin
                                                 </option>
+
                                             </select>
+
                                         </td>
 
+                                        {/* AKSI */}
                                         <td className="sima-sales-table__col-center">
+
                                             <div className="sima-sales-table__aksi">
 
+                                                {/* EDIT */}
                                                 <button
                                                     type="button"
                                                     className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--edit"
@@ -1893,6 +2025,7 @@ function SalesTable({ keyword = "" }) {
                                                     </svg>
                                                 </button>
 
+                                                {/* DELETE */}
                                                 <button
                                                     type="button"
                                                     className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--delete"
@@ -1926,6 +2059,7 @@ function SalesTable({ keyword = "" }) {
                                                 </button>
 
                                             </div>
+
                                         </td>
 
                                     </tr>
@@ -1935,148 +2069,162 @@ function SalesTable({ keyword = "" }) {
                     )}
 
                 </tbody>
+
             </table>
 
-            {
-                totalPages > 1 && (
-                    <div className="sima-sales-pagination">
+            {/* ==================================================
+                PAGINATION
+                ================================================== */}
 
-                        <span className="sima-sales-pagination__info">
-                            Menampilkan{" "}
-                            {startIndex + 1}
-                            –
-                            {Math.min(
-                                startIndex +
-                                ITEMS_PER_PAGE,
-                                filteredSales.length
-                            )}{" "}
-                            dari{" "}
-                            {filteredSales.length}{" "}
-                            data
-                        </span>
+            {totalPages > 1 && (
 
-                        <div className="sima-sales-pagination__controls">
+                <div className="sima-sales-pagination">
+
+                    <span className="sima-sales-pagination__info">
+                        Menampilkan{" "}
+                        {startIndex + 1}
+                        –
+                        {Math.min(
+                            startIndex +
+                            ITEMS_PER_PAGE,
+                            filteredSales.length
+                        )}{" "}
+                        dari{" "}
+                        {filteredSales.length}{" "}
+                        data
+                    </span>
+
+                    <div className="sima-sales-pagination__controls">
+
+                        {/* PREVIOUS */}
+                        <button
+                            type="button"
+                            className="sima-sales-pagination__btn"
+                            onClick={() =>
+                                goToPage(
+                                    currentPage - 1
+                                )
+                            }
+                            disabled={
+                                currentPage === 1
+                            }
+                            aria-label="Halaman sebelumnya"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                        </button>
+
+                        {/* NUMBER */}
+                        {Array.from(
+                            {
+                                length: totalPages,
+                            },
+                            (_, i) => i + 1
+                        ).map((page) => (
 
                             <button
+                                key={page}
                                 type="button"
-                                className="sima-sales-pagination__btn"
+                                className={`sima-sales-pagination__btn ${page === currentPage
+                                    ? "sima-sales-pagination__btn--active"
+                                    : ""
+                                    }`}
                                 onClick={() =>
                                     goToPage(
-                                        currentPage - 1
+                                        page
                                     )
                                 }
-                                disabled={
-                                    currentPage === 1
-                                }
-                                aria-label="Halaman sebelumnya"
                             >
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <polyline points="15 18 9 12 15 6" />
-                                </svg>
+                                {page}
                             </button>
 
-                            {Array.from(
-                                {
-                                    length: totalPages,
-                                },
-                                (_, i) => i + 1
-                            ).map((page) => (
-                                <button
-                                    key={page}
-                                    type="button"
-                                    className={`sima-sales-pagination__btn ${page ===
-                                        currentPage
-                                        ? "sima-sales-pagination__btn--active"
-                                        : ""
-                                        }`}
-                                    onClick={() =>
-                                        goToPage(
-                                            page
-                                        )
-                                    }
-                                >
-                                    {page}
-                                </button>
-                            ))}
+                        ))}
 
-                            <button
-                                type="button"
-                                className="sima-sales-pagination__btn"
-                                onClick={() =>
-                                    goToPage(
-                                        currentPage + 1
-                                    )
-                                }
-                                disabled={
-                                    currentPage ===
-                                    totalPages
-                                }
-                                aria-label="Halaman selanjutnya"
+                        {/* NEXT */}
+                        <button
+                            type="button"
+                            className="sima-sales-pagination__btn"
+                            onClick={() =>
+                                goToPage(
+                                    currentPage + 1
+                                )
+                            }
+                            disabled={
+                                currentPage ===
+                                totalPages
+                            }
+                            aria-label="Halaman selanjutnya"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                             >
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <polyline points="9 18 15 12 9 6" />
-                                </svg>
-                            </button>
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                        </button>
 
-                        </div>
                     </div>
-                )
-            }
+                </div>
+            )}
 
-            {
-                preview && (
-                    <LightboxPreview
-                        preview={preview}
-                        onClose={closePreview}
-                    />
-                )
-            }
+            {/* ==================================================
+                PREVIEW
+                ================================================== */}
 
-            {
-                editingSales && (
-                    <EditSalesModal
-                        key={editingSales.id}
-                        sales={editingSales}
-                        onClose={() =>
-                            setEditingSales(null)
-                        }
-                        onSave={handleSaveEdit}
-                        onNotify={showToast}
-                    />
-                )
-            }
+            {preview && (
+                <LightboxPreview
+                    preview={preview}
+                    onClose={closePreview}
+                />
+            )}
 
-            {
-                deletingSales && (
-                    <DeleteConfirmModal
-                        sales={deletingSales}
-                        onCancel={() =>
-                            setDeletingSales(null)
-                        }
-                        onConfirm={confirmDelete}
-                    />
-                )
-            }
+            {/* ==================================================
+                EDIT
+                ================================================== */}
 
-        </div >
+            {editingSales && (
+                <EditSalesModal
+                    key={editingSales.id}
+                    sales={editingSales}
+                    onClose={() =>
+                        setEditingSales(null)
+                    }
+                    onSave={handleSaveEdit}
+                    onNotify={showToast}
+                />
+            )}
+
+            {/* ==================================================
+                DELETE
+                ================================================== */}
+
+            {deletingSales && (
+                <DeleteConfirmModal
+                    sales={deletingSales}
+                    onCancel={() =>
+                        setDeletingSales(null)
+                    }
+                    onConfirm={confirmDelete}
+                />
+            )}
+
+        </div>
     );
 }
 
