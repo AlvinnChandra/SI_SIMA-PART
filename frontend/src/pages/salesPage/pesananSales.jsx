@@ -3,8 +3,10 @@ import Header from "../../components/headerSales";
 import Footer from "../../components/footer";
 import "../../css/pesananSales.css";
 
-import { MOCK_BARANG, DRAFT_KEY, bacaDraft } from "./pesananSalesData";
+import { DRAFT_KEY, bacaDraft, tentukanSatuanDefault } from "./pesananSalesData";
 import LeaveModal, { NotifModal } from "./leaveModal";
+import { getToko, createToko } from "../../services/tokoService";
+import { getItems } from "../../services/itemService";
 
 
 // ======================================================
@@ -18,6 +20,7 @@ function PesananSales() {
     // ==================================================
 
     const [daftarToko, setDaftarToko] = useState([]);
+    const [isLoadingToko, setIsLoadingToko] = useState(true);
 
     const [keywordToko, setKeywordToko] = useState("");
 
@@ -36,12 +39,16 @@ function PesananSales() {
 
     const [noTeleponTokoBaru, setNoTeleponTokoBaru] = useState("");
 
+    // Loading saat menyimpan toko baru ke server
+    const [isSubmittingTokoBaru, setIsSubmittingTokoBaru] = useState(false);
+
 
     // ==================================================
     // STATE BARANG
     // ==================================================
 
-    const [daftarBarang, setDaftarBarang] = useState(MOCK_BARANG);
+    const [daftarBarang, setDaftarBarang] = useState([]);
+    const [isLoadingBarang, setIsLoadingBarang] = useState(true);
 
     const [keyword, setKeyword] = useState("");
 
@@ -58,9 +65,8 @@ function PesananSales() {
 
     const [qty, setQty] = useState("");
 
-    // [BARU] Ref input Qty di form "Tambah Barang", supaya begitu
-    // barang terpilih (baik lewat klik maupun Enter), fokus otomatis
-    // pindah ke kolom Qty dan user tinggal ketik angka lalu Enter lagi.
+    // Ref input Qty di form "Tambah Barang", supaya begitu barang
+    // terpilih, fokus otomatis pindah ke kolom Qty.
     const qtyInputRef = useRef(null);
 
     const [pesanan, setPesanan] = useState([]);
@@ -88,10 +94,6 @@ function PesananSales() {
     // ==================================================
     // STATE POPUP "PINDAH HALAMAN" (KATALOG / HISTORY / DATATOKO)
     // ==================================================
-    // Muncul ketika user sudah punya barang di pesanan (belum tentu
-    // sudah disimpan draft) lalu mengklik menu navigasi lain di Header,
-    // supaya user tidak lupa menyimpan draft sebelum pindah tab/halaman.
-    // ==================================================
 
     const [showLeaveModal, setShowLeaveModal] = useState(false);
 
@@ -106,9 +108,7 @@ function PesananSales() {
 
 
     // ==================================================
-    // [BARU] STATE POPUP NOTIFIKASI (pengganti alert/confirm)
-    // ==================================================
-    // notif = { type: "alert" | "confirm", message: string, onConfirm?: fn }
+    // STATE POPUP NOTIFIKASI (pengganti alert/confirm)
     // ==================================================
 
     const [notif, setNotif] = useState(null);
@@ -127,13 +127,7 @@ function PesananSales() {
 
 
     // ==================================================
-    // [BARU] SNAPSHOT DRAFT TERAKHIR TERSIMPAN
-    // ==================================================
-    // Dipakai untuk membandingkan kondisi toko+pesanan SEKARANG
-    // dengan kondisi terakhir yang sudah tersimpan sebagai draft
-    // (atau kondisi awal kosong kalau belum pernah ada draft).
-    // Popup "Pindah Halaman" HANYA muncul kalau ada perbedaan,
-    // bukan sekadar karena pesanan.length > 0.
+    // SNAPSHOT DRAFT TERAKHIR TERSIMPAN
     // ==================================================
 
     const lastSavedSnapshotRef = useRef(
@@ -142,7 +136,7 @@ function PesananSales() {
 
     function buatSnapshot(toko, items) {
         return JSON.stringify({
-            tokoId: toko ? toko.id : null,
+            tokoId: toko ? toko._id : null,
             items: items.map((item) => ({
                 barangId: item.barangId,
                 qty: item.qty,
@@ -157,6 +151,56 @@ function PesananSales() {
             lastSavedSnapshotRef.current
         );
     }
+
+
+    // ==================================================
+    // MUAT DATA TOKO DARI API
+    // ==================================================
+
+    useEffect(() => {
+
+        getToko()
+            .then(setDaftarToko)
+            .catch((err) => {
+                console.error("Gagal memuat data toko:", err);
+                bukaAlert(err.message || "Gagal memuat data toko dari server.");
+            })
+            .finally(() => setIsLoadingToko(false));
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+
+    // ==================================================
+    // MUAT DATA BARANG DARI API (collection "items")
+    // ==================================================
+
+    useEffect(() => {
+
+        getItems()
+            .then((items) => {
+                const mapped = items.map((item) => ({
+                    _id: item._id,
+                    nama: item.nama,
+                    kode: item.kode,
+                    harga: item.harga,
+                    kategori: item.kategori,
+                    kendaraan: item.kendaraan,
+                    // Item tidak punya field "satuan" tersendiri di database,
+                    // jadi diturunkan dari teks "keterangan" (mis. "1 Set 2 Pcs")
+                    satuanDefault: tentukanSatuanDefault(item.keterangan || ""),
+                }));
+
+                setDaftarBarang(mapped);
+            })
+            .catch((err) => {
+                console.error("Gagal memuat data barang:", err);
+                bukaAlert(err.message || "Gagal memuat data barang dari server.");
+            })
+            .finally(() => setIsLoadingBarang(false));
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
 
     // ==================================================
@@ -181,9 +225,6 @@ function PesananSales() {
 
         setAdaDraftTersimpan(true);
 
-        // [BARU] Catat snapshot draft yang baru dimuat, supaya
-        // begitu halaman dibuka, kondisi ini dianggap "sudah tersimpan"
-        // dan popup tidak langsung muncul saat user pindah tab.
         lastSavedSnapshotRef.current = buatSnapshot(
             draft.toko || null,
             Array.isArray(draft.items) ? draft.items : []
@@ -201,14 +242,10 @@ function PesananSales() {
 
         function handleDocumentClick(e) {
 
-            // [DIUBAH] Sebelumnya: if (pesanan.length === 0) return;
-            // Sekarang: hanya cegat kalau memang ada perubahan yang
-            // belum disimpan sebagai draft (dibandingkan snapshot terakhir).
             if (!adaPerubahanBelumTersimpan()) {
                 return;
             }
 
-            // Cari elemen <a> terdekat dari yang diklik
             const link = e.target.closest("a[href]");
 
             if (!link) {
@@ -221,8 +258,6 @@ function PesananSales() {
                 return;
             }
 
-            // Abaikan link luar (http/https ke domain lain), anchor (#),
-            // link kosong, dan link menuju halaman yang sama
             if (
                 href.startsWith("http") ||
                 href.startsWith("#") ||
@@ -232,7 +267,6 @@ function PesananSales() {
                 return;
             }
 
-            // Cegat navigasinya
             e.preventDefault();
             e.stopPropagation();
 
@@ -247,9 +281,6 @@ function PesananSales() {
             document.removeEventListener("click", handleDocumentClick, true);
         };
 
-        // [DIUBAH] deps: sebelumnya [pesanan.length], sekarang butuh
-        // tokoDipilih & pesanan (bukan cuma length) karena snapshot
-        // membandingkan isi qty/satuan/toko juga.
     }, [pesanan, tokoDipilih]);
 
 
@@ -261,20 +292,15 @@ function PesananSales() {
 
         function handleBeforeUnload(e) {
 
-            // Navigasi ini sudah disetujui user lewat popup
-            // custom kita -> jangan tampilkan dialog native lagi.
             if (izinkanNavigasiRef.current) {
                 return;
             }
 
-            // [DIUBAH] Sebelumnya: if (pesanan.length === 0) return;
             if (!adaPerubahanBelumTersimpan()) {
                 return;
             }
 
             e.preventDefault();
-
-            // Sebagian browser (lama) masih butuh returnValue diisi
             e.returnValue = "";
         }
 
@@ -284,7 +310,6 @@ function PesananSales() {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
 
-        // [DIUBAH] deps: sebelumnya [pesanan.length]
     }, [pesanan, tokoDipilih]);
 
 
@@ -380,9 +405,6 @@ function PesananSales() {
         } else if (e.key === "Enter") {
             e.preventDefault();
 
-            // [DIUBAH] Kalau belum pernah di-highlight lewat panah,
-            // anggap user mau pilih hasil teratas supaya Enter
-            // langsung berfungsi tanpa perlu pencet panah dulu.
             let indexTerpilih = highlightIndexToko;
 
             if (indexTerpilih === -1 && totalItem > 0) {
@@ -436,7 +458,7 @@ function PesananSales() {
     }
 
 
-    function simpanTokoBaru() {
+    async function simpanTokoBaru() {
 
         const namaBaru = keywordToko.trim();
 
@@ -444,23 +466,29 @@ function PesananSales() {
             return;
         }
 
-        const tokoBaru = {
-            id: `new-${Date.now()}`,
-            namaToko: namaBaru,
-            alamat: alamatTokoBaru.trim(),
-            noTelepon: noTeleponTokoBaru.trim(),
-            inputBy: "Sales",
-            isBaru: true
-        };
+        setIsSubmittingTokoBaru(true);
 
-        setDaftarToko((prev) => [
-            ...prev,
-            tokoBaru
-        ]);
+        try {
+            const response = await createToko({
+                namaToko: namaBaru,
+                alamat: alamatTokoBaru.trim(),
+                // Backend mewajibkan noTelepon diisi
+                noTelepon: noTeleponTokoBaru.trim(),
+            });
 
-        setTokoDipilih(tokoBaru);
+            // createToko di backend membalas { message, toko }
+            const tokoBaru = response.toko;
 
-        setShowFormTokoBaru(false);
+            setDaftarToko((prev) => [tokoBaru, ...prev]);
+
+            setTokoDipilih(tokoBaru);
+
+            setShowFormTokoBaru(false);
+        } catch (err) {
+            bukaAlert(err.message || "Gagal menyimpan toko baru.");
+        } finally {
+            setIsSubmittingTokoBaru(false);
+        }
     }
 
 
@@ -544,12 +572,7 @@ function PesananSales() {
 
 
     // ==================================================
-    // [BARU] AUTO-FOCUS KE INPUT QTY SETELAH BARANG TERPILIH
-    // ==================================================
-    // Begitu barangDipilih terisi (baik lewat klik dropdown maupun
-    // Enter), fokus otomatis pindah ke kolom Qty & teks-nya di-select
-    // supaya user tinggal ketik angka lalu Enter untuk menambahkan
-    // ke pesanan.
+    // AUTO-FOCUS KE INPUT QTY SETELAH BARANG TERPILIH
     // ==================================================
 
     useEffect(() => {
@@ -619,9 +642,6 @@ function PesananSales() {
         } else if (e.key === "Enter") {
             e.preventDefault();
 
-            // [DIUBAH] Kalau belum pernah di-highlight lewat panah,
-            // anggap user mau pilih hasil teratas supaya Enter
-            // langsung berfungsi tanpa perlu pencet panah dulu.
             let indexTerpilih = highlightIndexBarang;
 
             if (indexTerpilih === -1 && totalItem > 0) {
@@ -666,7 +686,14 @@ function PesananSales() {
 
 
     // ==================================================
-    // TAMBAH BARANG BARU
+    // TAMBAH BARANG BARU (LOKAL SAJA, BELUM TERSIMPAN DI DB)
+    // ==================================================
+    // Catatan: ini cuma menambah entri sementara di daftar pencarian
+    // sesi ini supaya sales tetap bisa mencatat pesanan untuk barang
+    // yang belum ada di katalog. Barang ini TIDAK otomatis masuk ke
+    // collection "items" - kalau memang perlu jadi produk resmi,
+    // harus ditambahkan lewat halaman Katalog (yang memanggil
+    // createItem dari itemService).
     // ==================================================
 
     function tambahBarangBaru() {
@@ -678,7 +705,7 @@ function PesananSales() {
         }
 
         const barangBaru = {
-            id: `new-${Date.now()}`,
+            _id: `new-${Date.now()}`,
             nama: namaBaru,
             satuanDefault: "SET",
             isBaru: true
@@ -715,7 +742,7 @@ function PesananSales() {
 
         const itemBaru = {
             id: Date.now(),
-            barangId: barangDipilih.id,
+            barangId: barangDipilih._id,
             nama: barangDipilih.nama,
             satuan: satuanDipilih,
             qty: qtyFinal,
@@ -884,9 +911,6 @@ function PesananSales() {
 
             setAdaDraftTersimpan(true);
 
-            // [BARU] Setelah berhasil simpan draft, catat snapshot
-            // terbaru supaya popup "Pindah Halaman" tidak lagi
-            // menganggap data ini "belum tersimpan".
             lastSavedSnapshotRef.current = buatSnapshot(
                 tokoDipilih,
                 pesanan
@@ -926,17 +950,12 @@ function PesananSales() {
 
         setAdaDraftTersimpan(false);
 
-        // [BARU] Reset snapshot ke kondisi kosong, supaya setelah
-        // draft dibuang / pesanan disimpan, kondisi "kosong" ini
-        // dianggap sebagai acuan tersimpan yang baru.
         lastSavedSnapshotRef.current = buatSnapshot(null, []);
     }
 
 
     function buangDraft() {
 
-        // [DIUBAH] Sebelumnya pakai window.confirm() bawaan browser,
-        // sekarang pakai NotifModal custom (type "confirm").
         bukaConfirm(
             "Buang draft pesanan yang tersimpan? Barang & toko yang sedang diisi saat ini juga akan ikut direset.",
             () => {
@@ -1028,7 +1047,8 @@ function PesananSales() {
         );
 
         // TODO:
-        // Kirim payload ke backend/API
+        // Kirim payload ke backend/API begitu endpoint "Orderan Masuk"
+        // sudah tersedia (belum ada di server.js saat ini).
 
         bukaAlert(
             "Pesanan tersimpan"
@@ -1139,6 +1159,7 @@ function PesananSales() {
                                         <input
                                             type="text"
                                             value={keywordToko}
+                                            disabled={isLoadingToko}
                                             onChange={(e) => {
 
                                                 setKeywordToko(
@@ -1165,7 +1186,11 @@ function PesananSales() {
                                             onKeyDown={
                                                 handleKeyDownToko
                                             }
-                                            placeholder="Ketik nama toko..."
+                                            placeholder={
+                                                isLoadingToko
+                                                    ? "Memuat daftar toko..."
+                                                    : "Ketik nama toko..."
+                                            }
                                             className="form-input search-input"
                                         />
 
@@ -1183,7 +1208,7 @@ function PesananSales() {
                                                         (toko, idx) => (
 
                                                             <div
-                                                                key={toko.id}
+                                                                key={toko._id}
                                                                 data-index={idx}
                                                                 onClick={() =>
                                                                     pilihToko(
@@ -1313,10 +1338,6 @@ function PesananSales() {
 
                                         <label className="form-label">
                                             No Telepon
-
-                                            <span className="label-optional">
-                                                (Opsional)
-                                            </span>
                                         </label>
 
                                         <input
@@ -1340,11 +1361,15 @@ function PesananSales() {
                                         type="button"
                                         onClick={simpanTokoBaru}
                                         disabled={
-                                            !alamatTokoBaru.trim()
+                                            !alamatTokoBaru.trim() ||
+                                            !noTeleponTokoBaru.trim() ||
+                                            isSubmittingTokoBaru
                                         }
                                         className="btn-primary btn-full"
                                     >
-                                        Simpan Toko & Lanjut
+                                        {isSubmittingTokoBaru
+                                            ? "Menyimpan..."
+                                            : "Simpan Toko & Lanjut"}
                                     </button>
 
                                 </div>
@@ -1393,6 +1418,7 @@ function PesananSales() {
                                         <input
                                             type="text"
                                             value={keyword}
+                                            disabled={isLoadingBarang}
                                             onChange={(e) => {
 
                                                 setKeyword(
@@ -1419,7 +1445,11 @@ function PesananSales() {
                                             onKeyDown={
                                                 handleKeyDownBarang
                                             }
-                                            placeholder="Ketik nama barang..."
+                                            placeholder={
+                                                isLoadingBarang
+                                                    ? "Memuat daftar barang..."
+                                                    : "Ketik nama barang..."
+                                            }
                                             className="form-input search-input"
                                         />
 
@@ -1437,7 +1467,7 @@ function PesananSales() {
 
                                                             <div
                                                                 key={
-                                                                    barang.id
+                                                                    barang._id
                                                                 }
                                                                 data-index={idx}
                                                                 onClick={() =>
