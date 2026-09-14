@@ -44,9 +44,7 @@ function Header() {
     const namaLengkap = user?.namaLengkap || "Sales";
 
     // Foto profil (kalau ada), diarahkan ke folder uploads backend
-    const fotoProfil = user?.fotoProfile
-        ? `${API_BASE_URL}/uploads/${user.fotoProfile}`
-        : null;
+    const fotoProfil = user?.fotoProfile || null;
 
     // Inisial untuk avatar fallback (kalau belum ada foto profil)
     const initial = namaLengkap.charAt(0).toUpperCase();

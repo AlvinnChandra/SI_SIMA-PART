@@ -46,10 +46,8 @@ function Header() {
     // Nama lengkap dari data user yang tersimpan saat login
     const namaLengkap = user?.namaLengkap || "Admin";
 
-    // Foto profil (kalau ada), diarahkan ke folder uploads backend
-    const fotoProfil = user?.fotoProfile
-        ? `${API_BASE_URL}/uploads/${user.fotoProfile}`
-        : null;
+    // Foto profil dari cloudinary
+    const fotoProfil = user?.fotoProfile || null;
 
     // Inisial untuk avatar fallback (kalau belum ada foto profil)
     const initial = namaLengkap.charAt(0).toUpperCase();

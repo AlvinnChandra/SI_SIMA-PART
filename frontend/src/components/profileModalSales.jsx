@@ -2,7 +2,6 @@ import { useState, useLayoutEffect } from "react";
 import "../css/profileModal.css";
 
 const API_BASE_URL = "http://localhost:3000/api";
-const FILE_BASE_URL = "http://localhost:3000/uploads";
 
 function getAuthToken() {
     return (
@@ -61,11 +60,9 @@ function ProfileModalSales({ currentUser, onClose, onSaved }) {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    // Preview foto: URL data lokal (kalau ganti) atau foto lama dari server
+    // Preview foto: URL data lokal (kalau ganti) atau foto lama dari Cloudinary
     const [fotoPreview, setFotoPreview] = useState(
-        currentUser?.fotoProfile
-            ? `${FILE_BASE_URL}/${currentUser.fotoProfile}`
-            : null
+        currentUser?.fotoProfile || null
     );
     const [fotoFile, setFotoFile] = useState(null); // File asli utk dikirim ke backend
 
