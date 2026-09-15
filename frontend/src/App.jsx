@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RequireRole from "./components/requireRole";
 
 import Login from "./pages/login";
 import Daftar from "./pages/daftar";
@@ -19,15 +20,17 @@ function App() {
         <Route path="" element={<Login />} />
         <Route path="/daftar" element={<Daftar />} />
         <Route path="/reset-password" element={<Reset />} />
-        <Route path="/katalog" element={<Katalog />} />
-        <Route path="/order" element={<Order />} />
-        <Route path="/dataSales" element={<DataSales />} />
-        <Route path="/dataToko" element={<DataToko />} />
-        <Route path="/katalogSales" element={<KatalogSales />} />
-        <Route path="/pesananSales" element={<PesananSales />} />
-        <Route path="/dataToko2" element={<DataToko2 />} />
-        <Route path="/historyOrder" element={<HistoryOrder />} />
-      </Routes>
+        {/* Admin-Only */}       
+        <Route path="/katalog" element={<RequireRole role="admin"><Katalog /></RequireRole>} />
+        <Route path="/order" element={<RequireRole role="admin"><Order /></RequireRole>} />
+        <Route path="/dataSales" element={<RequireRole role="admin"><DataSales /></RequireRole>} />
+        <Route path="/dataToko" element={<RequireRole role="admin"><DataToko /></RequireRole>} />
+
+        {/* Sales-Only */}
+        <Route path="/katalogSales" element={<RequireRole role="user"><KatalogSales /></RequireRole>} />
+        <Route path="/pesananSales" element={<RequireRole role="user"><PesananSales /></RequireRole>} />
+        <Route path="/dataToko2" element={<RequireRole role="user"><DataToko2 /></RequireRole>} />
+        <Route path="/historyOrder" element={<RequireRole role="user"><HistoryOrder /></RequireRole>} />      </Routes>
     </BrowserRouter>
   );
 }
