@@ -13,7 +13,6 @@ function Login() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
-    const [remember, setRemember] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -53,11 +52,8 @@ function Login() {
                 }),
             });
 
-            // Simpan token dan data user
-            const storage = remember ? localStorage : sessionStorage;
-
-            storage.setItem("simaToken", data.token);
-            storage.setItem("simaUser", JSON.stringify(data.user));
+            localStorage.setItem("simaToken", data.token);
+            localStorage.setItem("simaUser", JSON.stringify(data.user));
 
             // Arahkan sesuai role
             if (data.user.role === "admin") {
@@ -284,23 +280,6 @@ function Login() {
                                 {error}
                             </p>
                         )}
-                    </div>
-
-                    {/* ==================== REMEMBER ME ==================== */}
-                    <div className="sima-login__row">
-                        <input
-                            id="remember"
-                            type="checkbox"
-                            className="sima-login__checkbox"
-                            checked={remember}
-                            onChange={(e) =>
-                                setRemember(e.target.checked)
-                            }
-                        />
-
-                        <label htmlFor="remember">
-                            Ingat saya di perangkat ini
-                        </label>
                     </div>
 
                     {/* ==================== LOGIN BUTTON ==================== */}

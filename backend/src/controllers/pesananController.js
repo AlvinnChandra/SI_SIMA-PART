@@ -293,17 +293,47 @@ exports.updateStatusPesanan = async (req, res) => {
 // ============================================================
 // HAPUS PESANAN
 // ============================================================
+// Aturan:
+// - admin        -> boleh hapus pesanan apapun statusnya
+// - sales        -> cuma boleh hapus pesanan yang statusnya masih "Orderan Masuk"
+//                   (kalau sudah berubah status, harus lewat admin)
+// ============================================================
 exports.deletePesanan = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const deleted = await Pesanan.findByIdAndDelete(id);
+        // Ambil user yang sedang login (role-nya) dari token
+        const currentUser = await User.findById(req.user.id);
 
-        if (!deleted) {
+        if (!currentUser) {
+            return res.status(404).json({
+                message: "User tidak ditemukan.",
+            });
+        }
+
+        // Cari dulu pesanannya, jangan langsung delete,
+        // supaya bisa dicek statusnya sebelum dihapus
+        const pesanan = await Pesanan.findById(id);
+
+        if (!pesanan) {
             return res.status(404).json({
                 message: "Pesanan tidak ditemukan.",
             });
         }
+
+        const isAdmin = currentUser.role === "admin";
+        const isSalesDanMasihMasuk =
+            currentUser.role === "sales" &&
+            pesanan.status === "Orderan Masuk";
+
+        if (!isAdmin && !isSalesDanMasihMasuk) {
+            return res.status(403).json({
+                message:
+                    "Forbidden: Pesanan yang statusnya sudah berubah hanya bisa dihapus oleh admin.",
+            });
+        }
+
+        await pesanan.deleteOne();
 
         return res.status(200).json({
             message: "Pesanan berhasil dihapus.",
