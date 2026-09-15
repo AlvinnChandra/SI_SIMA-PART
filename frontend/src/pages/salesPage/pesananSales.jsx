@@ -1,3 +1,4 @@
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useMemo, useRef, useEffect } from "react";
 import Header from "../../components/headerSales";
 import Footer from "../../components/footer";
@@ -265,6 +266,28 @@ function PesananSales() {
             draft.tanggal || tanggalHariIni()
         );
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    
+    // ==================================================
+    // TERIMA BARANG DARI HALAMAN KATALOG (KLIK TOMBOL +)
+    // ==================================================
+
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const pendingBarang = location.state?.pendingBarang;
+        if (!pendingBarang) return;
+
+        pilihBarang({
+            _id: pendingBarang._id,
+            nama: pendingBarang.nama,
+            satuanDefault: tentukanSatuanDefault(pendingBarang.keterangan || ""),
+        });
+
+        navigate(location.pathname, { replace: true, state: {} });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

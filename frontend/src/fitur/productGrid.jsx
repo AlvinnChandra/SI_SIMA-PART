@@ -1,6 +1,6 @@
 import ProductCard from "../components/productCard";
 
-export default function ProductGrid({ products, onEdit, onPreview }) {
+export default function ProductGrid({ products, onEdit, onPreview, onAddToOrder }) {
     if (!products || products.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center gap-2 py-20 text-center">
@@ -19,6 +19,7 @@ export default function ProductGrid({ products, onEdit, onPreview }) {
                     product={product}
                     onEdit={onEdit}
                     onPreview={onPreview}
+                    onAddToOrder={onAddToOrder}
                 />
             ))}
         </div>

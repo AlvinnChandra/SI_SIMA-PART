@@ -1,4 +1,4 @@
-import { FaPen } from "react-icons/fa";
+import { FaPen, FaPlus } from "react-icons/fa";
 
 const ACCENT = "#EE4D2D";
 const ACCENT_BADGE_BG = "#FFD6BC";
@@ -10,7 +10,7 @@ function formatRupiah(n) {
     return "Rp " + n.toLocaleString("id-ID");
 }
 
-export default function ProductCard({ product, onEdit, onPreview }) {
+export default function ProductCard({ product, onEdit, onPreview, onAddToOrder }) {
     const imageSrc = product.gambar || `https://picsum.photos/seed/${product.kode}/400/400`;
 
     return (
@@ -18,7 +18,7 @@ export default function ProductCard({ product, onEdit, onPreview }) {
             {/* image */}
             <div
                 className="relative aspect-square w-full overflow-hidden bg-gray-100"
-                onClick={() => onPreview(product)}
+                onClick={() => onPreview?.(product)}
             >
                 <img
                     src={imageSrc}
@@ -33,15 +33,28 @@ export default function ProductCard({ product, onEdit, onPreview }) {
                         -{product.diskon}%
                     </span>
                 )}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(product);
-                    }}
-                    className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100"
-                >
-                    <FaPen size={12} color={NAME} />
-                </button>
+                {onEdit && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(product);
+                        }}
+                        className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100"
+                    >
+                        <FaPen size={12} color={NAME} />
+                    </button>
+                )}
+                {onAddToOrder && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onAddToOrder(product);
+                        }}
+                        className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100"
+                    >
+                        <FaPlus size={12} color={NAME} />
+                    </button>
+                )}
             </div>
 
             {/* text content */}
