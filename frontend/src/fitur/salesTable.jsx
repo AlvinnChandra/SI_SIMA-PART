@@ -1,4 +1,5 @@
 import { useEffect, useState, useLayoutEffect, useRef } from "react";
+import JSZip from "jszip";
 import "../css/salesTable.css";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -272,10 +273,10 @@ function getRoleClassName(role) {
 // DOWNLOAD
 // ============================================================
 
+// Format nama file download: LABEL_NamaSales.ext
+// contoh: KTP_Alvin Chandra.jpg, SIMA_Alvin Chandra.jpg, SIMC_Alvin Chandra.jpg
 function buildDownloadFileName(namaSales, label, src) {
-    const cleanName = String(namaSales || "Sales")
-        .trim()
-        .replace(/\s+/g, "_");
+    const cleanName = String(namaSales || "Sales").trim();
 
     const extMatch = String(src || "").match(
         /\.([a-zA-Z0-9]+)(?:\?.*)?$/
@@ -283,19 +284,151 @@ function buildDownloadFileName(namaSales, label, src) {
 
     const ext = extMatch ? extMatch[1] : "jpg";
 
-    return `${cleanName}_${label}.${ext}`;
+    return `${label}_${cleanName}.${ext}`;
 }
 
 // ============================================================
 // NAMA FILE PDF
 // ============================================================
 
+// Format nama file CV: CV_NamaSales.pdf
 function buildCvFileName(namaSales) {
-    const cleanName = String(namaSales || "Sales")
-        .trim()
-        .replace(/\s+/g, "_");
+    const cleanName = String(namaSales || "Sales").trim();
 
-    return `${cleanName}_CV.pdf`;
+    return `CV_${cleanName}.pdf`;
+}
+
+// ============================================================
+// DOWNLOAD FILE (paksa download walau file cross-origin/Cloudinary)
+// ============================================================
+
+// Kalau pakai <a download> biasa, browser cuma menghormati atribut
+// "download" kalau file-nya satu origin dengan halaman web.
+// File KTP/SIM A/SIM C/CV kita disimpan di Cloudinary (origin beda),
+// jadi kita ambil dulu isinya jadi blob lewat fetch, baru dipaksa
+// download dari blob URL tsb (blob selalu dianggap "lokal").
+async function downloadFile(url, filename, onError) {
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Gagal mengunduh file.");
+        }
+
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+        console.error(err);
+
+        if (onError) {
+            onError(
+                "Gagal mendownload file. Coba lagi, atau klik tombol mata lalu simpan manual dari situ."
+            );
+        } else {
+            alert("Gagal mendownload file.");
+        }
+    }
+}
+
+// ============================================================
+// DOWNLOAD ALL (zip: KTP + SIM A + SIM C + CV jadi satu file)
+// ============================================================
+
+async function downloadAllDocuments(sales, onError) {
+    try {
+        const files = [
+            {
+                url: sales.fotoKtp,
+                name: buildDownloadFileName(
+                    sales.namaSales,
+                    "KTP",
+                    sales.fotoKtp
+                ),
+            },
+            {
+                url: sales.fotoSimA,
+                name: buildDownloadFileName(
+                    sales.namaSales,
+                    "SIMA",
+                    sales.fotoSimA
+                ),
+            },
+            {
+                url: sales.fotoSimC,
+                name: buildDownloadFileName(
+                    sales.namaSales,
+                    "SIMC",
+                    sales.fotoSimC
+                ),
+            },
+            {
+                url: sales.cv,
+                name: buildCvFileName(sales.namaSales),
+            },
+        ].filter((f) => f.url);
+
+        if (files.length === 0) {
+            onError?.(
+                "Belum ada dokumen (KTP/SIM A/SIM C/CV) untuk didownload."
+            );
+            return;
+        }
+
+        const zip = new JSZip();
+
+        // Ambil semua file secara paralel, lalu masukkan ke dalam zip
+        await Promise.all(
+            files.map(async (f) => {
+                const response = await fetch(f.url);
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Gagal mengambil file ${f.name}.`
+                    );
+                }
+
+                const blob = await response.blob();
+
+                zip.file(f.name, blob);
+            })
+        );
+
+        const zipBlob = await zip.generateAsync({
+            type: "blob",
+        });
+
+        const zipUrl = window.URL.createObjectURL(zipBlob);
+
+        const cleanName = String(
+            sales.namaSales || "Sales"
+        ).trim();
+
+        const link = document.createElement("a");
+        link.href = zipUrl;
+        link.download = `${cleanName}.zip`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        window.URL.revokeObjectURL(zipUrl);
+    } catch (err) {
+        console.error(err);
+
+        onError?.(
+            "Gagal mendownload semua dokumen. Coba lagi."
+        );
+    }
 }
 
 // ============================================================
@@ -466,6 +599,26 @@ function IconXCircle() {
     );
 }
 
+function IconDownloadAll() {
+    return (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8" />
+            <path d="M1 3h22l-2 5H3z" />
+            <path d="M12 12v6" />
+            <path d="M9.5 15.5 12 18l2.5-2.5" />
+        </svg>
+    );
+}
+
 function IconClose() {
     return (
         <svg
@@ -565,6 +718,7 @@ function DocPhoto({
     label,
     namaSales,
     onPreview,
+    onNotify,
 }) {
     if (!src) {
         return (
@@ -599,21 +753,25 @@ function DocPhoto({
                 <IconEye />
             </button>
 
-            <a
+            <button
+                type="button"
                 className="sima-sales-table__download-btn"
-                href={src}
-                download={buildDownloadFileName(
-                    namaSales,
-                    label,
-                    src
-                )}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    downloadFile(
+                        src,
+                        buildDownloadFileName(
+                            namaSales,
+                            label,
+                            src
+                        ),
+                        (msg) => onNotify?.("error", msg)
+                    );
+                }}
                 title={`Download ${alt}`}
-                onClick={(e) => e.stopPropagation()}
             >
                 <IconDownload />
-            </a>
+            </button>
         </div>
     );
 }
@@ -673,6 +831,7 @@ function CvFile({
     src,
     namaSales,
     onPreview,
+    onNotify,
 }) {
     if (!src) {
         return (
@@ -709,17 +868,19 @@ function CvFile({
             </button>
 
             {/* TOMBOL DOWNLOAD */}
-            <a
+            <button
+                type="button"
                 className="sima-sales-table__download-btn"
-                href={src}
-                download={fileName}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    downloadFile(src, fileName, (msg) =>
+                        onNotify?.("error", msg)
+                    );
+                }}
                 title={`Download CV ${namaSales}`}
-                onClick={(e) => e.stopPropagation()}
             >
                 <IconDownload />
-            </a>
+            </button>
 
         </div>
     );
@@ -1097,6 +1258,7 @@ function EditSalesModal({
 function LightboxPreview({
     preview,
     onClose,
+    onNotify,
 }) {
     useLockBodyScroll();
 
@@ -1161,16 +1323,20 @@ function LightboxPreview({
                 </p>
 
                 {/* DOWNLOAD */}
-                <a
+                <button
+                    type="button"
                     className="sima-sales-table__lightbox-download"
-                    href={preview.src}
-                    download={preview.fileName}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    onClick={() =>
+                        downloadFile(
+                            preview.src,
+                            preview.fileName,
+                            (msg) => onNotify?.("error", msg)
+                        )
+                    }
                 >
                     <IconDownload />
                     Download
-                </a>
+                </button>
 
             </div>
         </div>
@@ -1194,6 +1360,10 @@ function SalesTable({ keyword = "" }) {
         useState(null);
 
     const [deletingSales, setDeletingSales] =
+        useState(null);
+
+    // ID sales yang sedang diproses "Download All" (buat disable tombol + spinner)
+    const [downloadingAllId, setDownloadingAllId] =
         useState(null);
 
     // Toast
@@ -1573,6 +1743,24 @@ function SalesTable({ keyword = "" }) {
     };
 
     // ========================================================
+    // DOWNLOAD ALL (KTP + SIM A + SIM C + CV jadi 1 file .zip)
+    // ========================================================
+
+    const handleDownloadAll = async (sales) => {
+        if (downloadingAllId) {
+            return;
+        }
+
+        setDownloadingAllId(sales.id);
+
+        await downloadAllDocuments(sales, (msg) =>
+            showToast("error", msg)
+        );
+
+        setDownloadingAllId(null);
+    };
+
+    // ========================================================
     // PAGINATION NAVIGATION
     // ========================================================
 
@@ -1836,6 +2024,9 @@ function SalesTable({ keyword = "" }) {
                                                 onPreview={
                                                     openPreview
                                                 }
+                                                onNotify={
+                                                    showToast
+                                                }
                                             />
 
                                         </td>
@@ -1854,6 +2045,9 @@ function SalesTable({ keyword = "" }) {
                                                 }
                                                 onPreview={
                                                     openPreview
+                                                }
+                                                onNotify={
+                                                    showToast
                                                 }
                                             />
 
@@ -1874,6 +2068,9 @@ function SalesTable({ keyword = "" }) {
                                                 onPreview={
                                                     openPreview
                                                 }
+                                                onNotify={
+                                                    showToast
+                                                }
                                             />
 
                                         </td>
@@ -1890,6 +2087,9 @@ function SalesTable({ keyword = "" }) {
                                                 }
                                                 onPreview={
                                                     openPreview
+                                                }
+                                                onNotify={
+                                                    showToast
                                                 }
                                             />
 
@@ -1997,6 +2197,35 @@ function SalesTable({ keyword = "" }) {
                                         <td className="sima-sales-table__col-center">
 
                                             <div className="sima-sales-table__aksi">
+
+                                                {/* DOWNLOAD ALL */}
+                                                <button
+                                                    type="button"
+                                                    className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--download-all"
+                                                    onClick={() =>
+                                                        handleDownloadAll(
+                                                            sales
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        downloadingAllId ===
+                                                        sales.id
+                                                    }
+                                                    title={`Download semua dokumen (KTP, SIM A, SIM C, CV) ${sales.namaSales}`}
+                                                >
+                                                    {downloadingAllId ===
+                                                        sales.id ? (
+                                                        <span
+                                                            style={{
+                                                                fontSize: 10,
+                                                            }}
+                                                        >
+                                                            ...
+                                                        </span>
+                                                    ) : (
+                                                        <IconDownloadAll />
+                                                    )}
+                                                </button>
 
                                                 {/* EDIT */}
                                                 <button
@@ -2191,6 +2420,7 @@ function SalesTable({ keyword = "" }) {
                 <LightboxPreview
                     preview={preview}
                     onClose={closePreview}
+                    onNotify={showToast}
                 />
             )}
 
