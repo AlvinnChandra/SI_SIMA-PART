@@ -78,7 +78,7 @@ function ResetPassword() {
             // Sesuaikan base URL ini dengan konfigurasi backend kamu
             // (mis. import.meta.env.VITE_API_URL kalau sudah pakai .env)
             const API_BASE_URL =
-                import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+                import.meta.env.VITE_API_URL || "http://localhost:7001/api";
 
             const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
                 method: "POST",
