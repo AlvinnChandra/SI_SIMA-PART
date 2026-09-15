@@ -9,7 +9,7 @@ import AddTokoModal from "../fitur/addTokoModal";
 import TokoTable from "../fitur/tokoTable";
 import "../css/global.css";
 
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = "http://localhost:7001/api";
 
 function getAuthToken() {
     return (

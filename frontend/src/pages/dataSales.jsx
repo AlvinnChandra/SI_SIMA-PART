@@ -205,18 +205,6 @@ function DataSales() {
                     onSearch={setKeyword}
                 />
 
-                <p
-                    style={{
-                        margin: "0 0 16px 0",
-                        color: "rgba(200,0,0,0.55)",
-                        fontStyle: "italic",
-                        fontWeight: "bold",
-                        fontSize: "15px",
-                    }}
-                >
-                    Mohon di klik dengan sabar (cukup klik 1x) untuk view KTP, SIM A, SIM C, dan CV
-                </p>
-
                 <SalesTable keyword={keyword} />
 
             </main>
