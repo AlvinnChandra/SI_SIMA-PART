@@ -12,7 +12,7 @@ import PriceSort from "../components/priceSort";
 import { getItems } from "../services/itemService";
 import { useAuth } from "../hooks/useAuth";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 export default function KatalogContent({ onAddToOrder }) {
     const { isAdmin } = useAuth();
