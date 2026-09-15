@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
 
         const [fotoProfile, cv, fotoKtp, fotoSimA, fotoSimC] = await Promise.all([
             uploadToCloudinary(files.fotoProfile?.[0], "sima_users/foto_profile"),
-            uploadToCloudinary(files.cv?.[0], "sima_users/cv", "image"),
+            uploadToCloudinary(files.cv?.[0], "sima_users/cv", "raw"),
             uploadToCloudinary(files.fotoKtp?.[0], "sima_users/ktp"),
             uploadToCloudinary(files.fotoSimA?.[0], "sima_users/sim_a"),
             uploadToCloudinary(files.fotoSimC?.[0], "sima_users/sim_c"),
