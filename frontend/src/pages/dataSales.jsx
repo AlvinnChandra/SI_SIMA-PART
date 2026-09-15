@@ -214,7 +214,7 @@ function DataSales() {
                         fontSize: "15px",
                     }}
                 >
-                    Mohon di klik dengan sabar untuk view KTP, SIM A, SIM C, dan CV
+                    Mohon di klik dengan sabar (cukup klik 1x) untuk view KTP, SIM A, SIM C, dan CV
                 </p>
 
                 <SalesTable keyword={keyword} />
