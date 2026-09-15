@@ -4,7 +4,7 @@ import logoSima from "../assets/logoSima.png";
 import ProfileModalSales from "./profileModalSales";
 import "../css/headerSales.css";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "http://localhost:7001";
 
 const menuItems = [
     { label: "Katalog", path: "/katalogSales" },
