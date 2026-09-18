@@ -1,6 +1,15 @@
 import ProductCard from "../components/productCard";
 
-export default function ProductGrid({ products, onEdit, onPreview, onAddToOrder }) {
+export default function ProductGrid({
+    products,
+    onEdit,
+    onPreview,
+    onAddToOrder,
+    selectionMode = false,
+    selectedIds = [],
+    onToggleSelect,
+    onRemoveDiskon,
+}) {
     if (!products || products.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center gap-2 py-20 text-center">
@@ -20,6 +29,10 @@ export default function ProductGrid({ products, onEdit, onPreview, onAddToOrder 
                     onEdit={onEdit}
                     onPreview={onPreview}
                     onAddToOrder={onAddToOrder}
+                    selectionMode={selectionMode}
+                    isSelected={selectedIds.includes(product._id)}
+                    onToggleSelect={onToggleSelect}
+                    onRemoveDiskon={onRemoveDiskon}
                 />
             ))}
         </div>

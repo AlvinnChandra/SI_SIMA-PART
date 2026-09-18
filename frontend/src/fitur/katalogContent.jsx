@@ -1,4 +1,3 @@
-// src/fitur/katalogContent.jsx
 import { useState, useMemo, useEffect } from "react";
 import SearchBar from "../components/searchBar";
 import AddButton from "../components/AddButton";
@@ -9,7 +8,7 @@ import Pagination from "../components/pagination";
 import CategoryList from "../components/categoryList";
 import CheckboxFilter from "../components/checkboxFilter";
 import PriceSort from "../components/priceSort";
-import { getItems } from "../services/itemService";
+import { getItems, applyDiskonItems, removeDiskonItem } from "../services/itemService";
 import { useAuth } from "../hooks/useAuth";
 
 const PAGE_SIZE = 10;
@@ -27,11 +26,25 @@ export default function KatalogContent({ onAddToOrder }) {
     const [priceSort, setPriceSort] = useState("default");
     const [currentPage, setCurrentPage] = useState(1);
 
-    useEffect(() => {
+    // ==================================================
+    // MODE ATUR DISKON (admin only)
+    // ==================================================
+    const [diskonMode, setDiskonMode] = useState(false);
+    const [diskonPersen, setDiskonPersen] = useState("");
+    const [selectedForDiskon, setSelectedForDiskon] = useState([]);
+    const [isApplyingDiskon, setIsApplyingDiskon] = useState(false);
+    const [diskonError, setDiskonError] = useState(null);
+
+    const loadProducts = () => {
+        setIsLoading(true);
         getItems()
             .then(setProducts)
             .catch((err) => setLoadError(err.message))
             .finally(() => setIsLoading(false));
+    };
+
+    useEffect(() => {
+        loadProducts();
     }, []);
 
     const categories = useMemo(
@@ -69,6 +82,68 @@ export default function KatalogContent({ onAddToOrder }) {
         setCurrentPage(1);
     };
 
+    // ==================================================
+    // HANDLER MODE DISKON
+    // ==================================================
+
+    const handleBukaDiskonMode = () => {
+        setDiskonMode(true);
+        setSelectedForDiskon([]);
+        setDiskonPersen("");
+        setDiskonError(null);
+    };
+
+    const handleBatalDiskonMode = () => {
+        setDiskonMode(false);
+        setSelectedForDiskon([]);
+        setDiskonPersen("");
+        setDiskonError(null);
+    };
+
+    const handleToggleSelectDiskon = (product) => {
+        setSelectedForDiskon((prev) =>
+            prev.includes(product._id)
+                ? prev.filter((id) => id !== product._id)
+                : [...prev, product._id]
+        );
+    };
+
+    const handleTerapkanDiskon = async () => {
+        const persen = Number(diskonPersen);
+
+        if (selectedForDiskon.length === 0) {
+            setDiskonError("Pilih minimal 1 barang terlebih dahulu.");
+            return;
+        }
+        if (!persen || persen <= 0 || persen > 100) {
+            setDiskonError("Masukkan persen diskon yang valid (1 - 100).");
+            return;
+        }
+
+        setDiskonError(null);
+        setIsApplyingDiskon(true);
+        try {
+            await applyDiskonItems(selectedForDiskon, persen);
+            loadProducts();
+            handleBatalDiskonMode();
+        } catch (err) {
+            setDiskonError(err.message || "Gagal menerapkan diskon.");
+        } finally {
+            setIsApplyingDiskon(false);
+        }
+    };
+
+    const handleHapusDiskon = async (product) => {
+        try {
+            await removeDiskonItem(product._id);
+            setProducts((prev) =>
+                prev.map((p) => (p._id === product._id ? { ...p, diskon: 0 } : p))
+            );
+        } catch (err) {
+            setDiskonError(err.message || "Gagal menghapus diskon.");
+        }
+    };
+
     const filteredProducts = useMemo(() => {
         let result = products;
 
@@ -104,11 +179,61 @@ export default function KatalogContent({ onAddToOrder }) {
             <div className="page-header-row">
                 <h1>Katalog</h1>
                 <div className="page-header-actions">
+                    {isAdmin && !diskonMode && (
+                        <button
+                            type="button"
+                            onClick={handleBukaDiskonMode}
+                            className="btn-secondary"
+                        >
+                            Atur Diskon
+                        </button>
+                    )}
                     {isAdmin && <ExportExcelButton onClick={handleExportExcel} />}
                     {isAdmin && <ExportPdfButton onClick={handleExportPdf} />}
                     {isAdmin && <AddButton label="Tambah Produk" onClick={handleAddProduk} />}
                 </div>
             </div>
+
+            {diskonMode && (
+                <div
+                    className="mt-4 flex flex-wrap items-center gap-3 rounded-md border p-3"
+                    style={{ borderColor: "#E4E7EC", background: "#FFF9F5" }}
+                >
+                    <span className="text-sm font-medium" style={{ color: "#344054" }}>
+                        Pilih barang di grid, lalu masukkan persen diskon:
+                    </span>
+                    <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={diskonPersen}
+                        onChange={(e) => setDiskonPersen(e.target.value)}
+                        placeholder="cth. 15"
+                        className="w-24 rounded-md border px-2 py-1 text-sm"
+                        style={{ borderColor: "#D0D5DD" }}
+                    />
+                    <span className="text-sm" style={{ color: "#667085" }}>%</span>
+                    <span className="text-sm" style={{ color: "#667085" }}>
+                        {selectedForDiskon.length} barang dipilih
+                    </span>
+                    <button
+                        type="button"
+                        onClick={handleTerapkanDiskon}
+                        disabled={isApplyingDiskon}
+                        className="btn-primary"
+                    >
+                        {isApplyingDiskon ? "Menerapkan..." : "Terapkan"}
+                    </button>
+                    <button type="button" onClick={handleBatalDiskonMode} className="btn-secondary">
+                        Batal
+                    </button>
+                    {diskonError && (
+                        <span className="w-full text-xs" style={{ color: "#D92D20" }}>
+                            {diskonError}
+                        </span>
+                    )}
+                </div>
+            )}
 
             <SearchBar placeholder="Cari nama produk atau kode barang..." onSearch={handleSearch} />
 
@@ -130,9 +255,13 @@ export default function KatalogContent({ onAddToOrder }) {
                         <>
                             <ProductGrid
                                 products={paginatedProducts}
-                                onEdit={isAdmin ? handleEditClick : undefined}
+                                onEdit={isAdmin && !diskonMode ? handleEditClick : undefined}
                                 onPreview={undefined}
-                                onAddToOrder={!isAdmin ? onAddToOrder : undefined}
+                                onAddToOrder={!isAdmin && !diskonMode ? onAddToOrder : undefined}
+                                selectionMode={diskonMode}
+                                selectedIds={selectedForDiskon}
+                                onToggleSelect={handleToggleSelectDiskon}
+                                onRemoveDiskon={isAdmin ? handleHapusDiskon : undefined}
                             />
                             <div className="mt-8">
                                 <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
