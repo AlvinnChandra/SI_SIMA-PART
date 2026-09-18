@@ -334,6 +334,74 @@ function DeleteConfirmModal({ order, isOpen, onCancel, onConfirm }) {
     );
 }
 
+// ============ MODAL KONFIRMASI RESET NOMOR PESANAN ============
+function ResetConfirmModal({ isOpen, onCancel, onConfirm, isLoading }) {
+    const [confirmText, setConfirmText] = useState("");
+    const CONFIRM_WORD = "HAPUS SEMUA";
+
+    useEffect(() => {
+        if (!isOpen) setConfirmText("");
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    const isMatch = confirmText.trim() === CONFIRM_WORD;
+
+    return (
+        <div className="sima-table-modal-overlay" onClick={onCancel}>
+            <div
+                className="sima-table-modal sima-table-modal--confirm"
+                style={{ maxWidth: "460px", width: "90vw" }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="sima-table-modal__header">
+                    <h3>Reset Nomor Pesanan</h3>
+                    <button className="sima-table-modal__close" onClick={onCancel}>
+                        &times;
+                    </button>
+                </div>
+
+                <div className="sima-table-modal__body">
+                    <p>
+                        Tindakan ini akan menghapus <strong>SEMUA</strong> data pesanan
+                        yang ada, dan nomor pesanan berikutnya akan dimulai lagi dari{" "}
+                        <strong>ORD-0001</strong>.
+                    </p>
+                    <p className="sima-table-modal__warning-text">
+                        Tindakan ini tidak dapat dibatalkan.
+                    </p>
+
+                    <label style={{ display: "block", marginTop: "12px", fontSize: "14px" }}>
+                        Ketik <strong>{CONFIRM_WORD}</strong> untuk melanjutkan:
+                    </label>
+                    <input
+                        type="text"
+                        value={confirmText}
+                        onChange={(e) => setConfirmText(e.target.value)}
+                        placeholder={CONFIRM_WORD}
+                        className="sima-search__input"
+                        style={{ marginTop: "6px", width: "100%" }}
+                        autoFocus
+                    />
+                </div>
+
+                <div className="sima-table-modal__footer sima-table-modal__footer--between">
+                    <button className="sima-table-modal__btn sima-table-modal__btn--ghost" onClick={onCancel}>
+                        Batal
+                    </button>
+                    <button
+                        className="sima-table-modal__btn sima-table-modal__btn--danger"
+                        onClick={onConfirm}
+                        disabled={!isMatch || isLoading}
+                    >
+                        {isLoading ? "Memproses..." : "Ya, Reset Semua"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ============ ORDER TABLE ============
 function OrderTable({ orders, startIndex, onViewDetail, onDelete, onStatusChange }) {
     if (orders.length === 0) {
@@ -465,6 +533,10 @@ function Order() {
     const [orderToDelete, setOrderToDelete] = useState(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+    // State untuk modal reset nomor pesanan (hapus semua pesanan + counter balik ke 0)
+    const [isResetOpen, setIsResetOpen] = useState(false);
+    const [isResetLoading, setIsResetLoading] = useState(false);
+
     // Ambil semua pesanan dari backend saat halaman dibuka
     // Pakai apiFetch (services/apiClient.js) supaya token diambil otomatis
     // dari key "simaToken" di localStorage/sessionStorage yang benar
@@ -551,6 +623,33 @@ function Order() {
         }
     };
 
+    // Buka modal konfirmasi reset nomor pesanan
+    const handleOpenReset = () => {
+        setIsResetOpen(true);
+    };
+
+    const handleCancelReset = () => {
+        setIsResetOpen(false);
+    };
+
+    // Reset total: hapus semua pesanan + nomor urut balik ke ORD-0001 (lewat API, khusus admin utama)
+    const handleConfirmReset = async () => {
+        setIsResetLoading(true);
+        try {
+            await apiFetch("/pesanan/reset-nomor", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ konfirmasi: "HAPUS SEMUA" }),
+            });
+            setOrders([]);
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setIsResetLoading(false);
+            setIsResetOpen(false);
+        }
+    };
+
     const filteredOrders = useMemo(() => {
         const filtered = orders.filter((order) => {
             const matchKeyword =
@@ -591,6 +690,12 @@ function Order() {
             <main className="dashboard-content">
                 <div className="page-header-row">
                     <h1>Orderan Masuk</h1>
+                    <button
+                        className="sima-table-modal__btn sima-table-modal__btn--danger"
+                        onClick={handleOpenReset}
+                    >
+                        Reset Nomor Pesanan
+                    </button>
                 </div>
 
                 <SearchBar
@@ -637,6 +742,13 @@ function Order() {
                 isOpen={isDeleteOpen}
                 onCancel={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
+            />
+
+            <ResetConfirmModal
+                isOpen={isResetOpen}
+                onCancel={handleCancelReset}
+                onConfirm={handleConfirmReset}
+                isLoading={isResetLoading}
             />
         </div>
     );

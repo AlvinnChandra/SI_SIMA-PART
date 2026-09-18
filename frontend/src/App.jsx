@@ -11,6 +11,7 @@ import DataToko2 from "./pages/dataToko2";
 import KatalogSales from "./pages/salesPage/katalogSales";
 import PesananSales from "./pages/salesPage/pesananSales";
 import HistoryOrder from "./pages/salesPage/historyOrder";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -21,17 +22,73 @@ function App() {
         <Route path="/daftar" element={<Daftar />} />
         <Route path="/reset-password" element={<Reset />} />
 
-        {/* Halaman Admin */}
-        <Route path="/katalog" element={<Katalog />} />
-        <Route path="/order" element={<Order />} />
-        <Route path="/dataSales" element={<DataSales />} />
-        <Route path="/dataToko" element={<DataToko />} />
+        {/* Halaman Admin (hanya role "admin") */}
+        <Route
+          path="/katalog"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Katalog />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Order />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dataSales"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DataSales />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dataToko"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DataToko />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Halaman Sales */}
-        <Route path="/katalogSales" element={<KatalogSales />} />
-        <Route path="/pesananSales" element={<PesananSales />} />
-        <Route path="/dataToko2" element={<DataToko2 />} />
-        <Route path="/historyOrder" element={<HistoryOrder />} />
+        {/* Halaman Sales (hanya role "sales") */}
+        <Route
+          path="/katalogSales"
+          element={
+            <ProtectedRoute allowedRoles={["sales"]}>
+              <KatalogSales />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pesananSales"
+          element={
+            <ProtectedRoute allowedRoles={["sales"]}>
+              <PesananSales />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dataToko2"
+          element={
+            <ProtectedRoute allowedRoles={["sales"]}>
+              <DataToko2 />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/historyOrder"
+          element={
+            <ProtectedRoute allowedRoles={["sales"]}>
+              <HistoryOrder />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

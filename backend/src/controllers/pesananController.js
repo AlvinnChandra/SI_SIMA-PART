@@ -1,6 +1,7 @@
 const Pesanan = require("../models/pesananModel");
 const User = require("../models/userModel");
 const Counter = require("../models/counterModel");
+const PesananArsip = require("../models/pesananArsipModel");
 
 // Mapping status frontend -> status database
 const KEY_TO_STATUS = {
@@ -340,6 +341,91 @@ exports.deletePesanan = async (req, res) => {
         });
     } catch (err) {
         console.error("deletePesanan error:", err);
+
+        return res.status(500).json({
+            message: "Terjadi kesalahan server.",
+        });
+    }
+};
+
+
+// ============================================================
+// RESET TOTAL PESANAN
+// ============================================================
+// Menghapus SEMUA data pesanan dan mengembalikan nomor urut
+// ke awal, sehingga pesanan berikutnya akan menjadi ORD-0001 lagi.
+//
+// Pengaman yang diterapkan:
+// 1. HANYA admin utama (isMainAdmin) yang boleh melakukan ini,
+//    sama seperti proteksi di updateRole/deleteSales. Admin biasa
+//    tetap kena authorizeRoles("admin") di route, tapi dicek lagi
+//    di sini supaya admin biasa tetap ditolak.
+// 2. WAJIB kirim teks konfirmasi persis "HAPUS SEMUA" di body
+//    request (req.body.konfirmasi), supaya endpoint ini tidak bisa
+//    kepanggil tidak sengaja lewat script/Postman tanpa sadar.
+// 3. Sebelum dihapus, SEMUA pesanan disalin dulu ke koleksi arsip
+//    "pesananArsip" (lihat models/pesananArsipModel.js), jadi kalau
+//    suatu saat butuh data lama, masih bisa ditelusuri dari sana.
+// ============================================================
+exports.resetNomorPesanan = async (req, res) => {
+    try {
+        const { konfirmasi } = req.body;
+
+        // Wajib ketik ulang teks konfirmasi di request, bukan cuma di frontend
+        if (konfirmasi !== "HAPUS SEMUA") {
+            return res.status(400).json({
+                message: 'Konfirmasi tidak valid. Kirim { "konfirmasi": "HAPUS SEMUA" } di body request.',
+            });
+        }
+
+        // Hanya admin utama yang boleh reset
+        const currentUser = await User.findById(req.user.id);
+
+        if (!currentUser) {
+            return res.status(404).json({
+                message: "User tidak ditemukan.",
+            });
+        }
+
+        if (!currentUser.isMainAdmin) {
+            return res.status(403).json({
+                message: "Forbidden: Hanya admin utama yang boleh mereset nomor pesanan.",
+            });
+        }
+
+        // Ambil semua pesanan yang ada sebelum dihapus
+        const semuaPesanan = await Pesanan.find({}).lean();
+
+        if (semuaPesanan.length > 0) {
+            const resetBatchId = `RESET-${Date.now()}`;
+
+            // Salin semua pesanan ke koleksi arsip dulu, biar tidak hilang permanen
+            const dokumenArsip = semuaPesanan.map((p) => ({
+                dataAsli: p,
+                noPesananAsli: p.noPesanan,
+                resetBatchId,
+                resetBy: currentUser._id,
+                resetByNama: currentUser.namaLengkap,
+            }));
+
+            await PesananArsip.insertMany(dokumenArsip);
+        }
+
+        // Baru setelah aman diarsipkan, hapus semua pesanan
+        await Pesanan.deleteMany({});
+
+        // Kembalikan counter nomor pesanan ke 0
+        await Counter.findOneAndUpdate(
+            { name: "pesanan_no" },
+            { $set: { value: 0 } },
+            { upsert: true, new: true }
+        );
+
+        return res.status(200).json({
+            message: `Semua pesanan berhasil diarsipkan & dihapus (${semuaPesanan.length} data). Nomor pesanan direset ke ORD-0001.`,
+        });
+    } catch (err) {
+        console.error("resetNomorPesanan error:", err);
 
         return res.status(500).json({
             message: "Terjadi kesalahan server.",

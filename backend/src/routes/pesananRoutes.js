@@ -7,8 +7,12 @@ const {
     getPesanan,
     getPesananById,
     updateStatusPesanan,
-    deletePesanan, // tambahkan
+    deletePesanan,
+    resetNomorPesanan, // tambahkan
 } = require("../controllers/pesananController");
+
+// Reset total: hapus semua pesanan + nomor urut kembali ke ORD-0001 — hanya admin
+router.post("/reset-nomor", verifyToken, authorizeRoles("admin"), resetNomorPesanan);
 
 // Admin & sales sama-sama boleh lihat dan membuat pesanan
 router.get("/", verifyToken, authorizeRoles("admin", "sales"), getPesanan);
