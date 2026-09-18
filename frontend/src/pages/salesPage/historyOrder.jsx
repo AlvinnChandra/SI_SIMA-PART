@@ -4,8 +4,6 @@ import { createPortal } from "react-dom";
 import Header from "../../components/headerSales";
 import Footer from "../../components/footer";
 import SearchBar from "../../components/searchBar";
-import ExportPdfButton from "../../components/exportPDF";
-import ExportExcelButton from "../../components/exportExcel";
 import OrderStatusTabs from "../../fitur/orderStatusTabsSales";
 import { apiFetch } from "../../services/apiClient";
 import "../../css/global.css";
@@ -56,7 +54,6 @@ function transformPesanan(p) {
             nama: item.nama,
             qty: item.qty,
             satuan: item.satuan,
-            // Kalau catatan kosong/tidak ada dari DB, tampilkan "-"
             catatan: item.catatan && item.catatan.trim() !== "" ? item.catatan : "-",
         })),
     };
@@ -68,11 +65,6 @@ function getOrderNumberValue(orderNumber) {
     return match ? parseInt(match[0], 10) : 0;
 }
 
-// Ambil nama sales yang sedang login, supaya orderan yang ditampilkan
-// cuma punya sales itu sendiri.
-// NOTE: sesuaikan key & struktur ini dengan cara login/penyimpanan user
-// di project kamu (sekarang diasumsikan tersimpan di localStorage/sessionStorage
-// dengan key "simaUser", berisi JSON seperti { namaLengkap: "..." }).
 function getLoggedInSalesName() {
     try {
         const raw =
@@ -212,7 +204,7 @@ function StatusDropdown({ order, onStatusChange }) {
 }
 
 // ============ MODAL DETAIL PESANAN ============
-function OrderDetailModal({ order, isOpen, onClose, onExportPdf }) {
+function OrderDetailModal({ order, isOpen, onClose }) {
     useEffect(() => {
         if (!isOpen) return;
         const originalOverflow = document.body.style.overflow;
@@ -239,7 +231,6 @@ function OrderDetailModal({ order, isOpen, onClose, onExportPdf }) {
                         </span>
                     </h3>
                     <div className="sima-table-modal__header-actions">
-                        <ExportPdfButton onClick={() => onExportPdf(order)} />
                         <button className="sima-table-modal__close" onClick={onClose}>
                             &times;
                         </button>
@@ -418,7 +409,6 @@ function OrderTable({ orders, startIndex, onViewDetail, onDelete }) {
                         <td>{order.storeName}</td>
                         <td className="sima-table__col-center">{order.orderDate}</td>
                         <td className="sima-table__col-center">
-                            {/* Sales cuma bisa lihat status, ganti status cuma bisa oleh admin */}
                             <span className={`sima-table__badge status-badge--${order.status}`}>
                                 {order.statusLabel}
                             </span>
@@ -448,7 +438,7 @@ function OrderTable({ orders, startIndex, onViewDetail, onDelete }) {
     );
 }
 
-// ============ PAGINATION (tetap di file yang sama, tidak dipisah) ============
+// ============ PAGINATION ============
 function Pagination({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) {
     if (totalPages <= 1) return null;
 
@@ -522,17 +512,11 @@ function Order() {
     const [restrictedOrder, setRestrictedOrder] = useState(null);
     const [isRestrictedOpen, setIsRestrictedOpen] = useState(false);
 
-    // Ambil semua pesanan dari backend saat halaman dibuka
-    // Pakai apiFetch (services/apiClient.js) supaya token diambil otomatis
-    // dari key "simaToken" di localStorage/sessionStorage yang benar
-    // (sebelumnya di sini pakai fetch() manual dengan key "token" yang salah,
-    // itu penyebab error "Forbidden: Invalid token")
     useEffect(() => {
         const fetchOrders = async () => {
             setLoading(true);
             setError(null);
             try {
-                // limit besar supaya semua data ketarik, filter & paging tetap di client
                 const body = await apiFetch("/pesanan?limit=9999");
                 setOrders(body.data.map(transformPesanan));
             } catch (err) {
@@ -545,18 +529,6 @@ function Order() {
         fetchOrders();
     }, []);
 
-    const handleExportPdf = () => {
-        console.log("Export PDF diklik");
-    };
-
-    const handleExportDetailPdf = (order) => {
-        console.log("Export PDF detail pesanan diklik:", order.orderNumber);
-    };
-
-    const handleExportExcel = () => {
-        console.log("Export Excel diklik");
-    };
-
     const handleViewDetail = (order) => {
         setSelectedOrder(order);
         setIsDetailOpen(true);
@@ -568,8 +540,6 @@ function Order() {
     };
 
     const handleDeleteClick = (order) => {
-        // Kalau status masih "Orderan Masuk", boleh dihapus langsung.
-        // Kalau status sudah berubah, hapus cuma boleh oleh admin -> tampilkan notifikasi saja.
         if (order.status !== "masuk") {
             setRestrictedOrder(order);
             setIsRestrictedOpen(true);
@@ -589,7 +559,6 @@ function Order() {
         setOrderToDelete(null);
     };
 
-    // Hapus pesanan lewat API (pakai apiFetch)
     const handleConfirmDelete = async () => {
         if (!orderToDelete) return;
 
@@ -604,7 +573,6 @@ function Order() {
         }
     };
 
-    // Ganti status pesanan lewat API (pakai apiFetch)
     const handleStatusChange = async (orderId, option) => {
         const statusDb = STATUS_KEY_TO_DB[option.value];
 
@@ -638,9 +606,6 @@ function Order() {
             const matchStatus =
                 activeStatus === "semua" || order.status === activeStatus;
 
-            // Cuma tampilkan orderan milik sales yang sedang login.
-            // Kalau nama sales yang login tidak ditemukan, jangan filter
-            // (fallback aman supaya halaman tidak kosong total kalau ada masalah data).
             const matchSales = loggedInSalesName
                 ? order.salesName === loggedInSalesName
                 : true;
@@ -676,10 +641,6 @@ function Order() {
             <main className="dashboard-content">
                 <div className="page-header-row">
                     <h1>Orderan Masuk</h1>
-                    <div className="page-header-actions">
-                        <ExportExcelButton onClick={handleExportExcel} />
-                        <ExportPdfButton onClick={handleExportPdf} />
-                    </div>
                 </div>
 
                 <SearchBar
@@ -717,7 +678,6 @@ function Order() {
                 order={selectedOrder}
                 isOpen={isDetailOpen}
                 onClose={handleCloseDetail}
-                onExportPdf={handleExportDetailPdf}
             />
 
             <DeleteConfirmModal

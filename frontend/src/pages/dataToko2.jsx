@@ -3,8 +3,6 @@ import Header from "../components/headerSales";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
 import AddButton from "../components/AddButton";
-import ExportPdfButton from "../components/exportPDF";
-import ExportExcelButton from "../components/exportExcel";
 import AddTokoModal from "../fitur/addTokoModal";
 import TokoTable from "../fitur/tokoTable2";
 import "../css/dataToko2.css";
@@ -263,14 +261,6 @@ function DataToko() {
         }
     };
 
-    const handleExportPdf = () => {
-        console.log("Export PDF diklik");
-    };
-
-    const handleExportExcel = () => {
-        console.log("Export Excel diklik");
-    };
-
     return (
         <div className="dashboard-layout">
             <Header />
@@ -289,8 +279,6 @@ function DataToko() {
                         <div className="page-header-row">
                             <h1>Data Toko</h1>
                             <div className="page-header-actions">
-                                <ExportExcelButton onClick={handleExportExcel} />
-                                <ExportPdfButton onClick={handleExportPdf} />
                                 <AddButton label="Tambah Toko" onClick={handleAddToko} />
                             </div>
                         </div>

@@ -38,7 +38,6 @@ async function apiFetch(path, options = {}) {
     return data;
 }
 
-// Ubah 1 dokumen toko dari backend jadi bentuk yang dipakai tabel ini
 function mapTokoFromBackend(toko) {
     return {
         id: toko._id,
@@ -46,7 +45,7 @@ function mapTokoFromBackend(toko) {
         alamat: toko.alamat,
         noTelepon: toko.noTelepon,
         inputBy: toko.inputBy,
-        role: toko.role, // "admin" | "sales", dipakai buat styling badge
+        role: toko.role,
     };
 }
 
@@ -57,7 +56,6 @@ function DataToko() {
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
 
-    // ---------- AMBIL DATA TOKO DARI BACKEND ----------
     const loadToko = async () => {
         setLoading(true);
         setErrorMsg("");
@@ -90,7 +88,6 @@ function DataToko() {
         setIsModalOpen(true);
     };
 
-    // ---------- SIMPAN TOKO BARU KE BACKEND ----------
     const handleSaveToko = async (data) => {
         try {
             const result = await apiFetch("/toko", {
@@ -109,10 +106,6 @@ function DataToko() {
         }
     };
 
-    const handleExportPdf = () => {
-        console.log("Export PDF diklik");
-    };
-
     const handleExportExcel = () => {
         console.log("Export Excel diklik");
     };
@@ -126,7 +119,16 @@ function DataToko() {
                     <h1>Data Toko</h1>
                     <div className="page-header-actions">
                         <ExportExcelButton onClick={handleExportExcel} />
-                        <ExportPdfButton onClick={handleExportPdf} />
+                        <ExportPdfButton
+                            title="Data Toko"
+                            fileName="data-toko.pdf"
+                            data={filteredToko}
+                            fields={[
+                                { key: "namaToko", label: "Nama Toko" },
+                                { key: "alamat", label: "Alamat" },
+                                { key: "noTelepon", label: "No Telepon" },
+                            ]}
+                        />
                         <AddButton label="Tambah Toko" onClick={handleAddToko} />
                     </div>
                 </div>

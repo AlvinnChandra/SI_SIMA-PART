@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { FaPen, FaTrash } from "react-icons/fa";
+import jsPDF from "jspdf";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
@@ -11,6 +12,13 @@ import CategoryList from "../components/categoryList";
 import CheckboxFilter from "../components/checkboxFilter";
 import PriceSort from "../components/priceSort";
 import { getItems, createItem, updateItem, deleteItem } from "../services/itemService";
+import {
+    getLogo,
+    drawPdfHeader,
+    exportTablePdf,
+    drawFooterAllPages,
+    FOOTER_HEIGHT,
+} from "../utils/pdfExport";
 import "../css/global.css";
 
 const PAGE_SIZE = 10;
@@ -32,6 +40,29 @@ function formatRupiah(value) {
     const number = Number(value);
     if (Number.isNaN(number)) return "";
     return `Rp ${number.toLocaleString("id-ID")}`;
+}
+
+// Tentukan satuan dari teks keterangan.
+// Kalau ada "1 Pcs" -> satuannya PCS, selain itu -> SET
+function getSatuan(keterangan = "") {
+    return /1\s*pcs/i.test(keterangan) ? "PCS" : "SET";
+}
+
+// Ubah gambar (URL/cross-origin) jadi base64 supaya bisa ditempel ke PDF
+async function imageUrlToBase64(url) {
+    try {
+        const res = await fetch(url, { mode: "cors" });
+        if (!res.ok) throw new Error("Gagal ambil gambar");
+        const blob = await res.blob();
+        return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch {
+        return null; // gambar gagal diambil -> nanti digambar kotak kosong
+    }
 }
 
 // warna untuk modal edit, tambah, & preview
@@ -90,6 +121,9 @@ function Katalog() {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
+    // state untuk proses export PDF katalog (bisa lama karena banyak gambar)
+    const [exportingKatalog, setExportingKatalog] = useState(false);
+
     // Produk diurutkan alfabetis hanya untuk tampilan (kode asli tetap
     // dari server / MongoDB, tidak dihitung ulang di sini)
     const sortedProducts = useMemo(() => {
@@ -108,7 +142,6 @@ function Katalog() {
         [products]
     );
 
-    const handleExportPdf = () => console.log("Export PDF diklik");
     const handleExportExcel = () => console.log("Export Excel diklik");
 
     const handleSearch = (value) => {
@@ -336,6 +369,148 @@ function Katalog() {
         return filteredProducts.slice(start, start + PAGE_SIZE);
     }, [filteredProducts, currentPage]);
 
+    // ---------- EXPORT 1: KATALOG (GRID FOTO, LANDSCAPE) ----------
+    const handleExportKatalogPdf = async () => {
+        if (!filteredProducts.length) {
+            alert("Tidak ada produk untuk diexport.");
+            return;
+        }
+
+        setExportingKatalog(true);
+        try {
+            const doc = new jsPDF("l", "mm", "a4"); // landscape
+            const logo = await getLogo();
+
+            const pageW = doc.internal.pageSize.getWidth();
+            const pageH = doc.internal.pageSize.getHeight();
+
+            const marginX = 14;
+            const startY = 46;
+            const cols = 5;
+            const rows = 2;
+            const perPage = cols * rows; // 10 barang per halaman
+
+            const colGap = 3; // jarak antar kolom
+            const rowGap = 5; // jarak antar baris card
+            const gapAboveFooter = 6; // jarak antara card terakhir dengan garis footer
+
+            const cellW = (pageW - marginX * 2) / cols;
+            const cardW = cellW - colGap;
+
+            // tinggi card mengisi ruang yang tersedia antara header dan footer,
+            // supaya tidak ada space kosong besar di bawah
+            const availableH = pageH - startY - FOOTER_HEIGHT - gapAboveFooter;
+            const cardH = (availableH - rowGap * (rows - 1)) / rows;
+
+            const imgPadding = 3;
+            const textBlockH = 22; // ruang untuk kode + nama (maks 2 baris) + harga
+            // gambar mengisi sisa tinggi card, tapi tetap dibatasi lebar card supaya persegi
+            const imgSize = Math.min(
+                cardW - imgPadding * 2,
+                cardH - textBlockH - imgPadding - 3
+            );
+
+            const items = filteredProducts;
+
+            for (let i = 0; i < items.length; i++) {
+                const posInPage = i % perPage;
+
+                if (posInPage === 0) {
+                    if (i !== 0) doc.addPage();
+                    drawPdfHeader(doc, logo, "Katalog Produk");
+                }
+
+                const col = posInPage % cols;
+                const row = Math.floor(posInPage / cols);
+
+                const cardX = marginX + col * cellW + colGap / 2;
+                const cardY = startY + row * (cardH + rowGap);
+
+                // Border card, meniru tampilan card produk di web
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.3);
+                doc.rect(cardX, cardY, cardW, cardH);
+
+                const product = items[i];
+                const imgUrl = product.gambar || FALLBACK_IMG(product.nama);
+                const base64 = await imageUrlToBase64(imgUrl);
+
+                const imgX = cardX + (cardW - imgSize) / 2;
+                const imgY = cardY + imgPadding;
+
+                if (base64) {
+                    try {
+                        doc.addImage(base64, "JPEG", imgX, imgY, imgSize, imgSize);
+                    } catch {
+                        doc.setDrawColor(200);
+                        doc.rect(imgX, imgY, imgSize, imgSize);
+                    }
+                } else {
+                    doc.setDrawColor(200);
+                    doc.rect(imgX, imgY, imgSize, imgSize);
+                }
+
+                // garis pemisah gambar & teks, seperti card di web
+                const dividerY = imgY + imgSize + 3;
+                doc.setDrawColor(230, 230, 230);
+                doc.setLineWidth(0.2);
+                doc.line(cardX, dividerY, cardX + cardW, dividerY);
+
+                const textY = dividerY + 4;
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7);
+                doc.setTextColor(130);
+                doc.text(product.kode || "-", cardX + cardW / 2, textY, { align: "center" });
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8);
+                doc.setTextColor(20, 40, 110);
+                const namaLines = doc.splitTextToSize(product.nama, cardW - 6).slice(0, 2);
+                doc.text(namaLines, cardX + cardW / 2, textY + 4, { align: "center" });
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8);
+                doc.setTextColor(210, 30, 40);
+                doc.text(
+                    `Rp ${product.harga.toLocaleString("id-ID")}`,
+                    cardX + cardW / 2,
+                    textY + 4 + namaLines.length * 3.5 + 3,
+                    { align: "center" }
+                );
+            }
+
+            // footer (garis + teks + nomor halaman di tengah bawah) di semua halaman
+            drawFooterAllPages(doc);
+
+            doc.save("katalog-produk.pdf");
+        } catch (err) {
+            alert(err.message || "Gagal membuat PDF katalog.");
+        } finally {
+            setExportingKatalog(false);
+        }
+    };
+
+    // ---------- EXPORT 2: LIST PRODUK (TABEL SEDERHANA) ----------
+    const handleExportListPdf = () => {
+        const rows = filteredProducts.map((p) => ({
+            nama: p.nama,
+            harga: `Rp ${p.harga.toLocaleString("id-ID")}`,
+            satuan: getSatuan(p.keterangan),
+        }));
+
+        exportTablePdf({
+            title: "List Produk",
+            data: rows,
+            fields: [
+                { key: "nama", label: "Nama Barang" },
+                { key: "harga", label: "Harga" },
+                { key: "satuan", label: "Satuan" },
+            ],
+            fileName: "list-produk.pdf",
+        });
+    };
+
     return (
         <div className="dashboard-layout">
             <Header />
@@ -344,7 +519,13 @@ function Katalog() {
                     <h1>Katalog</h1>
                     <div className="page-header-actions">
                         <ExportExcelButton onClick={handleExportExcel} />
-                        <ExportPdfButton onClick={handleExportPdf} />
+                        <ExportPdfButton
+                            label={exportingKatalog ? "Memproses..." : "Export PDF"}
+                            options={[
+                                { label: "Export Katalog (Foto)", onClick: handleExportKatalogPdf },
+                                { label: "Export List (Tabel)", onClick: handleExportListPdf },
+                            ]}
+                        />
                         <AddButton label="Tambah Produk" onClick={handleAddClick} />
                     </div>
                 </div>

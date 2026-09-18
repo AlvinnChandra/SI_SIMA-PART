@@ -38,3 +38,54 @@
         justify-content: center;
     }
 }
+
+/* ============ DROPDOWN EXPORT PDF ============ */
+.sima-export-pdf-dropdown {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.sima-export-pdf-dropdown__menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    min-width: 220px;
+    background: var(--white);
+    border: 1px solid #E4E7EC;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(16, 24, 40, 0.12);
+    overflow: hidden;
+}
+
+.sima-export-pdf-dropdown__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: #344054;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sima-export-pdf-dropdown__item:hover {
+    background: #F9FAFB;
+    color: #E5252A;
+}
+
+@media (max-width: 640px) {
+    .sima-export-pdf-dropdown {
+        width: 100%;
+    }
+
+    .sima-export-pdf-dropdown__menu {
+        left: 0;
+        right: 0;
+        width: 100%;
+    }
+}
