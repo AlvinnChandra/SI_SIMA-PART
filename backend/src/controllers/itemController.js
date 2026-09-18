@@ -1,44 +1,74 @@
 const cloudinary = require("../config/cloudinary");
 const Item = require("../models/itemModel");
 
+// Helper: upload gambar produk ke Cloudinary
+const uploadGambar = async (file) => {
+  const result = await cloudinary.uploader.upload(file.path, {
+    folder: "sima_items",
+  });
+
+  return { gambar: result.secure_url, cloudinary_id: result.public_id };
+};
+
+// Helper: tempelkan kode SM-001, SM-002, ... sesuai urutan nama (A-Z)
+const withKodeUrut = (items) => {
+  const sorted = [...items].sort((a, b) =>
+    a.nama.localeCompare(b.nama, "id", { sensitivity: "base" })
+  );
+
+  return sorted.map((item, index) => ({
+    ...item.toObject(),
+    kode: `SM-${String(index + 1).padStart(3, "0")}`,
+  }));
+};
+
+// ---------------- TAMBAH PRODUK ----------------
 const createItem = async (req, res) => {
   try {
-    console.log("req.file:", req.file);
     const { nama, harga, keterangan, kategori, kendaraan } = req.body;
+
+    if (!nama || !harga || !keterangan || !kategori || !kendaraan) {
+      return res.status(400).json({ message: "Semua field wajib diisi." });
+    }
 
     let gambar = null;
     let cloudinary_id = null;
 
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {folder: "sima_items",});
-      gambar = result.secure_url;
-      cloudinary_id = result.public_id;
+      ({ gambar, cloudinary_id } = await uploadGambar(req.file));
     }
 
-    const newItem = new Item({ nama, harga, keterangan, kategori, kendaraan, gambar, cloudinary_id });
+    const newItem = new Item({
+      nama: String(nama).trim(),
+      harga: Number(harga),
+      keterangan: String(keterangan).trim(),
+      kategori: String(kategori).trim(),
+      kendaraan: String(kendaraan).trim(),
+      gambar,
+      cloudinary_id,
+    });
+
     await newItem.save();
-    res.status(201).json(newItem);
+
+    res.status(201).json(newItem.toObject());
   } catch (error) {
+    console.error("createItem error:", error);
     res.status(500).json({ message: "Error creating item", error: error.message });
   }
 };
 
+// ---------------- AMBIL SEMUA PRODUK ----------------
 const getItem = async (req, res) => {
   try {
-    const item = await Item.find()
-    const sorted = [...items].sort((a,b) => a.nama.localeCompare(b.nama, "id", { sensitivity: "base" }));
-    
-    const withKode = sorted.map((item, index) => {
-      const obj = item.toObject();
-      obj.kode = `SM-${String(index + 1).padStart(3, "0")}`;
-      return obj;
-    });
-    res.status(200).json(withKode);
+    const items = await Item.find();
+    res.status(200).json(withKodeUrut(items));
   } catch (error) {
+    console.error("getItem error:", error);
     res.status(500).json({ message: "Error fetching item", error: error.message });
   }
 };
 
+// ---------------- UPDATE PRODUK ----------------
 const updateItem = async (req, res) => {
   try {
     const item = await Item.findById(req.params.id);
@@ -49,22 +79,26 @@ const updateItem = async (req, res) => {
 
     if (req.file) {
       if (cloudinary_id) await cloudinary.uploader.destroy(cloudinary_id);
-      const result = await cloudinary.uploader.upload(req.file.path, {folder: "sima_items",});
-      gambar = result.secure_url;
-      cloudinary_id = result.public_id;
+      ({ gambar, cloudinary_id } = await uploadGambar(req.file));
     }
+
+    // buang field yang tidak boleh ditimpa langsung dari body
+    const { gambar: _g, cloudinary_id: _c, kode, _id, ...body } = req.body;
 
     const updated = await Item.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, gambar, cloudinary_id },
+      { ...body, gambar, cloudinary_id },
       { new: true, runValidators: true }
     );
-    res.status(200).json(updated);
+
+    res.status(200).json(updated.toObject());
   } catch (error) {
+    console.error("updateItem error:", error);
     res.status(500).json({ message: "Error updating produk", error: error.message });
   }
 };
 
+// ---------------- HAPUS PRODUK ----------------
 const deleteItem = async (req, res) => {
   try {
     const item = await Item.findById(req.params.id);
@@ -75,6 +109,7 @@ const deleteItem = async (req, res) => {
 
     res.status(200).json({ message: "Item deleted" });
   } catch (error) {
+    console.error("deleteItem error:", error);
     res.status(500).json({ message: "Error deleting item", error: error.message });
   }
 };
