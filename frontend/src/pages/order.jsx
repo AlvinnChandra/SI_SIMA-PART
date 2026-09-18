@@ -5,9 +5,9 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
 import ExportPdfButton from "../components/exportPDF";
-import ExportExcelButton from "../components/exportExcel";
 import OrderStatusTabs from "../fitur/orderStatusTabs";
 import { apiFetch } from "../services/apiClient";
+import { exportOrderDetailPdf } from "../utils/pdfExport";
 import "../css/global.css";
 import "../css/order.css";
 
@@ -488,16 +488,9 @@ function Order() {
         fetchOrders();
     }, []);
 
-    const handleExportPdf = () => {
-        console.log("Export PDF diklik");
-    };
-
+    // Export PDF untuk 1 pesanan (dipanggil dari tombol Export PDF di modal detail)
     const handleExportDetailPdf = (order) => {
-        console.log("Export PDF detail pesanan diklik:", order.orderNumber);
-    };
-
-    const handleExportExcel = () => {
-        console.log("Export Excel diklik");
+        exportOrderDetailPdf(order);
     };
 
     const handleViewDetail = (order) => {
@@ -598,10 +591,6 @@ function Order() {
             <main className="dashboard-content">
                 <div className="page-header-row">
                     <h1>Orderan Masuk</h1>
-                    <div className="page-header-actions">
-                        <ExportExcelButton onClick={handleExportExcel} />
-                        <ExportPdfButton onClick={handleExportPdf} />
-                    </div>
                 </div>
 
                 <SearchBar

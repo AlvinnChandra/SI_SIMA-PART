@@ -5,6 +5,7 @@ import SearchBar from "../components/searchBar";
 import ExportPdfButton from "../components/exportPDF";
 import ExportExcelButton from "../components/exportExcel";
 import SalesTable from "../fitur/salesTable";
+import { exportListExcel } from "../utils/excelExport"; // sesuaikan path sesuai lokasi file exceljs kamu
 import "../css/global.css";
 
 const API_BASE_URL = "http://localhost:7001/api";
@@ -62,7 +63,7 @@ function DataSales() {
         loadSales();
     }, []);
 
-    // Filter sesuai keyword pencarian, dipakai buat PDF
+    // Filter sesuai keyword pencarian, dipakai buat PDF & Excel
     // supaya hasil export sesuai hasil pencarian juga
     const filteredSales = useMemo(() => {
         const k = keyword.trim().toLowerCase();
@@ -73,8 +74,17 @@ function DataSales() {
     }, [salesData, keyword]);
 
     const handleExportExcel = () => {
-        // logic buat generate/export Excel data sales
-        console.log("Export Excel diklik");
+        exportListExcel({
+            title: "Data Sales",
+            fileName: "data-sales.xlsx",
+            data: filteredSales,
+            fields: [
+                { key: "namaLengkap", label: "Nama Sales" },
+                { key: "nik", label: "NIK" },
+                { key: "noTelepon", label: "No Telepon" },
+                { key: "alamat", label: "Alamat" },
+            ],
+        });
     };
 
     return (

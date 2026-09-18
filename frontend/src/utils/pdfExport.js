@@ -124,3 +124,65 @@ export async function exportTablePdf({
     drawFooterAllPages(doc);
     doc.save(fileName);
 }
+
+// Export PDF detail 1 pesanan (dipakai di modal Detail Pesanan)
+export async function exportOrderDetailPdf(order, fileName) {
+    if (!order) {
+        alert("Data pesanan tidak ditemukan.");
+        return;
+    }
+
+    const doc = new jsPDF("p", "mm", "a4");
+    const logo = await getLogo();
+    const title = `Detail Pesanan ${order.orderNumber}`;
+
+    drawPdfHeader(doc, logo, title);
+
+    // Info ringkas pesanan (toko, sales, tanggal, status)
+    let y = 48;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text("NAMA TOKO", 14, y);
+    doc.text("SALES", 84, y);
+    doc.text("TANGGAL", 134, y);
+    doc.text("STATUS", 174, y);
+
+    y += 6;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.text(order.storeName || "-", 14, y);
+    doc.text(order.salesName || "-", 84, y);
+    doc.text(order.orderDate || "-", 134, y);
+    doc.text(order.statusLabel || "-", 174, y);
+
+    y += 8;
+
+    const columns = ["No", "Nama Barang", "Qty", "Satuan", "Catatan"];
+    const rows = order.items.map((item, i) => [
+        i + 1,
+        item.nama,
+        item.qty,
+        item.satuan,
+        item.catatan,
+    ]);
+
+    autoTable(doc, {
+        head: [columns],
+        body: rows,
+        startY: y,
+        margin: { top: 46, bottom: FOOTER_HEIGHT },
+        theme: "grid",
+        styles: { fontSize: 9, cellPadding: 2.5 },
+        headStyles: { fillColor: [20, 40, 110], textColor: 255 },
+        didDrawPage: (data) => {
+            // header info toko/sales cuma di halaman pertama,
+            // halaman berikutnya cukup header standar SIMA saja
+            if (data.pageNumber > 1) drawPdfHeader(doc, logo, title);
+        },
+    });
+
+    drawFooterAllPages(doc);
+    doc.save(fileName || `detail-pesanan-${order.orderNumber}.pdf`);
+}

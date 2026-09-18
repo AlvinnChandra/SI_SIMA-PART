@@ -19,6 +19,7 @@ import {
     drawFooterAllPages,
     FOOTER_HEIGHT,
 } from "../utils/pdfExport";
+import { exportListExcel } from "../utils/excelExport";
 import "../css/global.css";
 
 const PAGE_SIZE = 10;
@@ -124,6 +125,9 @@ function Katalog() {
     // state untuk proses export PDF katalog (bisa lama karena banyak gambar)
     const [exportingKatalog, setExportingKatalog] = useState(false);
 
+    // state untuk proses export Excel
+    const [exportingExcel, setExportingExcel] = useState(false);
+
     // Produk diurutkan alfabetis hanya untuk tampilan (kode asli tetap
     // dari server / MongoDB, tidak dihitung ulang di sini)
     const sortedProducts = useMemo(() => {
@@ -141,8 +145,6 @@ function Katalog() {
         () => [...new Set(products.map((p) => p.kendaraan))].sort(),
         [products]
     );
-
-    const handleExportExcel = () => console.log("Export Excel diklik");
 
     const handleSearch = (value) => {
         setKeyword(value);
@@ -491,7 +493,7 @@ function Katalog() {
         }
     };
 
-    // ---------- EXPORT 2: LIST PRODUK (TABEL SEDERHANA) ----------
+    // ---------- EXPORT 2: LIST PRODUK (TABEL SEDERHANA, PDF) ----------
     const handleExportListPdf = () => {
         const rows = filteredProducts.map((p) => ({
             nama: p.nama,
@@ -511,6 +513,33 @@ function Katalog() {
         });
     };
 
+    // ---------- EXPORT 3: LIST PRODUK (EXCEL) ----------
+    const handleExportExcel = async () => {
+        const rows = filteredProducts.map((p) => ({
+            nama: p.nama,
+            harga: `Rp ${p.harga.toLocaleString("id-ID")}`,
+            satuan: getSatuan(p.keterangan),
+        }));
+
+        setExportingExcel(true);
+        try {
+            await exportListExcel({
+                title: "List Produk",
+                data: rows,
+                fields: [
+                    { key: "nama", label: "Nama Barang" },
+                    { key: "harga", label: "Harga" },
+                    { key: "satuan", label: "Satuan" },
+                ],
+                fileName: "list-produk.xlsx",
+            });
+        } catch (err) {
+            alert(err.message || "Gagal membuat Excel.");
+        } finally {
+            setExportingExcel(false);
+        }
+    };
+
     return (
         <div className="dashboard-layout">
             <Header />
@@ -518,7 +547,10 @@ function Katalog() {
                 <div className="page-header-row">
                     <h1>Katalog</h1>
                     <div className="page-header-actions">
-                        <ExportExcelButton onClick={handleExportExcel} />
+                        <ExportExcelButton
+                            label={exportingExcel ? "Memproses..." : "Export Excel"}
+                            onClick={handleExportExcel}
+                        />
                         <ExportPdfButton
                             label={exportingKatalog ? "Memproses..." : "Export PDF"}
                             options={[

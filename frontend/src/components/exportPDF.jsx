@@ -32,7 +32,7 @@ function PdfIcon() {
 }
 
 /**
- * Mode 1 (lama, satu tombol langsung export):
+ * Mode 1 (lama, satu tombol langsung export data tabel):
  *   <ExportPdfButton title="Data Toko" data={...} fields={...} fileName="..." />
  *
  * Mode 2 (dropdown, beberapa pilihan export):
@@ -42,6 +42,9 @@ function PdfIcon() {
  *       { label: "Export List (Tabel)", onClick: fn2 },
  *     ]}
  *   />
+ *
+ * Mode 3 (custom, kirim fungsi export sendiri, misal untuk export 1 item/detail):
+ *   <ExportPdfButton onClick={() => exportOrderDetailPdf(order)} />
  */
 function ExportPdfButton({
     label = "Export PDF",
@@ -51,6 +54,7 @@ function ExportPdfButton({
     fileName = "laporan-sima.pdf",
     orientation = "p",
     options = null,
+    onClick = null,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const wrapRef = useRef(null);
@@ -103,7 +107,17 @@ function ExportPdfButton({
         );
     }
 
-    // ---- MODE TOMBOL BIASA ----
+    // ---- MODE CUSTOM (onClick disediakan dari luar, misal export detail 1 pesanan) ----
+    if (onClick) {
+        return (
+            <button type="button" className="sima-export-pdf-btn" onClick={onClick}>
+                <PdfIcon />
+                {label}
+            </button>
+        );
+    }
+
+    // ---- MODE TOMBOL BIASA (export tabel pakai data & fields) ----
     return (
         <button type="button" className="sima-export-pdf-btn" onClick={handleSimpleExport}>
             <PdfIcon />

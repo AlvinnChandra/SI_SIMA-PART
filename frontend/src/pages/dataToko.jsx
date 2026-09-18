@@ -7,6 +7,7 @@ import ExportPdfButton from "../components/exportPDF";
 import ExportExcelButton from "../components/exportExcel";
 import AddTokoModal from "../fitur/addTokoModal";
 import TokoTable from "../fitur/tokoTable";
+import { exportListExcel } from "../utils/excelExport";
 import "../css/global.css";
 
 const API_BASE_URL = "http://localhost:7001/api";
@@ -55,6 +56,7 @@ function DataToko() {
     const [tokoData, setTokoData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
+    const [exportingExcel, setExportingExcel] = useState(false);
 
     const loadToko = async () => {
         setLoading(true);
@@ -106,8 +108,24 @@ function DataToko() {
         }
     };
 
-    const handleExportExcel = () => {
-        console.log("Export Excel diklik");
+    const handleExportExcel = async () => {
+        setExportingExcel(true);
+        try {
+            await exportListExcel({
+                title: "Data Toko",
+                data: filteredToko,
+                fields: [
+                    { key: "namaToko", label: "Nama Toko" },
+                    { key: "alamat", label: "Alamat" },
+                    { key: "noTelepon", label: "No Telepon" },
+                ],
+                fileName: "data-toko.xlsx",
+            });
+        } catch (err) {
+            alert(err.message || "Gagal membuat Excel.");
+        } finally {
+            setExportingExcel(false);
+        }
     };
 
     return (
@@ -118,7 +136,10 @@ function DataToko() {
                 <div className="page-header-row">
                     <h1>Data Toko</h1>
                     <div className="page-header-actions">
-                        <ExportExcelButton onClick={handleExportExcel} />
+                        <ExportExcelButton
+                            label={exportingExcel ? "Memproses..." : "Export Excel"}
+                            onClick={handleExportExcel}
+                        />
                         <ExportPdfButton
                             title="Data Toko"
                             fileName="data-toko.pdf"
