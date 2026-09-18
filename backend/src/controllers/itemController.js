@@ -1,6 +1,6 @@
 const cloudinary = require("../config/cloudinary");
 const Item = require("../models/itemModel");
-const Counter = require("../models/counterModel");
+
 const createItem = async (req, res) => {
   try {
     console.log("req.file:", req.file);
@@ -15,16 +15,7 @@ const createItem = async (req, res) => {
       cloudinary_id = result.public_id;
     }
 
-    // Get the next counter value for the item code
-    const counter = await Counter.findOneAndUpdate(
-      { name: "item_kode" },
-      { $inc: { value: 1 } },
-      { new: true, upsert: true }
-    );
-
-    const kode = `SM-${String(counter.value).padStart(3, "0")}`;
-
-    const newItem = new Item({ kode, nama, harga, keterangan, kategori, kendaraan, gambar, cloudinary_id });
+    const newItem = new Item({ nama, harga, keterangan, kategori, kendaraan, gambar, cloudinary_id });
     await newItem.save();
     res.status(201).json(newItem);
   } catch (error) {
@@ -34,8 +25,15 @@ const createItem = async (req, res) => {
 
 const getItem = async (req, res) => {
   try {
-    const item = await Item.find().sort({ nama: 1 });
-    res.status(200).json(item);
+    const item = await Item.find()
+    const sorted = [...items].sort((a,b) => a.nama.localeCompare(b.nama, "id", { sensitivity: "base" }));
+    
+    const withKode = sorted.map((item, index) => {
+      const obj = item.toObject();
+      obj.kode = `SM-${String(index + 1).padStart(3, "0")}`;
+      return obj;
+    });
+    res.status(200).json(withKode);
   } catch (error) {
     res.status(500).json({ message: "Error fetching item", error: error.message });
   }
