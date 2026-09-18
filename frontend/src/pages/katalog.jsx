@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FaPen, FaTrash } from "react-icons/fa";
+import { FaPen, FaTrash, FaTag, FaTimes } from "react-icons/fa";
 import jsPDF from "jspdf";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -11,7 +11,12 @@ import Pagination from "../components/pagination";
 import CategoryList from "../components/categoryList";
 import CheckboxFilter from "../components/checkboxFilter";
 import PriceSort from "../components/priceSort";
-import { getItems, createItem, updateItem, deleteItem } from "../services/itemService";
+import {
+    getItems,
+    createItem,
+    updateItem,
+    deleteItem,
+} from "../services/itemService";
 import {
     getLogo,
     drawPdfHeader,
@@ -49,6 +54,12 @@ function getSatuan(keterangan = "") {
     return /1\s*pcs/i.test(keterangan) ? "PCS" : "SET";
 }
 
+// Hitung harga setelah diskon. Ini murni kalkulasi JS di frontend,
+// tidak pernah dikirim/disimpan ke database.
+function hitungHargaSetelahDiskon(harga, persen) {
+    return Math.round(harga - (harga * persen) / 100);
+}
+
 // Ubah gambar (URL/cross-origin) jadi base64 supaya bisa ditempel ke PDF
 async function imageUrlToBase64(url) {
     try {
@@ -72,6 +83,7 @@ const HEADING = "#101828";
 const LABEL = "#344054";
 const BORDER = "#D0D5DD";
 const ACCENT = "#EE4D2D";
+const GREEN = "#12B76A";
 
 const EMPTY_FORM = {
     nama: "",
@@ -95,11 +107,16 @@ function Katalog() {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Ambil data produk dari API.
-    useEffect(() => {
-        getItems()
+    const loadProducts = () => {
+        setIsLoading(true);
+        return getItems()
             .then(setProducts)
             .catch((err) => setLoadError(err.message))
             .finally(() => setIsLoading(false));
+    };
+
+    useEffect(() => {
+        loadProducts();
     }, []);
 
     // state untuk pop up edit — editingProduct menyimpan data asli dari server
@@ -127,6 +144,16 @@ function Katalog() {
 
     // state untuk proses export Excel
     const [exportingExcel, setExportingExcel] = useState(false);
+
+    // ==================================================
+    // STATE MODE ATUR DISKON
+    // Catatan: diskon di sini murni state di frontend (JS biasa),
+    // TIDAK pernah dikirim atau disimpan ke database/backend.
+    // ==================================================
+    const [diskonMode, setDiskonMode] = useState(false);
+    const [diskonPersen, setDiskonPersen] = useState("");
+    const [selectedForDiskon, setSelectedForDiskon] = useState([]);
+    const [diskonError, setDiskonError] = useState("");
 
     // Produk diurutkan alfabetis hanya untuk tampilan (kode asli tetap
     // dari server / MongoDB, tidak dihitung ulang di sini)
@@ -332,6 +359,94 @@ function Katalog() {
         setAddError("");
     };
 
+    // ==================================================
+    // HANDLER MODE DISKON (murni JS di frontend, tidak menyentuh DB)
+    // ==================================================
+    const handleBukaDiskonMode = () => {
+        setDiskonMode(true);
+        setSelectedForDiskon([]);
+        setDiskonPersen("");
+        setDiskonError("");
+    };
+
+    const handleBatalDiskonMode = () => {
+        setDiskonMode(false);
+        setSelectedForDiskon([]);
+        setDiskonPersen("");
+        setDiskonError("");
+    };
+
+    const handleToggleSelectDiskon = (product) => {
+        setSelectedForDiskon((prev) =>
+            prev.includes(product._id)
+                ? prev.filter((id) => id !== product._id)
+                : [...prev, product._id]
+        );
+    };
+
+    // Terapkan diskon ke produk terpilih — cuma update state React,
+    // tidak ada request ke server sama sekali.
+    const handleTerapkanDiskon = () => {
+        const persen = Number(diskonPersen);
+
+        if (selectedForDiskon.length === 0) {
+            setDiskonError("Pilih minimal 1 barang terlebih dahulu.");
+            return;
+        }
+        if (!persen || persen <= 0 || persen > 100) {
+            setDiskonError("Masukkan persen diskon yang valid (1 - 100).");
+            return;
+        }
+
+        setDiskonError("");
+        setProducts((prev) =>
+            prev.map((p) =>
+                selectedForDiskon.includes(p._id)
+                    ? {
+                        ...p,
+                        diskon: persen,
+                        hargaSetelahDiskon: hitungHargaSetelahDiskon(p.harga, persen),
+                    }
+                    : p
+            )
+        );
+        handleBatalDiskonMode();
+    };
+
+    // Kembalikan 1 produk ke harga semula (lokal saja).
+    const handleKembalikanDiskon = (product) => {
+        if (!product.diskon || product.diskon <= 0) return;
+
+        const yakin = window.confirm(
+            `Kembalikan harga "${product.nama}" ke harga semula?`
+        );
+        if (!yakin) return;
+
+        setProducts((prev) =>
+            prev.map((p) =>
+                p._id === product._id
+                    ? { ...p, diskon: 0, hargaSetelahDiskon: p.harga }
+                    : p
+            )
+        );
+    };
+
+    // Reset semua diskon sekaligus (lokal saja).
+    const handleResetSemuaDiskon = () => {
+        const adaDiskon = products.some((p) => p.diskon > 0);
+        if (!adaDiskon) return;
+
+        const yakin = window.confirm(
+            "Kembalikan SEMUA produk ke harga semula? Ini akan menghapus semua diskon yang sedang aktif."
+        );
+        if (!yakin) return;
+
+        setProducts((prev) =>
+            prev.map((p) => ({ ...p, diskon: 0, hargaSetelahDiskon: p.harga }))
+        );
+        handleBatalDiskonMode();
+    };
+
     const filteredProducts = useMemo(() => {
         let result = sortedProducts;
 
@@ -363,6 +478,20 @@ function Katalog() {
 
         return result;
     }, [sortedProducts, keyword, activeCategory, selectedKendaraan, priceSort]);
+
+    // "Pilih Semua" mengacu pada seluruh produk yang sedang tampil
+    // sesuai filter aktif (bukan cuma 1 halaman), murni state lokal.
+    const isAllFilteredSelected =
+        filteredProducts.length > 0 &&
+        filteredProducts.every((p) => selectedForDiskon.includes(p._id));
+
+    const handleToggleSelectAllDiskon = () => {
+        if (isAllFilteredSelected) {
+            setSelectedForDiskon([]);
+        } else {
+            setSelectedForDiskon(filteredProducts.map((p) => p._id));
+        }
+    };
 
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
 
@@ -471,11 +600,15 @@ function Katalog() {
                 const namaLines = doc.splitTextToSize(product.nama, cardW - 6).slice(0, 2);
                 doc.text(namaLines, cardX + cardW / 2, textY + 4, { align: "center" });
 
+                const hargaTampil = product.diskon
+                    ? product.hargaSetelahDiskon ?? product.harga
+                    : product.harga;
+
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(8);
                 doc.setTextColor(210, 30, 40);
                 doc.text(
-                    `Rp ${product.harga.toLocaleString("id-ID")}`,
+                    `Rp ${hargaTampil.toLocaleString("id-ID")}`,
                     cardX + cardW / 2,
                     textY + 4 + namaLines.length * 3.5 + 3,
                     { align: "center" }
@@ -497,7 +630,7 @@ function Katalog() {
     const handleExportListPdf = () => {
         const rows = filteredProducts.map((p) => ({
             nama: p.nama,
-            harga: `Rp ${p.harga.toLocaleString("id-ID")}`,
+            harga: `Rp ${(p.diskon ? p.hargaSetelahDiskon ?? p.harga : p.harga).toLocaleString("id-ID")}`,
             satuan: getSatuan(p.keterangan),
         }));
 
@@ -517,7 +650,7 @@ function Katalog() {
     const handleExportExcel = async () => {
         const rows = filteredProducts.map((p) => ({
             nama: p.nama,
-            harga: `Rp ${p.harga.toLocaleString("id-ID")}`,
+            harga: `Rp ${(p.diskon ? p.hargaSetelahDiskon ?? p.harga : p.harga).toLocaleString("id-ID")}`,
             satuan: getSatuan(p.keterangan),
         }));
 
@@ -547,6 +680,17 @@ function Katalog() {
                 <div className="page-header-row">
                     <h1>Katalog</h1>
                     <div className="page-header-actions">
+                        {!diskonMode && (
+                            <button
+                                type="button"
+                                onClick={handleBukaDiskonMode}
+                                className="rounded-md border px-4 py-2 text-sm font-medium"
+                                style={{ borderColor: BORDER, color: LABEL }}
+                            >
+                                <FaTag size={12} style={{ display: "inline", marginRight: 6 }} />
+                                Atur Diskon
+                            </button>
+                        )}
                         <ExportExcelButton
                             label={exportingExcel ? "Memproses..." : "Export Excel"}
                             onClick={handleExportExcel}
@@ -561,6 +705,71 @@ function Katalog() {
                         <AddButton label="Tambah Produk" onClick={handleAddClick} />
                     </div>
                 </div>
+
+                {/* Toolbar mode atur diskon (semua lokal, tidak menyentuh DB) */}
+                {diskonMode && (
+                    <div
+                        className="mt-4 flex flex-wrap items-center gap-3 rounded-md border p-3"
+                        style={{ borderColor: "#E4E7EC", background: "#FFF9F5" }}
+                    >
+                        <span className="text-sm font-medium" style={{ color: LABEL }}>
+                            Pilih barang di grid, lalu masukkan persen diskon:
+                        </span>
+
+                        <button
+                            type="button"
+                            onClick={handleToggleSelectAllDiskon}
+                            className="rounded-md border px-3 py-1.5 text-xs font-medium"
+                            style={{ borderColor: BORDER, color: LABEL }}
+                        >
+                            {isAllFilteredSelected ? "Batal Pilih Semua" : "Pilih Semua"}
+                        </button>
+
+                        <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={diskonPersen}
+                            onChange={(e) => setDiskonPersen(e.target.value)}
+                            placeholder="cth. 15"
+                            className="w-24 rounded-md border px-2 py-1 text-sm"
+                            style={{ borderColor: BORDER }}
+                        />
+                        <span className="text-sm" style={{ color: "#667085" }}>%</span>
+                        <span className="text-sm" style={{ color: "#667085" }}>
+                            {selectedForDiskon.length} barang dipilih
+                        </span>
+                        <button
+                            type="button"
+                            onClick={handleTerapkanDiskon}
+                            className="rounded-md px-4 py-2 text-sm font-semibold text-white"
+                            style={{ background: ACCENT }}
+                        >
+                            Terapkan
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleResetSemuaDiskon}
+                            className="rounded-md border px-4 py-2 text-sm font-medium"
+                            style={{ borderColor: BORDER, color: ACCENT }}
+                        >
+                            Reset Semua Diskon
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleBatalDiskonMode}
+                            className="rounded-md border px-4 py-2 text-sm font-medium"
+                            style={{ borderColor: BORDER, color: LABEL }}
+                        >
+                            Batal
+                        </button>
+                        {diskonError && (
+                            <span className="w-full text-xs" style={{ color: ACCENT }}>
+                                {diskonError}
+                            </span>
+                        )}
+                    </div>
+                )}
 
                 <SearchBar
                     placeholder="Cari nama produk atau kode barang..."
@@ -612,64 +821,117 @@ function Katalog() {
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                        {paginatedProducts.map((product) => (
-                                            <div
-                                                key={product._id}
-                                                className="group flex cursor-pointer flex-col overflow-hidden rounded-sm border border-gray-200 bg-white transition-shadow hover:shadow-md"
-                                            >
+                                        {paginatedProducts.map((product) => {
+                                            const isSelected = selectedForDiskon.includes(product._id);
+                                            const punyaDiskon = product.diskon > 0;
+                                            const hargaFinal = punyaDiskon
+                                                ? product.hargaSetelahDiskon ?? product.harga
+                                                : product.harga;
+
+                                            return (
                                                 <div
-                                                    className="relative aspect-square w-full overflow-hidden bg-gray-100"
-                                                    onClick={() => setPreviewProduct(product)}
+                                                    key={product._id}
+                                                    onClick={() =>
+                                                        diskonMode
+                                                            ? handleToggleSelectDiskon(product)
+                                                            : setPreviewProduct(product)
+                                                    }
+                                                    className="group flex cursor-pointer flex-col overflow-hidden rounded-sm border bg-white transition-shadow hover:shadow-md"
+                                                    style={{
+                                                        borderColor: diskonMode && isSelected ? ACCENT : "#E5E7EB",
+                                                        borderWidth: diskonMode && isSelected ? 2 : 1,
+                                                    }}
                                                 >
-                                                    <img
-                                                        src={product.gambar || FALLBACK_IMG(product.nama)}
-                                                        alt={product.nama}
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                    <div className="absolute left-1.5 top-1.5 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleEditClick(product);
-                                                            }}
-                                                            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                    <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+                                                        <img
+                                                            src={product.gambar || FALLBACK_IMG(product.nama)}
+                                                            alt={product.nama}
+                                                            className="h-full w-full object-cover"
+                                                        />
+
+                                                        {punyaDiskon && (
+                                                            <span
+                                                                className="absolute right-1.5 top-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                                                                style={{ background: ACCENT }}
+                                                            >
+                                                                -{product.diskon}%
+                                                            </span>
+                                                        )}
+
+                                                        {diskonMode ? (
+                                                            <div className="absolute left-1.5 top-1.5">
+                                                                <div
+                                                                    className="flex h-6 w-6 items-center justify-center rounded-full border-2 bg-white/90 text-xs font-bold"
+                                                                    style={{
+                                                                        borderColor: isSelected ? ACCENT : BORDER,
+                                                                        color: ACCENT,
+                                                                    }}
+                                                                >
+                                                                    {isSelected ? "✓" : ""}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            // SESUDAH
+                                                            <div className="absolute left-1.5 top-1.5 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleEditClick(product);
+                                                                    }}
+                                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                                >
+                                                                    <FaPen size={12} color={HEADING} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteClick(product);
+                                                                    }}
+                                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                                >
+                                                                    <FaTrash size={12} color={ACCENT} />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex flex-col gap-1 p-2.5">
+                                                        <span
+                                                            className="font-mono text-xs font-medium tracking-wide"
+                                                            style={{ color: "#667085" }}
                                                         >
-                                                            <FaPen size={12} color={HEADING} />
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteClick(product);
-                                                            }}
-                                                            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
-                                                        >
-                                                            <FaTrash size={12} color={ACCENT} />
-                                                        </button>
+                                                            {product.kode}
+                                                        </span>
+
+                                                        <p className="line-clamp-2 text-sm leading-snug" style={{ color: HEADING }}>
+                                                            {product.nama}
+                                                        </p>
+
+                                                        {punyaDiskon ? (
+                                                            <div className="flex flex-col">
+                                                                <span
+                                                                    className="text-xs line-through"
+                                                                    style={{ color: "#98A2B3" }}
+                                                                >
+                                                                    Rp {product.harga.toLocaleString("id-ID")}
+                                                                </span>
+                                                                <p className="text-base font-semibold" style={{ color: ACCENT }}>
+                                                                    Rp {hargaFinal.toLocaleString("id-ID")}
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-base font-semibold" style={{ color: ACCENT }}>
+                                                                Rp {product.harga.toLocaleString("id-ID")}
+                                                            </p>
+                                                        )}
+
+                                                        <div className="flex items-center justify-center text-xs" style={{ color: "#9E9E9E" }}>
+                                                            <span>{product.keterangan}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                <div className="flex flex-col gap-1 p-2.5">
-                                                    <span
-                                                        className="font-mono text-xs font-medium tracking-wide"
-                                                        style={{ color: "#667085" }}
-                                                    >
-                                                        {product.kode}
-                                                    </span>
-
-                                                    <p className="line-clamp-2 text-sm leading-snug" style={{ color: HEADING }}>
-                                                        {product.nama}
-                                                    </p>
-
-                                                    <p className="text-base font-semibold" style={{ color: ACCENT }}>
-                                                        Rp {product.harga.toLocaleString("id-ID")}
-                                                    </p>
-
-                                                    <div className="flex items-center justify-center text-xs" style={{ color: "#9E9E9E" }}>
-                                                        <span>{product.keterangan}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
 
@@ -1025,8 +1287,26 @@ function Katalog() {
                             <h3 className="text-2xl font-semibold" style={{ color: HEADING }}>
                                 {previewProduct.nama}
                             </h3>
+
+                            {previewProduct.diskon > 0 ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-base line-through" style={{ color: "#98A2B3" }}>
+                                        Rp {previewProduct.harga.toLocaleString("id-ID")}
+                                    </span>
+                                    <span
+                                        className="rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                                        style={{ background: ACCENT }}
+                                    >
+                                        -{previewProduct.diskon}%
+                                    </span>
+                                </div>
+                            ) : null}
+
                             <p className="text-2xl font-bold" style={{ color: ACCENT }}>
-                                Rp {previewProduct.harga.toLocaleString("id-ID")}
+                                Rp {(previewProduct.diskon
+                                    ? previewProduct.hargaSetelahDiskon ?? previewProduct.harga
+                                    : previewProduct.harga
+                                ).toLocaleString("id-ID")}
                             </p>
 
                             <div className="mt-3 flex flex-col gap-2 text-base" style={{ color: LABEL }}>

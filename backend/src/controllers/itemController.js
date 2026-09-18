@@ -10,8 +10,7 @@ const uploadGambar = async (file) => {
   return { gambar: result.secure_url, cloudinary_id: result.public_id };
 };
 
-// Helper: tempelkan kode SM-001, SM-002, ... sesuai urutan nama (A-Z),
-// sekalian hitung hargaSetelahDiskon biar frontend tinggal pakai
+// Helper: tempelkan kode SM-001, SM-002, ... sesuai urutan nama (A-Z)
 const withKodeUrut = (items) => {
   const sorted = [...items].sort((a, b) =>
     a.nama.localeCompare(b.nama, "id", { sensitivity: "base" })
@@ -19,12 +18,10 @@ const withKodeUrut = (items) => {
 
   return sorted.map((item, index) => {
     const obj = item.toObject();
-    const diskon = obj.diskon || 0;
 
     return {
       ...obj,
       kode: `SM-${String(index + 1).padStart(3, "0")}`,
-      hargaSetelahDiskon: Math.round(obj.harga * (1 - diskon / 100)),
     };
   });
 };
@@ -90,7 +87,7 @@ const updateItem = async (req, res) => {
     }
 
     // buang field yang tidak boleh ditimpa langsung dari body
-    // (diskon punya endpoint sendiri)
+    // (diskon sudah tidak pernah disimpan ke DB sama sekali, murni FE)
     const { gambar: _g, cloudinary_id: _c, kode, _id, diskon, ...body } = req.body;
 
     const updated = await Item.findByIdAndUpdate(
@@ -122,60 +119,9 @@ const deleteItem = async (req, res) => {
   }
 };
 
-// ---------------- TERAPKAN DISKON KE BANYAK BARANG ----------------
-// body: { ids: [...], diskon: 15 }
-const applyDiskon = async (req, res) => {
-  try {
-    const { ids, diskon } = req.body;
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Pilih minimal 1 barang." });
-    }
-
-    const persen = Number(diskon);
-
-    if (!Number.isFinite(persen) || persen <= 0 || persen > 100) {
-      return res.status(400).json({ message: "Diskon harus antara 1 - 100." });
-    }
-
-    const result = await Item.updateMany(
-      { _id: { $in: ids } },
-      { $set: { diskon: persen } }
-    );
-
-    res.status(200).json({
-      message: `Diskon ${persen}% diterapkan ke ${result.modifiedCount} barang.`,
-      modifiedCount: result.modifiedCount,
-    });
-  } catch (error) {
-    console.error("applyDiskon error:", error);
-    res.status(500).json({ message: "Error applying diskon", error: error.message });
-  }
-};
-
-// ---------------- HAPUS DISKON SATU BARANG ----------------
-const removeDiskon = async (req, res) => {
-  try {
-    const updated = await Item.findByIdAndUpdate(
-      req.params.id,
-      { $set: { diskon: 0 } },
-      { new: true }
-    );
-
-    if (!updated) return res.status(404).json({ message: "Item not found" });
-
-    res.status(200).json({ message: "Diskon dihapus.", item: updated.toObject() });
-  } catch (error) {
-    console.error("removeDiskon error:", error);
-    res.status(500).json({ message: "Error removing diskon", error: error.message });
-  }
-};
-
 module.exports = {
   createItem,
   getItem,
   updateItem,
   deleteItem,
-  applyDiskon,
-  removeDiskon,
 };
