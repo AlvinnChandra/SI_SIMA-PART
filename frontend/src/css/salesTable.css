@@ -11,6 +11,14 @@
     font-family: 'Inter', sans-serif;
 }
 
+.sima-sales-table__aksi-btn--email {
+    color: #2563eb;
+}
+
+.sima-sales-table__aksi-btn--email:hover {
+    background-color: #dbeafe;
+}
+
 .sima-sales-table thead {
     background: var(--steel-light);
 }

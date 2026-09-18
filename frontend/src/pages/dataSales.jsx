@@ -24,6 +24,17 @@ function getAuthToken() {
     );
 }
 
+// Kolom yang dipakai bareng oleh Export Excel & Export PDF,
+// supaya urutan dan isinya selalu sinkron antara dua format.
+// Tambahkan/ubah kolom laporan cukup di satu tempat ini saja.
+const REPORT_FIELDS = [
+    { key: "namaLengkap", label: "Nama Sales" },
+    { key: "nik", label: "NIK" },
+    { key: "noTelepon", label: "No Telepon" },
+    { key: "email", label: "Email" },
+    { key: "alamat", label: "Alamat" },
+];
+
 function DataSales() {
     const [keyword, setKeyword] = useState("");
     const [salesData, setSalesData] = useState([]);
@@ -78,12 +89,7 @@ function DataSales() {
             title: "Data Sales",
             fileName: "data-sales.xlsx",
             data: filteredSales,
-            fields: [
-                { key: "namaLengkap", label: "Nama Sales" },
-                { key: "nik", label: "NIK" },
-                { key: "noTelepon", label: "No Telepon" },
-                { key: "alamat", label: "Alamat" },
-            ],
+            fields: REPORT_FIELDS,
         });
     };
 
@@ -102,12 +108,7 @@ function DataSales() {
                             title="Data Sales"
                             fileName="data-sales.pdf"
                             data={filteredSales}
-                            fields={[
-                                { key: "namaLengkap", label: "Nama Sales" },
-                                { key: "nik", label: "NIK" },
-                                { key: "noTelepon", label: "No Telepon" },
-                                { key: "alamat", label: "Alamat" },
-                            ]}
+                            fields={REPORT_FIELDS}
                         />
                     </div>
                 </div>

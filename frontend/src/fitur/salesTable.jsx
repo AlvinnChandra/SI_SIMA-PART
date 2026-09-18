@@ -72,6 +72,7 @@ function mapUserToSales(user) {
         nik: user.nik || "",
         noTelepon: user.noTelepon || "",
         alamat: user.alamat || "",
+        email: user.email || "", // Email diambil langsung dari data user di DB
 
         fotoProfil: toFileUrl(user.fotoProfile),
         fotoKtp: toFileUrl(user.fotoKtp),
@@ -226,6 +227,54 @@ function toWaLink(noTelepon) {
         : digitsOnly;
 
     return `https://wa.me/${waNumber}`;
+}
+
+// ============================================================
+// EMAIL
+// ============================================================
+
+// Validasi sederhana format email
+function isValidEmail(email) {
+    if (!email) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+}
+
+// Buka Gmail compose di tab baru dengan penerima, subject, dan
+// body yang sudah diisi otomatis, ditujukan ke email sales yang
+// diambil langsung dari data database (field `email`).
+function handleEmailSales(sales, onNotify) {
+    if (!sales.email || !isValidEmail(sales.email)) {
+        onNotify?.(
+            "error",
+            `Sales ${sales.namaSales || ""} belum memiliki alamat email yang valid.`
+        );
+        return;
+    }
+
+    const subject = encodeURIComponent(
+        `Mengenai Data Sales - ${sales.namaSales}`
+    );
+
+    const body = encodeURIComponent(
+        `Halo ${sales.namaSales},\n\n`
+    );
+
+    const gmailComposeUrl =
+        `https://mail.google.com/mail/?view=cm&fs=1` +
+        `&to=${encodeURIComponent(sales.email)}` +
+        `&su=${subject}` +
+        `&body=${body}`;
+
+    // Buka di tab baru supaya halaman Data Sales tidak ter-replace
+    const newTab = window.open(gmailComposeUrl, "_blank", "noopener,noreferrer");
+
+    // Kalau popup diblokir browser, kasih tahu user
+    if (!newTab) {
+        onNotify?.(
+            "error",
+            "Popup diblokir browser. Izinkan popup untuk membuka Gmail."
+        );
+    }
 }
 
 // ============================================================
@@ -615,6 +664,24 @@ function IconDownloadAll() {
             <path d="M1 3h22l-2 5H3z" />
             <path d="M12 12v6" />
             <path d="M9.5 15.5 12 18l2.5-2.5" />
+        </svg>
+    );
+}
+
+function IconMail() {
+    return (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="m22 6-10 7L2 6" />
         </svg>
     );
 }
@@ -1119,6 +1186,25 @@ function EditSalesModal({
                                 />
                             </div>
 
+                        </div>
+
+                        <div className="sima-sales-modal__field">
+                            <label htmlFor="email">
+                                Email
+                            </label>
+
+                            <input
+                                id="email"
+                                type="email"
+                                value={form.email || ""}
+                                onChange={(e) =>
+                                    handleTextChange(
+                                        "email",
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="nama@contoh.com"
+                            />
                         </div>
 
                         <div className="sima-sales-modal__field">
@@ -1636,6 +1722,11 @@ function SalesTable({ keyword = "" }) {
             );
 
             formData.append(
+                "email",
+                updatedForm.email || ""
+            );
+
+            formData.append(
                 "alamat",
                 updatedForm.alamat || ""
             );
@@ -1758,6 +1849,14 @@ function SalesTable({ keyword = "" }) {
         );
 
         setDownloadingAllId(null);
+    };
+
+    // ========================================================
+    // EMAIL SALES
+    // ========================================================
+
+    const handleEmail = (sales) => {
+        handleEmailSales(sales, showToast);
     };
 
     // ========================================================
@@ -2197,6 +2296,31 @@ function SalesTable({ keyword = "" }) {
                                         <td className="sima-sales-table__col-center">
 
                                             <div className="sima-sales-table__aksi">
+
+                                                {/* EMAIL */}
+                                                <button
+                                                    type="button"
+                                                    className="sima-sales-table__aksi-btn sima-sales-table__aksi-btn--email"
+                                                    onClick={() =>
+                                                        handleEmail(
+                                                            sales
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        !isValidEmail(
+                                                            sales.email
+                                                        )
+                                                    }
+                                                    title={
+                                                        isValidEmail(
+                                                            sales.email
+                                                        )
+                                                            ? `Kirim email ke ${sales.namaSales} (${sales.email})`
+                                                            : `Email ${sales.namaSales} belum tersedia`
+                                                    }
+                                                >
+                                                    <IconMail />
+                                                </button>
 
                                                 {/* DOWNLOAD ALL */}
                                                 <button
