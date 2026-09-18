@@ -114,4 +114,46 @@ const deleteItem = async (req, res) => {
   }
 };
 
-module.exports = { createItem, getItem, updateItem, deleteItem };
+// Discount for multiple items
+const applyDiskon = async (req, res) => {
+  try {
+    const { itemIds, diskon } = req.body;
+
+    if (!Array.isArray(itemIds) || itemIds.length === 0) {
+      return res.status(400).json({ message: "itemIds harus berupa array dan tidak boleh kosong" });
+    }
+
+    const diskonValue = Number(diskon);
+    if (Number.isNaN(diskonValue) || diskonValue <= 0 || diskonValue > 100) {
+      return res.status(400).json({ message: "diskon harus berupa angka antara 1 - 100" });
+    }
+
+    await Item.updateMany(
+      { _id: { $in: itemIds } },
+      { $set: { diskon: diskonValue } }
+    );
+
+    const updated = await Item.find({ _id: { $in: itemIds } });
+    res.status(200).json({ message: "Diskon berhasil diterapkan", items: updated });
+  } catch (error) {
+    res.status(500).json({ message: "Error applying diskon", error: error.message });
+  }
+};
+
+// Remove discount for a specific item
+const removeDiskon = async (req, res) => {
+  try {
+    const item = await Item.findByIdAndUpdate(
+      req.params.id,
+      { $set: { diskon: 0 } },
+      { new: true }
+    );
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    res.status(200).json(item);
+  } catch (error) {
+    res.status(500).json({ message: "Error removing diskon", error: error.message });
+  }
+};
+
+module.exports = { createItem, getItem, updateItem, deleteItem, applyDiskon, removeDiskon };
