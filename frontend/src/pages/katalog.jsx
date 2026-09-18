@@ -139,6 +139,10 @@ function Katalog() {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
+    // state untuk pop up konfirmasi umum (reset diskon / kembalikan diskon,
+    // dan aksi lain ke depannya) — menggantikan window.confirm() bawaan browser
+    const [confirmModal, setConfirmModal] = useState(null); // { title?, message, onConfirm }
+
     // state untuk proses export PDF katalog (bisa lama karena banyak gambar)
     const [exportingKatalog, setExportingKatalog] = useState(false);
 
@@ -293,6 +297,8 @@ function Katalog() {
         }
     };
 
+    const closeConfirmModal = () => setConfirmModal(null);
+
     const handleAddClick = () => {
         setAddForm(EMPTY_FORM);
         setAddError("");
@@ -414,37 +420,44 @@ function Katalog() {
     };
 
     // Kembalikan 1 produk ke harga semula (lokal saja).
+    // Konfirmasi ditampilkan lewat popup custom (confirmModal), bukan window.confirm().
     const handleKembalikanDiskon = (product) => {
         if (!product.diskon || product.diskon <= 0) return;
 
-        const yakin = window.confirm(
-            `Kembalikan harga "${product.nama}" ke harga semula?`
-        );
-        if (!yakin) return;
-
-        setProducts((prev) =>
-            prev.map((p) =>
-                p._id === product._id
-                    ? { ...p, diskon: 0, hargaSetelahDiskon: p.harga }
-                    : p
-            )
-        );
+        setConfirmModal({
+            title: "Kembalikan Harga",
+            message: `Kembalikan harga "${product.nama}" ke harga semula?`,
+            onConfirm: () => {
+                setProducts((prev) =>
+                    prev.map((p) =>
+                        p._id === product._id
+                            ? { ...p, diskon: 0, hargaSetelahDiskon: p.harga }
+                            : p
+                    )
+                );
+                setConfirmModal(null);
+            },
+        });
     };
 
     // Reset semua diskon sekaligus (lokal saja).
+    // Konfirmasi ditampilkan lewat popup custom (confirmModal), bukan window.confirm().
     const handleResetSemuaDiskon = () => {
         const adaDiskon = products.some((p) => p.diskon > 0);
         if (!adaDiskon) return;
 
-        const yakin = window.confirm(
-            "Kembalikan SEMUA produk ke harga semula? Ini akan menghapus semua diskon yang sedang aktif."
-        );
-        if (!yakin) return;
-
-        setProducts((prev) =>
-            prev.map((p) => ({ ...p, diskon: 0, hargaSetelahDiskon: p.harga }))
-        );
-        handleBatalDiskonMode();
+        setConfirmModal({
+            title: "Reset Semua Diskon",
+            message:
+                "Kembalikan SEMUA produk ke harga semula? Ini akan menghapus semua diskon yang sedang aktif.",
+            onConfirm: () => {
+                setProducts((prev) =>
+                    prev.map((p) => ({ ...p, diskon: 0, hargaSetelahDiskon: p.harga }))
+                );
+                handleBatalDiskonMode();
+                setConfirmModal(null);
+            },
+        });
     };
 
     const filteredProducts = useMemo(() => {
@@ -871,7 +884,6 @@ function Katalog() {
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            // SESUDAH
                                                             <div className="absolute left-1.5 top-1.5 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
                                                                 <button
                                                                     onClick={(e) => {
@@ -891,6 +903,18 @@ function Katalog() {
                                                                 >
                                                                     <FaTrash size={12} color={ACCENT} />
                                                                 </button>
+                                                                {punyaDiskon && (
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleKembalikanDiskon(product);
+                                                                        }}
+                                                                        title="Kembalikan harga semula"
+                                                                        className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                                                    >
+                                                                        <FaTimes size={12} color={ACCENT} />
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -1377,6 +1401,48 @@ function Katalog() {
                                 style={{ background: ACCENT }}
                             >
                                 {deleteSubmitting ? "Menghapus..." : "Hapus"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Pop up konfirmasi umum (reset diskon / kembalikan diskon).
+                Menggantikan window.confirm() bawaan browser supaya tampilannya
+                konsisten dengan popup lain di aplikasi ini. */}
+            {confirmModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: OVERLAY_BG }}
+                    onClick={closeConfirmModal}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-lg bg-white p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="mb-2 text-lg font-semibold" style={{ color: HEADING }}>
+                            {confirmModal.title || "Konfirmasi"}
+                        </h2>
+                        <p className="text-sm" style={{ color: LABEL }}>
+                            {confirmModal.message}
+                        </p>
+
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={closeConfirmModal}
+                                className="rounded-md border px-4 py-2 text-sm font-medium"
+                                style={{ borderColor: BORDER, color: LABEL }}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmModal.onConfirm}
+                                className="rounded-md px-4 py-2 text-sm font-semibold text-white"
+                                style={{ background: ACCENT }}
+                            >
+                                OK
                             </button>
                         </div>
                     </div>
