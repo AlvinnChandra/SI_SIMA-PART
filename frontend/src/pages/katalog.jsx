@@ -60,6 +60,45 @@ function hitungHargaSetelahDiskon(harga, persen) {
     return Math.round(harga - (harga * persen) / 100);
 }
 
+// ==================================================
+// PENYIMPANAN DISKON DI localStorage
+// Bentuk data: { [idProduk]: persen }
+// Supaya diskon tidak hilang saat halaman di-refresh.
+// Baru hilang kalau user klik "Reset Semua Diskon" atau tombol X di produk.
+// ==================================================
+const DISKON_KEY = "katalog_diskon";
+
+function loadDiskonMap() {
+    try {
+        return JSON.parse(localStorage.getItem(DISKON_KEY)) || {};
+    } catch {
+        return {};
+    }
+}
+
+function saveDiskonMap(map) {
+    try {
+        localStorage.setItem(DISKON_KEY, JSON.stringify(map));
+    } catch {
+        // storage penuh / diblokir -> diskon tetap jalan di state, hanya tidak persisten
+    }
+}
+
+// Tempelkan diskon tersimpan ke daftar produk dari server
+function applyStoredDiskon(items) {
+    const map = loadDiskonMap();
+    return items.map((p) => {
+        const persen = map[p._id];
+        return persen > 0
+            ? {
+                ...p,
+                diskon: persen,
+                hargaSetelahDiskon: hitungHargaSetelahDiskon(p.harga, persen),
+            }
+            : p;
+    });
+}
+
 // Ubah gambar (URL/cross-origin) jadi base64 supaya bisa ditempel ke PDF
 async function imageUrlToBase64(url) {
     try {
@@ -106,11 +145,11 @@ function Katalog() {
     const [priceSort, setPriceSort] = useState("default");
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Ambil data produk dari API.
+    // Ambil data produk dari API, lalu tempelkan diskon yang tersimpan.
     const loadProducts = () => {
         setIsLoading(true);
         return getItems()
-            .then(setProducts)
+            .then((items) => setProducts(applyStoredDiskon(items)))
             .catch((err) => setLoadError(err.message))
             .finally(() => setIsLoading(false));
     };
@@ -151,7 +190,7 @@ function Katalog() {
 
     // ==================================================
     // STATE MODE ATUR DISKON
-    // Catatan: diskon di sini murni state di frontend (JS biasa),
+    // Catatan: diskon disimpan di localStorage browser ini saja,
     // TIDAK pernah dikirim atau disimpan ke database/backend.
     // ==================================================
     const [diskonMode, setDiskonMode] = useState(false);
@@ -255,8 +294,12 @@ function Katalog() {
 
             const updated = await updateItem(editingProduct._id, fd);
 
+            // hasil dari server tidak membawa diskon -> tempelkan lagi dari localStorage
+            // (harga bisa berubah, jadi hargaSetelahDiskon ikut dihitung ulang)
+            const [updatedWithDiskon] = applyStoredDiskon([updated]);
+
             setProducts((prev) =>
-                prev.map((p) => (p._id === editingProduct._id ? updated : p))
+                prev.map((p) => (p._id === editingProduct._id ? updatedWithDiskon : p))
             );
             setEditingProduct(null);
             setEditForm(null);
@@ -288,6 +331,12 @@ function Katalog() {
 
         try {
             await deleteItem(deleteTarget._id);
+
+            // bersihkan diskon produk yang dihapus dari localStorage
+            const map = loadDiskonMap();
+            delete map[deleteTarget._id];
+            saveDiskonMap(map);
+
             setProducts((prev) => prev.filter((p) => p._id !== deleteTarget._id));
             setDeleteTarget(null);
         } catch (err) {
@@ -366,7 +415,7 @@ function Katalog() {
     };
 
     // ==================================================
-    // HANDLER MODE DISKON (murni JS di frontend, tidak menyentuh DB)
+    // HANDLER MODE DISKON (localStorage + state, tidak menyentuh DB)
     // ==================================================
     const handleBukaDiskonMode = () => {
         setDiskonMode(true);
@@ -390,8 +439,8 @@ function Katalog() {
         );
     };
 
-    // Terapkan diskon ke produk terpilih — cuma update state React,
-    // tidak ada request ke server sama sekali.
+    // Terapkan diskon ke produk terpilih — update state React dan
+    // simpan ke localStorage supaya tetap ada setelah refresh.
     const handleTerapkanDiskon = () => {
         const persen = Number(diskonPersen);
 
@@ -405,6 +454,14 @@ function Katalog() {
         }
 
         setDiskonError("");
+
+        // simpan ke localStorage
+        const map = loadDiskonMap();
+        selectedForDiskon.forEach((id) => {
+            map[id] = persen;
+        });
+        saveDiskonMap(map);
+
         setProducts((prev) =>
             prev.map((p) =>
                 selectedForDiskon.includes(p._id)
@@ -419,7 +476,7 @@ function Katalog() {
         handleBatalDiskonMode();
     };
 
-    // Kembalikan 1 produk ke harga semula (lokal saja).
+    // Kembalikan 1 produk ke harga semula.
     // Konfirmasi ditampilkan lewat popup custom (confirmModal), bukan window.confirm().
     const handleKembalikanDiskon = (product) => {
         if (!product.diskon || product.diskon <= 0) return;
@@ -428,6 +485,11 @@ function Katalog() {
             title: "Kembalikan Harga",
             message: `Kembalikan harga "${product.nama}" ke harga semula?`,
             onConfirm: () => {
+                // hapus dari localStorage
+                const map = loadDiskonMap();
+                delete map[product._id];
+                saveDiskonMap(map);
+
                 setProducts((prev) =>
                     prev.map((p) =>
                         p._id === product._id
@@ -440,7 +502,7 @@ function Katalog() {
         });
     };
 
-    // Reset semua diskon sekaligus (lokal saja).
+    // Reset semua diskon sekaligus.
     // Konfirmasi ditampilkan lewat popup custom (confirmModal), bukan window.confirm().
     const handleResetSemuaDiskon = () => {
         const adaDiskon = products.some((p) => p.diskon > 0);
@@ -451,6 +513,9 @@ function Katalog() {
             message:
                 "Kembalikan SEMUA produk ke harga semula? Ini akan menghapus semua diskon yang sedang aktif.",
             onConfirm: () => {
+                // kosongkan localStorage
+                saveDiskonMap({});
+
                 setProducts((prev) =>
                     prev.map((p) => ({ ...p, diskon: 0, hargaSetelahDiskon: p.harga }))
                 );
@@ -719,7 +784,7 @@ function Katalog() {
                     </div>
                 </div>
 
-                {/* Toolbar mode atur diskon (semua lokal, tidak menyentuh DB) */}
+                {/* Toolbar mode atur diskon (tidak menyentuh DB) */}
                 {diskonMode && (
                     <div
                         className="mt-4 flex flex-wrap items-center gap-3 rounded-md border p-3"

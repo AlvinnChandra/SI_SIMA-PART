@@ -2,7 +2,6 @@ import { FaPen, FaPlus, FaCheck } from "react-icons/fa";
 
 const ACCENT = "#EE4D2D";
 const ACCENT_BADGE_BG = "#FFD6BC";
-const DISKON_RED = "#E4251B";
 const NAME = "#222222";
 const META = "#9E9E9E";
 const KODE = "#B0B0B0";
@@ -19,7 +18,6 @@ export default function ProductCard({
     selectionMode = false,
     isSelected = false,
     onToggleSelect,
-    onRemoveDiskon,
 }) {
     const imageSrc = product.gambar || `https://picsum.photos/seed/${product.kode}/400/400`;
     const adaDiskon = product.diskon > 0;
@@ -108,12 +106,12 @@ export default function ProductCard({
                 </p>
 
                 {adaDiskon ? (
-                    <div className="flex items-center gap-2">
-                        <p className="text-base font-semibold" style={{ color: DISKON_RED }}>
-                            {formatRupiah(hargaSetelahDiskon)}
-                        </p>
-                        <p className="text-xs line-through" style={{ color: META }}>
+                    <div className="flex flex-col">
+                        <span className="text-xs line-through" style={{ color: "#98A2B3" }}>
                             {formatRupiah(product.harga)}
+                        </span>
+                        <p className="text-base font-semibold" style={{ color: ACCENT }}>
+                            {formatRupiah(hargaSetelahDiskon)}
                         </p>
                     </div>
                 ) : (
@@ -131,19 +129,6 @@ export default function ProductCard({
                         </>
                     )}
                 </div>
-
-                {!selectionMode && adaDiskon && onRemoveDiskon && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onRemoveDiskon(product);
-                        }}
-                        className="mt-0.5 self-start text-[11px] underline"
-                        style={{ color: META }}
-                    >
-                        Hapus diskon
-                    </button>
-                )}
             </div>
         </div>
     );

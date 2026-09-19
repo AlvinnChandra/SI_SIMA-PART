@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { FaTag } from "react-icons/fa";
 import SearchBar from "../components/searchBar";
 import AddButton from "../components/AddButton";
 import ExportPdfButton from "../components/exportPDF";
@@ -8,10 +9,56 @@ import Pagination from "../components/pagination";
 import CategoryList from "../components/categoryList";
 import CheckboxFilter from "../components/checkboxFilter";
 import PriceSort from "../components/priceSort";
-import { getItems, applyDiskonItems, removeDiskonItem } from "../services/itemService";
+import { getItems } from "../services/itemService";
 import { useAuth } from "../hooks/useAuth";
 
 const PAGE_SIZE = 10;
+const OVERLAY_BG = "rgba(16, 24, 40, 0.5)";
+const HEADING = "#101828";
+const LABEL = "#344054";
+const BORDER = "#D0D5DD";
+const ACCENT = "#EE4D2D";
+
+// ==================================================
+// DISKON DI localStorage (murni frontend, per browser)
+// Bentuk data: { [idProduk]: persen }
+// ==================================================
+const DISKON_KEY = "katalog_diskon";
+
+function hitungHargaSetelahDiskon(harga, persen) {
+    return Math.round(harga - (harga * persen) / 100);
+}
+
+function loadDiskonMap() {
+    try {
+        return JSON.parse(localStorage.getItem(DISKON_KEY)) || {};
+    } catch {
+        return {};
+    }
+}
+
+function saveDiskonMap(map) {
+    try {
+        localStorage.setItem(DISKON_KEY, JSON.stringify(map));
+    } catch {
+        // storage penuh / diblokir -> diskon tetap jalan di state, hanya tidak persisten
+    }
+}
+
+// Tempelkan diskon tersimpan ke daftar produk dari server
+function applyStoredDiskon(items) {
+    const map = loadDiskonMap();
+    return items.map((p) => {
+        const persen = map[p._id];
+        return persen > 0
+            ? {
+                ...p,
+                diskon: persen,
+                hargaSetelahDiskon: hitungHargaSetelahDiskon(p.harga, persen),
+            }
+            : p;
+    });
+}
 
 export default function KatalogContent({ onAddToOrder }) {
     const { isAdmin } = useAuth();
@@ -27,24 +74,24 @@ export default function KatalogContent({ onAddToOrder }) {
     const [currentPage, setCurrentPage] = useState(1);
 
     // ==================================================
-    // MODE ATUR DISKON (admin only)
+    // MODE ATUR DISKON
+    // Murni frontend: disimpan di localStorage, tidak ada request ke backend.
     // ==================================================
     const [diskonMode, setDiskonMode] = useState(false);
     const [diskonPersen, setDiskonPersen] = useState("");
     const [selectedForDiskon, setSelectedForDiskon] = useState([]);
-    const [isApplyingDiskon, setIsApplyingDiskon] = useState(false);
     const [diskonError, setDiskonError] = useState(null);
 
-    const loadProducts = () => {
+    // popup konfirmasi { title, message, onConfirm }
+    const [confirmModal, setConfirmModal] = useState(null);
+
+    // Ambil produk dari API, lalu tempelkan diskon yang tersimpan di localStorage
+    useEffect(() => {
         setIsLoading(true);
         getItems()
-            .then(setProducts)
+            .then((items) => setProducts(applyStoredDiskon(items)))
             .catch((err) => setLoadError(err.message))
             .finally(() => setIsLoading(false));
-    };
-
-    useEffect(() => {
-        loadProducts();
     }, []);
 
     const categories = useMemo(
@@ -85,7 +132,6 @@ export default function KatalogContent({ onAddToOrder }) {
     // ==================================================
     // HANDLER MODE DISKON
     // ==================================================
-
     const handleBukaDiskonMode = () => {
         setDiskonMode(true);
         setSelectedForDiskon([]);
@@ -108,7 +154,7 @@ export default function KatalogContent({ onAddToOrder }) {
         );
     };
 
-    const handleTerapkanDiskon = async () => {
+    const handleTerapkanDiskon = () => {
         const persen = Number(diskonPersen);
 
         if (selectedForDiskon.length === 0) {
@@ -121,27 +167,69 @@ export default function KatalogContent({ onAddToOrder }) {
         }
 
         setDiskonError(null);
-        setIsApplyingDiskon(true);
-        try {
-            await applyDiskonItems(selectedForDiskon, persen);
-            loadProducts();
-            handleBatalDiskonMode();
-        } catch (err) {
-            setDiskonError(err.message || "Gagal menerapkan diskon.");
-        } finally {
-            setIsApplyingDiskon(false);
-        }
+
+        const map = loadDiskonMap();
+        selectedForDiskon.forEach((id) => {
+            map[id] = persen;
+        });
+        saveDiskonMap(map);
+
+        setProducts((prev) =>
+            prev.map((p) =>
+                selectedForDiskon.includes(p._id)
+                    ? {
+                        ...p,
+                        diskon: persen,
+                        hargaSetelahDiskon: hitungHargaSetelahDiskon(p.harga, persen),
+                    }
+                    : p
+            )
+        );
+        handleBatalDiskonMode();
     };
 
-    const handleHapusDiskon = async (product) => {
-        try {
-            await removeDiskonItem(product._id);
-            setProducts((prev) =>
-                prev.map((p) => (p._id === product._id ? { ...p, diskon: 0 } : p))
-            );
-        } catch (err) {
-            setDiskonError(err.message || "Gagal menghapus diskon.");
-        }
+    // Kembalikan 1 produk ke harga semula (tombol X di kartu produk)
+    const handleHapusDiskon = (product) => {
+        if (!product.diskon || product.diskon <= 0) return;
+
+        setConfirmModal({
+            title: "Kembalikan Harga",
+            message: `Kembalikan harga "${product.nama}" ke harga semula?`,
+            onConfirm: () => {
+                const map = loadDiskonMap();
+                delete map[product._id];
+                saveDiskonMap(map);
+
+                setProducts((prev) =>
+                    prev.map((p) =>
+                        p._id === product._id
+                            ? { ...p, diskon: 0, hargaSetelahDiskon: p.harga }
+                            : p
+                    )
+                );
+                setConfirmModal(null);
+            },
+        });
+    };
+
+    // Reset semua diskon sekaligus
+    const handleResetSemuaDiskon = () => {
+        const adaDiskon = products.some((p) => p.diskon > 0);
+        if (!adaDiskon) return;
+
+        setConfirmModal({
+            title: "Reset Semua Diskon",
+            message:
+                "Kembalikan SEMUA produk ke harga semula? Ini akan menghapus semua diskon yang sedang aktif.",
+            onConfirm: () => {
+                saveDiskonMap({});
+                setProducts((prev) =>
+                    prev.map((p) => ({ ...p, diskon: 0, hargaSetelahDiskon: p.harga }))
+                );
+                handleBatalDiskonMode();
+                setConfirmModal(null);
+            },
+        });
     };
 
     const filteredProducts = useMemo(() => {
@@ -167,6 +255,19 @@ export default function KatalogContent({ onAddToOrder }) {
         return result;
     }, [products, keyword, activeCategory, selectedKendaraan, priceSort]);
 
+    // "Pilih Semua" mengacu ke seluruh produk sesuai filter aktif (bukan cuma 1 halaman)
+    const isAllFilteredSelected =
+        filteredProducts.length > 0 &&
+        filteredProducts.every((p) => selectedForDiskon.includes(p._id));
+
+    const handleToggleSelectAllDiskon = () => {
+        if (isAllFilteredSelected) {
+            setSelectedForDiskon([]);
+        } else {
+            setSelectedForDiskon(filteredProducts.map((p) => p._id));
+        }
+    };
+
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
 
     const paginatedProducts = useMemo(() => {
@@ -179,12 +280,14 @@ export default function KatalogContent({ onAddToOrder }) {
             <div className="page-header-row">
                 <h1>Katalog</h1>
                 <div className="page-header-actions">
-                    {isAdmin && !diskonMode && (
+                    {!diskonMode && (
                         <button
                             type="button"
                             onClick={handleBukaDiskonMode}
-                            className="btn-secondary"
+                            className="rounded-md border px-4 py-2 text-sm font-medium"
+                            style={{ borderColor: BORDER, color: LABEL }}
                         >
+                            <FaTag size={12} style={{ display: "inline", marginRight: 6 }} />
                             Atur Diskon
                         </button>
                     )}
@@ -199,9 +302,18 @@ export default function KatalogContent({ onAddToOrder }) {
                     className="mt-4 flex flex-wrap items-center gap-3 rounded-md border p-3"
                     style={{ borderColor: "#E4E7EC", background: "#FFF9F5" }}
                 >
-                    <span className="text-sm font-medium" style={{ color: "#344054" }}>
+                    <span className="text-sm font-medium" style={{ color: LABEL }}>
                         Pilih barang di grid, lalu masukkan persen diskon:
                     </span>
+
+                    <button
+                        type="button"
+                        onClick={handleToggleSelectAllDiskon}
+                        className="btn-secondary"
+                    >
+                        {isAllFilteredSelected ? "Batal Pilih Semua" : "Pilih Semua"}
+                    </button>
+
                     <input
                         type="number"
                         min="1"
@@ -210,19 +322,22 @@ export default function KatalogContent({ onAddToOrder }) {
                         onChange={(e) => setDiskonPersen(e.target.value)}
                         placeholder="cth. 15"
                         className="w-24 rounded-md border px-2 py-1 text-sm"
-                        style={{ borderColor: "#D0D5DD" }}
+                        style={{ borderColor: BORDER }}
                     />
                     <span className="text-sm" style={{ color: "#667085" }}>%</span>
                     <span className="text-sm" style={{ color: "#667085" }}>
                         {selectedForDiskon.length} barang dipilih
                     </span>
+                    <button type="button" onClick={handleTerapkanDiskon} className="btn-primary">
+                        Terapkan
+                    </button>
                     <button
                         type="button"
-                        onClick={handleTerapkanDiskon}
-                        disabled={isApplyingDiskon}
-                        className="btn-primary"
+                        onClick={handleResetSemuaDiskon}
+                        className="btn-secondary"
+                        style={{ color: ACCENT }}
                     >
-                        {isApplyingDiskon ? "Menerapkan..." : "Terapkan"}
+                        Reset Semua Diskon
                     </button>
                     <button type="button" onClick={handleBatalDiskonMode} className="btn-secondary">
                         Batal
@@ -261,7 +376,7 @@ export default function KatalogContent({ onAddToOrder }) {
                                 selectionMode={diskonMode}
                                 selectedIds={selectedForDiskon}
                                 onToggleSelect={handleToggleSelectDiskon}
-                                onRemoveDiskon={isAdmin ? handleHapusDiskon : undefined}
+                                onRemoveDiskon={handleHapusDiskon}
                             />
                             <div className="mt-8">
                                 <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -270,6 +385,35 @@ export default function KatalogContent({ onAddToOrder }) {
                     )}
                 </div>
             </div>
+
+            {/* Pop up konfirmasi (kembalikan harga / reset semua diskon) */}
+            {confirmModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: OVERLAY_BG }}
+                    onClick={() => setConfirmModal(null)}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-lg bg-white p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="mb-2 text-lg font-semibold" style={{ color: HEADING }}>
+                            {confirmModal.title || "Konfirmasi"}
+                        </h2>
+                        <p className="text-sm" style={{ color: LABEL }}>
+                            {confirmModal.message}
+                        </p>
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button type="button" onClick={() => setConfirmModal(null)} className="btn-secondary">
+                                Batal
+                            </button>
+                            <button type="button" onClick={confirmModal.onConfirm} className="btn-primary">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
