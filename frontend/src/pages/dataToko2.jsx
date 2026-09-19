@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import Header from "../components/headerSales";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
-import AddButton from "../components/AddButton";
+import AddButton from "../components/addButton";
 import AddTokoModal from "../fitur/addTokoModal";
 import TokoTable from "../fitur/tokoTable2";
 import "../css/dataToko2.css";

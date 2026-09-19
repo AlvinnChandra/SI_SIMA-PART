@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { FaTag } from "react-icons/fa";
 import SearchBar from "../components/searchBar";
-import AddButton from "../components/AddButton";
+import AddButton from "../components/addButton";
 import ExportPdfButton from "../components/exportPDF";
 import ExportExcelButton from "../components/exportExcel";
 import ProductGrid from "./productGrid";

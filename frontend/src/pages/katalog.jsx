@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SearchBar from "../components/searchBar";
-import AddButton from "../components/AddButton";
+import AddButton from "../components/addButton";
 import ExportPdfButton from "../components/exportPDF";
 import ExportExcelButton from "../components/exportExcel";
 import Pagination from "../components/pagination";
