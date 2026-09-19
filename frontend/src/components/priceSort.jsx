@@ -11,7 +11,7 @@ const OPTIONS = [
 export default function PriceSort({ value, onChange }) {
     return (
         <div className="flex flex-col gap-2">
-            <p className="text-sm font-semibold" style={{ color: HEADING }}>
+            <p className="text-sm text-left font-semibold" style={{ color: HEADING }}>
                 Urutkan Harga
             </p>
             <div className="flex flex-col gap-1.5">

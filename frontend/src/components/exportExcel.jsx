@@ -2,11 +2,7 @@ import "../css/exportExcel.css";
 
 function ExportExcelButton({ label = "Export Excel", onClick }) {
     return (
-        <button
-            type="button"
-            className="sima-export-excel-btn"
-            onClick={onClick}
-        >
+        <button type="button" className="sima-export-excel-btn" onClick={onClick}>
             <svg
                 width="18"
                 height="18"

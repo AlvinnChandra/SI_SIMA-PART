@@ -1,0 +1,12 @@
+{
+  "namaLengkap": "Admin SIMA",
+  "username": "admin",
+  "email": "admin@sima.com",
+  "password": "$2b$10$d7tyy2evkEvIg9FeAEtcwuPdALKbG0v.KWTQkaYb.ziOAdzbLupCu",
+  "nik": "0000000000000000",
+  "role": "admin",
+  "status": "active",
+  "isMainAdmin": true
+}
+
+password: adminSIMA310711

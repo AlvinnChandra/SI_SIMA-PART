@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import logoSima from "../assets/logoSima.png";
+import { apiFetch } from "../services/apiClient";
 import "../css/login.css";
 
 function Login() {
@@ -12,7 +13,6 @@ function Login() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
-    const [remember, setRemember] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -29,10 +29,9 @@ function Login() {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validasi form
         if (!form.username || !form.password) {
             setError("Username dan kata sandi wajib diisi.");
             return;
@@ -41,28 +40,40 @@ function Login() {
         setLoading(true);
         setError("");
 
-        // Simulasi proses login
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const data = await apiFetch("/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: form.username,
+                    password: form.password,
+                }),
+            });
 
-            // Simpan status login jika "Ingat saya" dicentang
-            if (remember) {
-                localStorage.setItem("simaLogin", "true");
-                localStorage.setItem("simaUsername", form.username);
+            localStorage.setItem("simaToken", data.token);
+            localStorage.setItem("simaUser", JSON.stringify(data.user));
+
+            // Arahkan sesuai role
+            if (data.user.role === "admin") {
+                navigate("/katalog");
             } else {
-                sessionStorage.setItem("simaLogin", "true");
-                sessionStorage.setItem("simaUsername", form.username);
+                navigate("/katalogSales");
             }
-
-            // Masuk ke dashboard
-            navigate("/katalog");
-        }, 1200);
+        } catch (err) {
+            setError(
+                err.message || "Login gagal, cek username/password."
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="sima-login">
 
-            {/* ---------- LEFT: BRAND PANEL ---------- */}
+            {/* ==================== LEFT: BRAND PANEL ==================== */}
             <div className="sima-login__brand">
                 <div className="sima-login__hazard" />
 
@@ -73,8 +84,12 @@ function Login() {
                 >
                     <path
                         fill="currentColor"
-                        d="M100 20 L108 0 L92 0 Z M100 180 L108 200 L92 200 Z
-                        M180 100 L200 108 L200 92 Z M20 100 L0 108 L0 92 Z"
+                        d="
+                            M100 20 L108 0 L92 0 Z
+                            M100 180 L108 200 L92 200 Z
+                            M180 100 L200 108 L200 92 Z
+                            M20 100 L0 108 L0 92 Z
+                        "
                     />
 
                     <circle
@@ -95,7 +110,6 @@ function Login() {
                 </svg>
 
                 <div className="sima-login__brand-top">
-
                     <img
                         src={logoSima}
                         alt="SIMA Motorcycle Parts"
@@ -106,20 +120,17 @@ function Login() {
                         Portal Admin &amp; Sales
                     </p>
 
-                    <center>
-                        <h1 className="sima-login__headline">
-                            <span className="headline-yellow">Suku cadang tepat,</span>
-                            <span> dan terpercaya.</span>
-                        </h1>
-                    </center>
+                    <h1 className="sima-login__headline">
+                        <span className="headline-yellow">
+                            Suku cadang tepat,
+                        </span>
+                        <span> dan terpercaya.</span>
+                    </h1>
 
-                    <center>
-                        <p className="sima-login__sub">
-                            Masuk untuk mengakses katalog dan mengelola pesanan
-                            lengkap onderdil motor SIMA.
-                        </p>
-                    </center>
-
+                    <p className="sima-login__sub">
+                        Masuk untuk mengakses katalog dan mengelola
+                        pesanan lengkap onderdil motor SIMA.
+                    </p>
                 </div>
 
                 <div className="sima-login__stats">
@@ -127,16 +138,13 @@ function Login() {
                 </div>
             </div>
 
-
-            {/* ---------- RIGHT: FORM PANEL ---------- */}
+            {/* ==================== RIGHT: FORM PANEL ==================== */}
             <div className="sima-login__form-side">
-
                 <form
                     className="sima-login__card"
                     onSubmit={handleSubmit}
                     noValidate
                 >
-
                     <p className="sima-login__form-eyebrow">
                         Akses Akun
                     </p>
@@ -146,16 +154,15 @@ function Login() {
                     </h2>
 
                     <p className="sima-login__desc">
-                        Masukkan Akun Anda untuk melanjutkan ke dashboard SIMA.
+                        Masukkan Akun Anda untuk melanjutkan ke
+                        dashboard SIMA.
                     </p>
 
-
-                    {/* ---------- USERNAME ---------- */}
+                    {/* ==================== USERNAME ==================== */}
                     <div
                         className={`sima-login__field ${error ? "sima-login__field--error" : ""
                             }`}
                     >
-
                         <label
                             className="sima-login__label"
                             htmlFor="username"
@@ -164,7 +171,6 @@ function Login() {
                         </label>
 
                         <div className="sima-login__input-wrap">
-
                             <input
                                 id="username"
                                 name="username"
@@ -175,34 +181,37 @@ function Login() {
                                 value={form.username}
                                 onChange={handleChange}
                             />
-
                         </div>
-
                     </div>
 
-
-                    {/* ---------- PASSWORD ---------- */}
+                    {/* ==================== PASSWORD ==================== */}
                     <div
                         className={`sima-login__field ${error ? "sima-login__field--error" : ""
                             }`}
                     >
-
                         <label
                             className="sima-login__label"
                             htmlFor="password"
                         >
                             Kata Sandi
-                            <Link to="/reset-password" className="sima-login__forgot">
+
+                            <Link
+                                to="/reset-password"
+                                className="sima-login__forgot"
+                            >
                                 Lupa kata sandi?
                             </Link>
                         </label>
 
                         <div className="sima-login__input-wrap">
-
                             <input
                                 id="password"
                                 name="password"
-                                type={showPassword ? "text" : "password"}
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
                                 autoComplete="current-password"
                                 placeholder="••••••••"
                                 className="sima-login__input"
@@ -214,7 +223,7 @@ function Login() {
                                 type="button"
                                 className="sima-login__icon-btn"
                                 onClick={() =>
-                                    setShowPassword((v) => !v)
+                                    setShowPassword((value) => !value)
                                 }
                                 aria-label={
                                     showPassword
@@ -222,9 +231,7 @@ function Login() {
                                         : "Tampilkan kata sandi"
                                 }
                             >
-
                                 {showPassword ? (
-
                                     <svg
                                         width="18"
                                         height="18"
@@ -234,8 +241,11 @@ function Login() {
                                         strokeWidth="2"
                                     >
                                         <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06" />
+
                                         <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19" />
+
                                         <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+
                                         <line
                                             x1="1"
                                             y1="1"
@@ -243,9 +253,7 @@ function Login() {
                                             y2="23"
                                         />
                                     </svg>
-
                                 ) : (
-
                                     <svg
                                         width="18"
                                         height="18"
@@ -255,59 +263,32 @@ function Login() {
                                         strokeWidth="2"
                                     >
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+
                                         <circle
                                             cx="12"
                                             cy="12"
                                             r="3"
                                         />
                                     </svg>
-
                                 )}
-
                             </button>
-
                         </div>
 
-
-                        {/* Error */}
+                        {/* ==================== ERROR ==================== */}
                         {error && (
                             <p className="sima-login__error-text">
                                 {error}
                             </p>
                         )}
-
                     </div>
 
-
-                    {/* ---------- REMEMBER ME ---------- */}
-                    <div className="sima-login__row">
-
-                        <input
-                            id="remember"
-                            type="checkbox"
-                            className="sima-login__checkbox"
-                            checked={remember}
-                            onChange={(e) =>
-                                setRemember(e.target.checked)
-                            }
-                        />
-
-                        <label htmlFor="remember">
-                            Ingat saya di perangkat ini
-                        </label>
-
-                    </div>
-
-
-                    {/* ---------- LOGIN BUTTON ---------- */}
+                    {/* ==================== LOGIN BUTTON ==================== */}
                     <button
                         type="submit"
                         className="sima-login__submit"
                         disabled={loading}
                     >
-
                         {loading ? (
-
                             <>
                                 <svg
                                     className="sima-login__submit-gear"
@@ -330,17 +311,12 @@ function Login() {
 
                                 Memproses...
                             </>
-
                         ) : (
-
                             "Masuk"
-
                         )}
-
                     </button>
 
-
-                    {/* ---------- HELP ---------- */}
+                    {/* ==================== HELP ==================== */}
                     <div className="sima-login__divider">
                         <a
                             href="https://wa.me/6289612893580"
@@ -352,28 +328,21 @@ function Login() {
                         </a>
                     </div>
 
-
-                    {/* ---------- REGISTER ---------- */}
+                    {/* ==================== REGISTER ==================== */}
                     <p className="sima-login__footer">
-
                         Belum punya akun?{" "}
 
                         <Link to="/daftar">
                             Daftar Disini!
                         </Link>
-
                     </p>
-
 
                     <p className="sima-login__meta">
                         SIMA MOTORCYCLE PARTS
                     </p>
-
                 </form>
-
-            </div >
-
-        </div >
+            </div>
+        </div>
     );
 }
 

@@ -13,7 +13,7 @@ export default function CheckboxFilter({ title, options = [], selected = [], onC
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-semibold" style={{ color: HEADING }}>
+      <p className="text-sm text-left font-semibold" style={{ color: HEADING }}>
         {title}
       </p>
       <div className="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
