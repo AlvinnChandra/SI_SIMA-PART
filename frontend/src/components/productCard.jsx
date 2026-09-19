@@ -1,7 +1,6 @@
-import { FaPen, FaPlus, FaCheck } from "react-icons/fa";
+import { FaPen, FaPlus, FaCheck, FaTimes } from "react-icons/fa";
 
 const ACCENT = "#EE4D2D";
-const ACCENT_BADGE_BG = "#FFD6BC";
 const NAME = "#222222";
 const META = "#9E9E9E";
 const KODE = "#B0B0B0";
@@ -18,6 +17,7 @@ export default function ProductCard({
     selectionMode = false,
     isSelected = false,
     onToggleSelect,
+    onRemoveDiskon,
 }) {
     const imageSrc = product.gambar || `https://picsum.photos/seed/${product.kode}/400/400`;
     const adaDiskon = product.diskon > 0;
@@ -50,10 +50,10 @@ export default function ProductCard({
                 />
                 {adaDiskon && (
                     <span
-                        className="absolute right-0 top-0 rounded-bl-md px-1.5 py-0.5 text-[11px] font-semibold"
-                        style={{ background: ACCENT_BADGE_BG, color: ACCENT }}
+                        className="absolute right-1.5 top-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                        style={{ background: ACCENT }}
                     >
-                        Diskon {product.diskon}%
+                        -{product.diskon}%
                     </span>
                 )}
 
@@ -69,16 +69,32 @@ export default function ProductCard({
                     </span>
                 ) : (
                     <>
-                        {onEdit && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onEdit(product);
-                                }}
-                                className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100"
-                            >
-                                <FaPen size={12} color={NAME} />
-                            </button>
+                        {(onEdit || (adaDiskon && onRemoveDiskon)) && (
+                            <div className="absolute left-1.5 top-1.5 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                {onEdit && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEdit(product);
+                                        }}
+                                        className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                    >
+                                        <FaPen size={12} color={NAME} />
+                                    </button>
+                                )}
+                                {adaDiskon && onRemoveDiskon && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onRemoveDiskon(product);
+                                        }}
+                                        title="Kembalikan harga semula"
+                                        className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow"
+                                    >
+                                        <FaTimes size={12} color={ACCENT} />
+                                    </button>
+                                )}
+                            </div>
                         )}
                         {onAddToOrder && (
                             <button
