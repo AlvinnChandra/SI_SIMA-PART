@@ -4,7 +4,7 @@ import logoSima from "../assets/logoSima.png";
 import ProfileModal from "./profileModal";
 import "../css/header.css";
 
-const API_BASE_URL = "http://localhost:7001";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:7001";
 
 const menuItems = [
     { label: "Katalog", path: "/katalog" },
