@@ -1,5 +1,5 @@
 const express = require("express");
-require("dotenv").config();
+const dotenv = require("dotenv").config();
 const path = require("path");
 const cors = require("cors");
 const dbConnect = require("./config/dbConnect");
@@ -15,14 +15,7 @@ dbConnect();
 const app = express();
 
 // Middleware
-app.use(
-  cors({
-    origin: [
-      "https://si-sima-part-bi89.vercel.app", // frontend di Vercel
-      "http://localhost:5173", // frontend lokal (sesuaikan portnya)
-    ],
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
@@ -42,12 +35,8 @@ app.use((err, req, res, next) => {
   res.status(400).json({ message: err.message });
 });
 
-// Jalankan listen hanya di laptop, bukan di Vercel
-const PORT = process.env.PORT || 7001;
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
-
-module.exports = app;
+// Start the server
+const PORT = process.env.PORT || 7002;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
