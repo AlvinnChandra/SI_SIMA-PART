@@ -8,7 +8,7 @@ import SalesTable from "../fitur/salesTable";
 import { exportListExcel } from "../utils/excelExport"; // sesuaikan path sesuai lokasi file exceljs kamu
 import "../css/global.css";
 
-const API_BASE_URL = "http://localhost:7001/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:7001/api";
 
 // Mapping status verifikasi backend -> label yang ditampilkan di laporan
 function statusToLabel(status) {
