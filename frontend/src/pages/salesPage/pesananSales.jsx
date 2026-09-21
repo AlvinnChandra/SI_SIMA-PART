@@ -23,6 +23,17 @@ function tanggalHariIni() {
     return `${yyyy}-${mm}-${dd}`;
 }
 
+// Ubah "2026-09-21" jadi "21 September 2026" untuk popup konfirmasi
+function formatTanggalIndonesia(yyyyMmDd) {
+    if (!yyyyMmDd) return "-";
+    const [y, m, d] = yyyyMmDd.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+}
+
 
 // ======================================================
 // COMPONENT
@@ -114,6 +125,9 @@ function PesananSales() {
 
     // Loading saat mengirim pesanan ke server (tombol "Simpan Pesanan")
     const [isSubmittingPesanan, setIsSubmittingPesanan] = useState(false);
+
+    // Popup konfirmasi sebelum pesanan benar-benar disimpan
+    const [showKonfirmasiSimpan, setShowKonfirmasiSimpan] = useState(false);
 
 
     // ==================================================
@@ -1153,22 +1167,23 @@ function PesananSales() {
 
 
     // ==================================================
-    // SIMPAN PESANAN
+    // SIMPAN PESANAN -> validasi, lalu buka popup konfirmasi
+    // (belum kirim apa pun ke server di tahap ini)
     // ==================================================
 
-    async function simpanPesanan() {
+    function simpanPesanan() {
+
+        if (isSubmittingPesanan) {
+            return;
+        }
 
         if (!tokoDipilih) {
-
             bukaAlert("Toko belum dipilih");
-
             return;
         }
 
         if (pesanan.length === 0) {
-
             bukaAlert("Belum ada barang di pesanan");
-
             return;
         }
 
@@ -1188,6 +1203,29 @@ function PesananSales() {
             return;
         }
 
+        // Validasi lolos -> tampilkan popup konfirmasi
+        setShowKonfirmasiSimpan(true);
+    }
+
+
+    function tutupKonfirmasiSimpan() {
+
+        // Jangan bisa ditutup saat proses simpan sedang berjalan
+        if (isSubmittingPesanan) {
+            return;
+        }
+
+        setShowKonfirmasiSimpan(false);
+    }
+
+
+    // ==================================================
+    // PROSES KIRIM PESANAN KE SERVER
+    // (dipanggil dari tombol "Ya, Simpan" di popup)
+    // ==================================================
+
+    async function prosesSimpanPesanan() {
+
         if (isSubmittingPesanan) {
             return;
         }
@@ -1203,6 +1241,8 @@ function PesananSales() {
         try {
 
             await createPesanan(payload);
+
+            setShowKonfirmasiSimpan(false);
 
             bukaAlert(
                 "Pesanan berhasil disimpan"
@@ -1223,6 +1263,8 @@ function PesananSales() {
         } catch (err) {
 
             console.error("Gagal menyimpan pesanan:", err);
+
+            setShowKonfirmasiSimpan(false);
 
             bukaAlert(
                 err.message || "Gagal menyimpan pesanan. Silakan coba lagi."
@@ -2284,6 +2326,65 @@ function PesananSales() {
             </main>
 
             <Footer />
+
+            {/* POPUP KONFIRMASI SIMPAN PESANAN */}
+            {showKonfirmasiSimpan && (
+                <div
+                    className="konfirmasi-simpan-overlay"
+                    onClick={tutupKonfirmasiSimpan}
+                >
+                    <div
+                        className="konfirmasi-simpan-modal"
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby="konfirmasi-simpan-title"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 id="konfirmasi-simpan-title">
+                            Simpan Pesanan?
+                        </h3>
+
+                        <p>
+                            Pastikan data pesanan sudah benar sebelum disimpan.
+                        </p>
+
+                        <dl className="konfirmasi-simpan-ringkasan">
+                            <div>
+                                <dt>Toko</dt>
+                                <dd>{tokoDipilih ? tokoDipilih.namaToko : "-"}</dd>
+                            </div>
+                            <div>
+                                <dt>Tanggal</dt>
+                                <dd>{formatTanggalIndonesia(tanggalPesanan)}</dd>
+                            </div>
+                            <div>
+                                <dt>Jumlah barang</dt>
+                                <dd>{pesanan.length} item</dd>
+                            </div>
+                        </dl>
+
+                        <div className="konfirmasi-simpan-actions">
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={tutupKonfirmasiSimpan}
+                                disabled={isSubmittingPesanan}
+                            >
+                                Periksa Lagi
+                            </button>
+
+                            <button
+                                type="button"
+                                className="btn-primary"
+                                onClick={prosesSimpanPesanan}
+                                disabled={isSubmittingPesanan}
+                            >
+                                {isSubmittingPesanan ? "Menyimpan..." : "Ya, Simpan"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <LeaveModal
                 show={showLeaveModal}

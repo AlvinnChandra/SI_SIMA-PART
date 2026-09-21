@@ -1,12 +1,20 @@
+/* ==========================================================
+   WRAPPER & TABEL
+   Scroll samping aktif di semua ukuran layar kalau tabel
+   lebih lebar dari area yang tersedia.
+   ========================================================== */
+
 .sima-sales-table-wrap {
     background: var(--white);
     border: 1px solid var(--steel-line);
     border-radius: 10px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .sima-sales-table {
     width: 100%;
+    min-width: 1180px;
     border-collapse: collapse;
     font-family: 'Inter', sans-serif;
 }
@@ -25,7 +33,7 @@
 
 .sima-sales-table th {
     text-align: center;
-    padding: 0.9rem 1.1rem;
+    padding: 0.7rem 0.8rem;
     font-family: 'Roboto Mono', monospace;
     font-size: 0.68rem;
     letter-spacing: 0.08em;
@@ -36,11 +44,29 @@
 }
 
 .sima-sales-table td {
-    padding: 0.95rem 1.1rem;
-    font-size: 0.88rem;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.82rem;
     color: var(--ink);
     border-bottom: 1px solid var(--steel-line);
     vertical-align: middle;
+}
+
+/* Lebar minimum kolom supaya teks tidak bertumpuk */
+
+/* Nama Sales */
+.sima-sales-table td:nth-child(3) {
+    min-width: 140px;
+}
+
+/* NIK & No Telepon: jangan dipecah ke baris baru */
+.sima-sales-table td:nth-child(4),
+.sima-sales-table td:nth-child(5) {
+    white-space: nowrap;
+}
+
+/* Alamat */
+.sima-sales-table td:nth-child(6) {
+    min-width: 200px;
 }
 
 .sima-sales-table tbody tr:last-child td {
@@ -70,6 +96,31 @@
     padding: 2.5rem 1rem;
     color: var(--steel);
     font-size: 0.9rem;
+}
+
+/* ---------- KOLOM AKSI: STICKY DI KANAN ---------- */
+/* Tombol email / download / edit / hapus tetap kelihatan saat tabel di-scroll */
+
+.sima-sales-table th:last-child,
+.sima-sales-table td:last-child {
+    position: sticky;
+    right: 0;
+    background: var(--white);
+    box-shadow: -1px 0 0 var(--steel-line);
+}
+
+.sima-sales-table thead th:last-child {
+    background: var(--steel-light);
+}
+
+.sima-sales-table tbody tr:hover td:last-child {
+    background: var(--steel-light);
+}
+
+/* Baris "data tidak ditemukan" (colSpan penuh) tidak perlu sticky */
+.sima-sales-table td.sima-sales-table__empty {
+    position: static;
+    box-shadow: none;
 }
 
 /* ---------- FOTO PROFIL (AVATAR) ---------- */
@@ -266,7 +317,7 @@
     border-color: var(--navy);
 }
 
-/* ---------- AKSI (EDIT / HAPUS) ---------- */
+/* ---------- AKSI (EMAIL / DOWNLOAD / EDIT / HAPUS) ---------- */
 
 .sima-sales-table__aksi {
     display: inline-flex;
@@ -324,7 +375,7 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.8rem;
-    padding: 1rem 1.1rem;
+    padding: 0.8rem 1.1rem;
     background: var(--white);
 }
 
@@ -762,22 +813,7 @@
     }
 }
 
-/* ---------- RESPONSIVE ---------- */
-
-@media (max-width: 860px) {
-    .sima-sales-table-wrap {
-        overflow-x: auto;
-    }
-
-    .sima-sales-table {
-        min-width: 1220px;
-    }
-
-    .sima-sales-pagination {
-        justify-content: center;
-        text-align: center;
-    }
-}
+/* ---------- LINK WHATSAPP ---------- */
 
 .sima-sales-table__wa-link {
     color: var(--navy);
@@ -788,4 +824,13 @@
 .sima-sales-table__wa-link:hover {
     color: #1E9E5A;
     text-decoration: underline;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 860px) {
+    .sima-sales-pagination {
+        justify-content: center;
+        text-align: center;
+    }
 }

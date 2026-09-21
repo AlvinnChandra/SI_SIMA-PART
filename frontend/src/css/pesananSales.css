@@ -745,6 +745,13 @@ select.form-input {
 }
 
 
+.btn-secondary:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
 /* =====================================================
    BUTTON DANGER OUTLINE
    Dipakai tombol "Lanjut Tanpa Simpan" di popup
@@ -1470,6 +1477,138 @@ select.form-input {
 
 
 /* =====================================================
+   POPUP KONFIRMASI SIMPAN PESANAN
+   Muncul saat user klik "Simpan Pesanan" (setelah
+   validasi lolos), sebelum data dikirim ke server.
+===================================================== */
+
+.konfirmasi-simpan-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.5);
+
+    z-index: 1000;
+
+    box-sizing: border-box;
+}
+
+
+.konfirmasi-simpan-modal {
+    width: 100%;
+    max-width: 420px;
+
+    padding: 28px 26px 24px;
+
+    background: #ffffff;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 20px 45px rgba(15, 23, 42, 0.25);
+
+    box-sizing: border-box;
+}
+
+
+.konfirmasi-simpan-modal h3 {
+    margin: 0 0 8px;
+
+    color: #12213a;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
+.konfirmasi-simpan-modal p {
+    margin: 0 0 18px;
+
+    color: #64748b;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+.konfirmasi-simpan-ringkasan {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin: 0 0 22px;
+
+    padding: 14px 16px;
+
+    background: #f8fafc;
+
+    border: 1px solid #d8e0ea;
+
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+
+.konfirmasi-simpan-ringkasan>div {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 16px;
+
+    font-size: 13px;
+}
+
+
+.konfirmasi-simpan-ringkasan dt {
+    margin: 0;
+
+    color: #718096;
+}
+
+
+.konfirmasi-simpan-ringkasan dd {
+    margin: 0;
+
+    color: #12213a;
+
+    font-weight: 600;
+
+    text-align: right;
+
+    word-break: break-word;
+}
+
+
+.konfirmasi-simpan-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+}
+
+
+.konfirmasi-simpan-actions .btn-primary,
+.konfirmasi-simpan-actions .btn-secondary {
+    min-height: 44px;
+}
+
+
+/* =====================================================
    RESPONSIVE - TABLET
 ===================================================== */
 
@@ -1660,6 +1799,25 @@ select.form-input {
 
     .leave-modal {
         padding: 26px 20px 22px;
+    }
+
+
+    /* POPUP KONFIRMASI SIMPAN PESANAN
+       Tombol ditumpuk, "Ya, Simpan" di atas */
+
+    .konfirmasi-simpan-modal {
+        padding: 24px 18px 20px;
+    }
+
+
+    .konfirmasi-simpan-actions {
+        flex-direction: column-reverse;
+    }
+
+
+    .konfirmasi-simpan-actions .btn-primary,
+    .konfirmasi-simpan-actions .btn-secondary {
+        width: 100%;
     }
 
 }
