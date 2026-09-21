@@ -1094,7 +1094,9 @@ function PesananSales() {
         izinkanNavigasiRef.current = true;
 
         if (href) {
-            window.location.assign(href);
+            // Pakai navigate (React Router), bukan window.location.assign,
+            // supaya tidak reload penuh dan tidak 404 di Vercel.
+            navigate(href);
         }
     }
 
@@ -1215,7 +1217,7 @@ function PesananSales() {
             // Kasih jeda sebentar supaya alert "Pesanan berhasil disimpan"
             // sempat terlihat sebelum pindah ke halaman History Pesanan.
             setTimeout(() => {
-                window.location.assign("/historyOrder");
+                navigate("/historyOrder");
             }, 600);
 
         } catch (err) {
