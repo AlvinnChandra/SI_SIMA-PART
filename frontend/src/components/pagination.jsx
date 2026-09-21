@@ -1,9 +1,9 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const BODY = "#667085";
-const LINE = "#D0D5DD";
-const ACCENT = "#f3f4f6";
-const ACCENT_TEXT = "#16171d";
+const BODY = "var(--steel)";
+const LINE = "var(--steel-line)";
+const ACCENT = "var(--steel-light)";
+const ACCENT_TEXT = "var(--ink)";
 
 function getPageList(current, total) {
     const pages = [];
@@ -27,18 +27,21 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
     const pages = getPageList(currentPage, totalPages);
 
     return (
-        <div className="flex items-center justify-between border-t pt-4" style={{ borderColor: LINE }}>
+        <div
+            className="grid grid-cols-[1fr_auto_1fr] items-center border-t pt-4"
+            style={{ borderColor: LINE, fontFamily: "'Inter', sans-serif" }}
+        >
             <button
                 onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1.5 rounded-md border px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-fit items-center gap-1.5 justify-self-start rounded-md border px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ borderColor: LINE, color: BODY }}
             >
                 <ChevronLeft size={16} />
                 Previous
             </button>
 
-            <div className="hidden items-center gap-1 sm:flex">
+            <div className="hidden items-center gap-1 justify-self-center sm:flex">
                 {pages.map((p, idx) =>
                     p === "..." ? (
                         <span key={`ellipsis-${idx}`} className="px-2 text-sm" style={{ color: BODY }}>
@@ -59,10 +62,11 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
                     )
                 )}
             </div>
+
             <button
                 onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1.5 rounded-md border px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-fit items-center gap-1.5 justify-self-end rounded-md border px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ borderColor: LINE, color: BODY }}
             >
                 Next

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import HeaderSales from "../../components/headerSales";
-import KatalogContent from "../../fitur/katalogContent";
+import KatalogContent from "../katalogContent";
 import "../../css/global.css";
 
 export default function KatalogSales() {

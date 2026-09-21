@@ -23,5 +23,40 @@
 .page-header-actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 1rem;
+}
+
+.sima-ghost-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.2rem;
+    background: var(--white);
+    color: var(--steel);
+    border: 1.5px solid var(--steel-line);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.sima-ghost-btn:hover {
+    background: var(--steel-light);
+    color: var(--ink);
+    border-color: var(--steel);
+}
+
+.sima-ghost-btn:active {
+    transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+    .sima-ghost-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
