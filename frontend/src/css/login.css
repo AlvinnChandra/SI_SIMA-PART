@@ -19,6 +19,7 @@
 
 .sima-login {
     min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     grid-template-columns: 1fr 1fr;
     font-family: 'Inter', sans-serif;
@@ -32,13 +33,14 @@
     position: sticky;
     top: 0;
     height: 100vh;
+    height: 100dvh;
     align-self: start;
     background: linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 55%, var(--navy-mid) 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 3.5rem 3.5rem 3rem;
+    padding: clamp(1.5rem, 5vh, 3.5rem) clamp(1.5rem, 3vw, 3.5rem);
     overflow: hidden;
     color: var(--white);
     text-align: center;
@@ -50,7 +52,7 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 10px;
+    height: clamp(6px, 1.2vh, 10px);
     background: repeating-linear-gradient(45deg,
             var(--red),
             var(--red) 14px,
@@ -60,11 +62,11 @@
 
 .sima-login__gear {
     position: absolute;
-    right: -160px;
+    right: clamp(-160px, -8vw, -80px);
     top: 50%;
     transform: translateY(-50%);
-    width: 620px;
-    height: 620px;
+    width: clamp(360px, 44vw, 620px);
+    height: clamp(360px, 44vw, 620px);
     opacity: 0.08;
     animation: sima-spin 90s linear infinite;
 }
@@ -94,38 +96,37 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    transform: scale(1.15);
-    transform-origin: center center;
+    /* scale(1.15) dihapus: ukuran sekarang diatur lewat clamp() */
 }
 
 .sima-login__logo {
     display: block;
-    margin: 0 auto;
-    height: 120px;
+    margin: 0 auto clamp(0.5rem, 1.5vh, 1rem);
+    height: clamp(56px, 13vh, 110px);
+    max-width: 100%;
     width: auto;
     filter: brightness(0) invert(1);
-    font-size: 30px;
 }
 
 .sima-login__eyebrow {
     font-family: 'Roboto Mono', monospace;
-    font-size: 0.95rem;
+    font-size: clamp(0.7rem, 1.2vw, 0.95rem);
     letter-spacing: 0.28em;
     text-transform: uppercase;
     color: #8FA0C7;
-    margin: 0 0 0.9rem;
-    padding-bottom: 9px;
+    margin: 0 0 clamp(0.4rem, 1.5vh, 0.9rem);
+    padding-bottom: clamp(4px, 1vh, 9px);
 }
 
 .sima-login__headline {
     font-family: 'Oswald', sans-serif;
     font-weight: 600;
-    font-size: 2.6rem;
+    font-size: clamp(1.7rem, min(3.4vw, 6.5vh), 2.6rem);
     line-height: 1.15;
     letter-spacing: 0.01em;
-    margin: 0 auto 1.1rem;
-    max-width: 320px;
-    padding-bottom: 20px;
+    margin: 0 auto clamp(0.5rem, 1.5vh, 1.1rem);
+    max-width: 7.7em;
+    padding-bottom: clamp(0.5rem, 2vh, 1.25rem);
     text-align: center;
 }
 
@@ -138,7 +139,7 @@
 }
 
 .sima-login__sub {
-    font-size: 0.98rem;
+    font-size: clamp(0.8rem, 1.05vw, 0.98rem);
     line-height: 1.6;
     color: #B7C2DC;
     max-width: 34ch;
@@ -151,8 +152,8 @@
     display: flex;
     justify-content: center;
     gap: 2.4rem;
-    padding-top: 1.6rem;
-    margin-top: 1.6rem;
+    padding-top: clamp(0.8rem, 2vh, 1.6rem);
+    margin-top: clamp(0.8rem, 2vh, 1.6rem);
     border-top: 1px solid rgba(255, 255, 255, 0.14);
     width: 100%;
 }
@@ -179,16 +180,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem 2.5rem;
-    /* background: var(--white); */
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: clamp(1.25rem, 4vh, 3rem) clamp(1.25rem, 3vw, 2.5rem);
     background: rgb(252, 252, 252);
 }
 
 .sima-login__card {
-    width: 500%;
-    max-width: 650px;
-    /* background: rgb(218, 217, 217); */
-    transform: scale(1.1);
+    width: 100%;
+    max-width: 460px;
+    /* width: 500% dan scale(1.1) dihapus */
 }
 
 .sima-login__form-eyebrow {
@@ -203,20 +204,20 @@
 .sima-login__title {
     font-family: 'Oswald', sans-serif;
     font-weight: 600;
-    font-size: 1.9rem;
+    font-size: clamp(1.5rem, min(2.4vw, 4.5vh), 1.9rem);
     color: var(--ink);
     margin: 0 0 0.4rem;
 }
 
 .sima-login__desc {
-    font-size: 0.92rem;
+    font-size: clamp(0.82rem, 1.1vw, 0.92rem);
     color: var(--steel);
-    margin: 0 0 2.2rem;
+    margin: 0 0 clamp(1rem, 3.5vh, 2.2rem);
     line-height: 1.5;
 }
 
 .sima-login__field {
-    margin-bottom: 1.3rem;
+    margin-bottom: clamp(0.8rem, 2.4vh, 1.3rem);
 }
 
 .sima-login__label {
@@ -257,7 +258,7 @@
 
 .sima-login__input {
     width: 100%;
-    padding: 0.8rem 2.6rem 0.8rem 0.95rem;
+    padding: clamp(0.6rem, 1.7vh, 0.8rem) 2.6rem clamp(0.6rem, 1.7vh, 0.8rem) 0.95rem;
     border: 1.5px solid var(--steel-line);
     border-radius: 6px;
     font-size: 0.95rem;
@@ -331,7 +332,7 @@
 
 .sima-login__submit {
     width: 100%;
-    padding: 0.9rem 1rem;
+    padding: clamp(0.65rem, 1.8vh, 0.9rem) 1rem;
     background: var(--red);
     color: var(--white);
     border: none;
@@ -380,7 +381,7 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    margin: 1.8rem 0;
+    margin: clamp(1rem, 3vh, 1.8rem) 0;
 }
 
 .sima-login__divider span {
@@ -416,7 +417,7 @@
 }
 
 .sima-login__meta {
-    margin-top: 2.4rem;
+    margin-top: clamp(1rem, 3vh, 2.4rem);
     font-family: 'Roboto Mono', monospace;
     font-size: 0.68rem;
     letter-spacing: 0.06em;
@@ -424,8 +425,34 @@
     text-align: center;
 }
 
+.sima-login__divider-link {
+    display: contents;
+    text-decoration: none;
+}
+
+.sima-login__divider-link:hover span {
+    color: var(--red);
+    text-decoration: underline;
+}
+
 /* ---------- RESPONSIVE ---------- */
 
+/* Layar pendek (laptop dengan display scaling 125-150%) */
+@media (min-width: 861px) and (max-height: 680px) {
+    .sima-login__sub {
+        display: none;
+    }
+
+    .sima-login__meta {
+        display: none;
+    }
+
+    .sima-login__form-eyebrow {
+        margin-bottom: 0.3rem;
+    }
+}
+
+/* Tablet / HP */
 @media (max-width: 860px) {
     .sima-login {
         grid-template-columns: 1fr;
@@ -434,16 +461,16 @@
     .sima-login__brand {
         position: relative;
         height: auto;
-        padding: 2.4rem 1.8rem;
         min-height: 260px;
+        padding: 2.4rem 1.8rem;
     }
 
-    .sima-login__brand-top {
-        transform: scale(1);
+    .sima-login__logo {
+        height: clamp(56px, 16vw, 90px);
     }
 
     .sima-login__headline {
-        font-size: 1.9rem;
+        font-size: clamp(1.6rem, 6vw, 1.9rem);
     }
 
     .sima-login__gear {
@@ -457,17 +484,11 @@
     }
 
     .sima-login__form-side {
-        padding: 2.2rem 1.6rem 3rem;
         min-height: auto;
+        padding: 2.2rem 1.6rem 3rem;
     }
-}
 
-.sima-login__divider-link {
-    display: contents;
-    text-decoration: none;
-}
-
-.sima-login__divider-link:hover span {
-    color: var(--red);
-    text-decoration: underline;
+    .sima-login__card {
+        max-width: 480px;
+    }
 }
