@@ -4,6 +4,8 @@ import logoSima from "../assets/logoSima.png";
 import "../css/login.css";
 import "../css/daftar.css";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:7001/api";
+
 function Daftar() {
     const navigate = useNavigate();
 
@@ -162,7 +164,7 @@ function Daftar() {
                 if (file) formData.append(key, file);
             });
 
-            const res = await fetch("http://localhost:7001/api/auth/register", {
+            const res = await fetch(`${BASE_URL}/auth/register`, {
                 method: "POST",
                 body: formData,
             });

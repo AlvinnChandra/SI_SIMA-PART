@@ -1,11 +1,15 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getItems } from "../services/itemService";
 import { applyStoredDiskon } from "../utils/diskonUtils";
-import { PAGE_SIZE } from "../constants/ui";
+import useResponsivePageSize from "./useResponsivePageSize";
 
 // Semua logika data katalog: ambil dari API, filter, sort, pagination.
 // Dulu blok ini ada dua kali dengan perbedaan kecil yang justru berbahaya
 // (katalog.jsx punya sort alfabetis default, katalogContent.jsx tidak).
+//
+// PAGE_SIZE sekarang dinamis (lihat useResponsivePageSize), supaya di
+// layar portrait yang punya ruang vertikal lebih, jumlah produk per
+// halaman ikut nambah, bukan selalu tetap 10 seperti sebelumnya.
 export default function useProductCatalog() {
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +20,8 @@ export default function useProductCatalog() {
     const [selectedKendaraan, setSelectedKendaraan] = useState([]);
     const [priceSort, setPriceSort] = useState("default");
     const [currentPage, setCurrentPage] = useState(1);
+
+    const pageSize = useResponsivePageSize();
 
     const reload = useCallback(() => {
         setIsLoading(true);
@@ -72,12 +78,19 @@ export default function useProductCatalog() {
         );
     }, [products, keyword, activeCategory, selectedKendaraan, priceSort]);
 
-    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
 
     const paginatedProducts = useMemo(() => {
-        const start = (currentPage - 1) * PAGE_SIZE;
-        return filteredProducts.slice(start, start + PAGE_SIZE);
-    }, [filteredProducts, currentPage]);
+        const start = (currentPage - 1) * pageSize;
+        return filteredProducts.slice(start, start + pageSize);
+    }, [filteredProducts, currentPage, pageSize]);
+
+    // Kalau pageSize berubah (resize / rotate device), currentPage bisa
+    // jadi melebihi totalPages yang baru -> reset ke halaman 1 supaya
+    // tidak menampilkan grid kosong.
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [pageSize]);
 
     // Setiap ganti filter, balik ke halaman 1. Dulu ini empat handler
     // yang isinya sama persis di dua file.
@@ -99,6 +112,7 @@ export default function useProductCatalog() {
         priceSort,
         currentPage,
         setCurrentPage,
+        pageSize,
 
         onSearch: makeFilterHandler(setKeyword),
         onSelectCategory: makeFilterHandler(setActiveCategory),
