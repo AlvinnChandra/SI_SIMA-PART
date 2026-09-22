@@ -1,6 +1,6 @@
-const HEADING = "#101828";
-const BODY = "#667085";
-const ACCENT = "#EE4D2D";
+const HEADING = "var(--ink)";
+const BODY = "var(--steel)";
+const ACCENT = "var(--red)";
 
 const OPTIONS = [
     { value: "default", label: "Default" },
@@ -10,7 +10,10 @@ const OPTIONS = [
 
 export default function PriceSort({ value, onChange }) {
     return (
-        <div className="flex flex-col gap-2">
+        <div
+            className="flex flex-col gap-2"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+        >
             <p className="text-sm text-left font-semibold" style={{ color: HEADING }}>
                 Urutkan Harga
             </p>

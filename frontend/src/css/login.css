@@ -1,18 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap');
 
-:root {
-    --navy: #10203D;
-    --navy-deep: #0A1730;
-    --navy-mid: #1B3162;
-    --red: #D8262A;
-    --red-dark: #A81E22;
-    --steel: #6C7789;
-    --steel-light: #EEF1F6;
-    --steel-line: #DADFE8;
-    --white: #FFFFFF;
-    --ink: #14213D;
-}
-
 * {
     box-sizing: border-box;
 }
