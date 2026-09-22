@@ -60,7 +60,7 @@
     border-bottom: 2px solid #2563eb;
 }
 
-/* ============ ORDER TABLE (legacy classnames, kalau dipakai di tempat lain) ============ */
+/* ============ ORDER TABLE (legacy classnames) ============ */
 .order-table {
     width: 100%;
     border-collapse: collapse;
@@ -194,7 +194,7 @@
     border-color: #2563eb;
 }
 
-/* ---------- BADGE STATUS ORDER (tambahan, pakai base sima-table__badge) ---------- */
+/* ---------- BADGE STATUS ORDER ---------- */
 
 .status-badge--masuk {
     background: rgba(234, 179, 8, 0.14);
@@ -211,7 +211,7 @@
     color: #1E9E5A;
 }
 
-/* ---------- STATUS DROPDOWN (badge status yang bisa diklik buat ganti status) ---------- */
+/* ---------- STATUS DROPDOWN ---------- */
 
 .status-dropdown__trigger {
     cursor: pointer;
@@ -274,7 +274,7 @@
     color: #fff;
 }
 
-/* ---------- MODAL DETAIL PESANAN (tambahan) ---------- */
+/* ---------- MODAL DETAIL PESANAN ---------- */
 
 .sima-table-modal--wide {
     max-width: 1100px;
@@ -417,7 +417,7 @@
     border-color: #dc2626;
 }
 
-/* ---------- MODAL KONFIRMASI DELETE ---------- */
+/* ---------- MODAL KONFIRMASI DELETE / RESTRICTED ---------- */
 .sima-table-modal--confirm .sima-table-modal__body p {
     margin: 0 0 8px;
 }
@@ -438,9 +438,11 @@
 }
 
 /* ============ TABEL PESANAN UTAMA: WRAPPER SCROLL ============ */
-/* .sima-table-wrap membungkus <OrderTable/> di JSX. Dibuat selalu bisa
-   digeser horizontal begitu lebar tidak cukup, supaya kolom Sales/Tanggal/
-   Status/Aksi tidak pernah gepeng atau kepotong di layar sempit. */
+/* Dipakai bersama oleh halaman Order (Admin, 7 kolom) dan
+   History Order (Sales, 5 kolom). Base rule berlaku untuk
+   tabel 7 kolom; tabel 5 kolom pakai modifier
+   .sima-table--compact di bawah supaya ambang scroll-nya
+   lebih longgar (tidak scroll padahal sebenarnya muat). */
 
 .sima-table-wrap {
     overflow-x: auto;
@@ -449,7 +451,11 @@
 
 .sima-table-wrap .sima-table {
     min-width: 720px;
-    /* jaga supaya 7 kolom tetap proporsional, sisanya discroll */
+}
+
+/* Modifier untuk tabel 5 kolom (History Order Sales) */
+.sima-table-wrap .sima-table.sima-table--compact {
+    min-width: 480px;
 }
 
 /* ============ RESPONSIVE ============ */
@@ -462,6 +468,10 @@
 
     .sima-table-wrap .sima-table {
         min-width: 660px;
+    }
+
+    .sima-table-wrap .sima-table.sima-table--compact {
+        min-width: 460px;
     }
 
     .sima-table-modal--wide {
@@ -480,7 +490,6 @@
         font-size: 19px;
     }
 
-    /* Tombol "Reset Nomor Pesanan" full width supaya mudah ditekan di HP */
     .page-header-row .sima-table-modal__btn {
         width: 100%;
         text-align: center;
@@ -489,7 +498,6 @@
     .order-status-tabs {
         margin: 16px 0;
         gap: 4px;
-        /* fade halus kiri-kanan sebagai penanda bisa digeser */
         mask-image: linear-gradient(to right, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
         -webkit-mask-image: linear-gradient(to right, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
     }
@@ -509,7 +517,10 @@
         min-width: 600px;
     }
 
-    /* Pagination di-stack: info di atas, tombol halaman di bawah, di tengah */
+    .sima-table-wrap .sima-table.sima-table--compact {
+        min-width: 420px;
+    }
+
     .pagination,
     .sima-pagination {
         flex-direction: column;
@@ -532,7 +543,6 @@
         font-size: 0.8rem;
     }
 
-    /* Modal: kurangi padding & lebar supaya pas di layar kecil */
     .sima-table-modal--wide {
         width: 96vw;
     }
@@ -546,7 +556,6 @@
         gap: 0.75rem;
     }
 
-    /* Header modal: judul + tombol export/close tetap rapi kalau sempit */
     .sima-table-modal__header {
         flex-wrap: wrap;
         gap: 8px;
@@ -556,9 +565,6 @@
         font-size: 1rem;
         width: 100%;
     }
-
-    /* Footer modal jadi stack di layar sangat sempit lewat breakpoint 480 di bawah,
-       di 768px masih cukup ruang untuk sejajar */
 }
 
 /* ---------- MOBILE KECIL ---------- */
@@ -576,6 +582,10 @@
         min-width: 540px;
     }
 
+    .sima-table-wrap .sima-table.sima-table--compact {
+        min-width: 380px;
+    }
+
     .sima-table-modal__info-grid {
         grid-template-columns: 1fr 1fr;
         gap: 0.6rem;
@@ -585,8 +595,6 @@
         font-size: 0.85rem;
     }
 
-    /* Footer modal: tombol jadi full width & stack, ini yang paling sering
-       kepotong/kesempit di HP kecil (mis. modal delete & modal detail) */
     .sima-table-modal__footer--between {
         flex-direction: column-reverse;
         align-items: stretch;
@@ -608,5 +616,12 @@
 
     .sima-table-wrap--scroll {
         max-height: 42vh !important;
+    }
+}
+
+/* ---------- HP SANGAT SEMPIT ---------- */
+@media (max-width: 360px) {
+    .sima-table-wrap .sima-table.sima-table--compact {
+        min-width: 340px;
     }
 }
