@@ -23,10 +23,18 @@
 /* ============ STATUS TABS ============ */
 .order-status-tabs {
     display: flex;
+    align-items: center;
     gap: 8px;
     margin: 20px 0;
     border-bottom: 1px solid #e5e5e5;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.order-status-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .status-tab {
@@ -38,6 +46,8 @@
     font-weight: 500;
     color: #666;
     cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: all 0.2s ease;
 }
 
@@ -50,7 +60,7 @@
     border-bottom: 2px solid #2563eb;
 }
 
-/* ============ ORDER TABLE ============ */
+/* ============ ORDER TABLE (legacy classnames, kalau dipakai di tempat lain) ============ */
 .order-table {
     width: 100%;
     border-collapse: collapse;
@@ -122,7 +132,7 @@
     font-size: 14px;
 }
 
-/* ============ PAGINATION ============ */
+/* ============ PAGINATION (legacy classnames) ============ */
 .pagination {
     display: flex;
     align-items: center;
@@ -227,8 +237,6 @@
     min-width: max-content;
 }
 
-/* Menu di-render via portal ke document.body dengan position: fixed,
-   jadi ditaruh di atas semua elemen lain dan tidak kepotong overflow tabel */
 .status-dropdown__menu--portal {
     z-index: 1000;
 }
@@ -251,7 +259,6 @@
     background: #f3f4f6;
 }
 
-/* Warna tiap opsi mengikuti warna badge status masing-masing */
 .status-dropdown__option--masuk.status-dropdown__option--active {
     background: #f59e0b;
     color: #fff;
@@ -305,9 +312,8 @@
     font-size: 1rem;
 }
 
-/* ---------- MODAL DETAIL PESANAN: scroll + search item (tambahan, FIXED) ---------- */
+/* ---------- MODAL DETAIL PESANAN: scroll + search item ---------- */
 
-/* Modal jadi tinggi tetap, body-nya yang scroll (bukan halaman) */
 .sima-table-modal--tall {
     max-height: 85vh;
     display: flex;
@@ -318,10 +324,8 @@
     overflow-y: auto;
     flex: 1;
     min-height: 0;
-    /* WAJIB: tanpa ini flex item tidak mau menyusut, jadi scroll tidak jalan */
 }
 
-/* Badge jumlah item di sebelah judul modal */
 .sima-table-modal__item-count {
     margin-left: 8px;
     font-size: 0.75rem;
@@ -333,7 +337,6 @@
     vertical-align: middle;
 }
 
-/* Search box untuk cari barang di dalam modal */
 .sima-table-modal__item-search {
     width: 100%;
     padding: 8px 12px;
@@ -348,19 +351,15 @@
     border-color: var(--navy);
 }
 
-/* Wrapper tabel item: scroll internal, tinggi menyesuaikan sisa ruang modal */
-/* !important dipakai karena base .sima-table-wrap di global.css kemungkinan
-   sudah set overflow: hidden (untuk lengkungan sudut tabel biasa), yang tanpa
-   ini akan menimpa overflow-y: auto di sini dan bikin konten kepotong tanpa scroll */
 .sima-table-wrap--scroll {
     max-height: 50vh !important;
     overflow-y: auto !important;
+    overflow-x: auto;
     border: 1px solid var(--steel-line);
     border-radius: 8px;
     min-height: 0;
 }
 
-/* Header tabel nempel di atas pas scroll */
 .sima-table--sticky-head thead th {
     position: sticky;
     top: 0;
@@ -368,7 +367,7 @@
     z-index: 1;
 }
 
-/* ---------- WRAPPER TOMBOL AKSI (tambahan) ---------- */
+/* ---------- WRAPPER TOMBOL AKSI ---------- */
 .sima-table__actions {
     display: flex;
     align-items: center;
@@ -376,14 +375,12 @@
     gap: 8px;
 }
 
-/* ---------- WRAPPER TOMBOL DI HEADER MODAL (Export PDF + tombol close) ---------- */
 .sima-table-modal__header-actions {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* ---------- BASE TOMBOL AKSI (tambahan) ---------- */
 .sima-table__btn {
     display: inline-flex;
     align-items: center;
@@ -394,6 +391,7 @@
     border-radius: 6px;
     background: #fff;
     cursor: pointer;
+    flex-shrink: 0;
     transition: all 0.15s ease;
 }
 
@@ -401,7 +399,6 @@
     display: block;
 }
 
-/* ---------- TOMBOL LIHAT DETAIL (view/edit) (tambahan) ---------- */
 .sima-table__btn--edit {
     color: var(--navy, #1e3a8a);
 }
@@ -411,7 +408,6 @@
     border-color: var(--navy, #1e3a8a);
 }
 
-/* ---------- TOMBOL DELETE (tambahan) ---------- */
 .sima-table__btn--delete {
     color: #dc2626;
 }
@@ -421,7 +417,7 @@
     border-color: #dc2626;
 }
 
-/* ---------- MODAL KONFIRMASI DELETE (tambahan) ---------- */
+/* ---------- MODAL KONFIRMASI DELETE ---------- */
 .sima-table-modal--confirm .sima-table-modal__body p {
     margin: 0 0 8px;
 }
@@ -441,25 +437,176 @@
     background-color: #b91c1c;
 }
 
+/* ============ TABEL PESANAN UTAMA: WRAPPER SCROLL ============ */
+/* .sima-table-wrap membungkus <OrderTable/> di JSX. Dibuat selalu bisa
+   digeser horizontal begitu lebar tidak cukup, supaya kolom Sales/Tanggal/
+   Status/Aksi tidak pernah gepeng atau kepotong di layar sempit. */
+
+.sima-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sima-table-wrap .sima-table {
+    min-width: 720px;
+    /* jaga supaya 7 kolom tetap proporsional, sisanya discroll */
+}
+
 /* ============ RESPONSIVE ============ */
+
+/* ---------- TABLET ---------- */
+@media (max-width: 1024px) {
+    .page-header-row h1 {
+        font-size: 20px;
+    }
+
+    .sima-table-wrap .sima-table {
+        min-width: 660px;
+    }
+
+    .sima-table-modal--wide {
+        width: 94vw;
+    }
+}
+
+/* ---------- MOBILE ---------- */
 @media (max-width: 768px) {
+    .page-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-header-row h1 {
+        font-size: 19px;
+    }
+
+    /* Tombol "Reset Nomor Pesanan" full width supaya mudah ditekan di HP */
+    .page-header-row .sima-table-modal__btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .order-status-tabs {
+        margin: 16px 0;
+        gap: 4px;
+        /* fade halus kiri-kanan sebagai penanda bisa digeser */
+        mask-image: linear-gradient(to right, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
+    }
+
+    .status-tab {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
     .order-table {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
     }
 
-    .page-header-row {
-        flex-direction: column;
-        align-items: flex-start;
+    .sima-table-wrap .sima-table {
+        min-width: 600px;
     }
 
-    .pagination {
+    /* Pagination di-stack: info di atas, tombol halaman di bawah, di tengah */
+    .pagination,
+    .sima-pagination {
+        flex-direction: column;
         gap: 10px;
+        align-items: center;
     }
 
     .pagination-btn {
         padding: 6px 10px;
         font-size: 12px;
+    }
+
+    .sima-pagination__controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .sima-pagination__info {
+        text-align: center;
+        font-size: 0.8rem;
+    }
+
+    /* Modal: kurangi padding & lebar supaya pas di layar kecil */
+    .sima-table-modal--wide {
+        width: 96vw;
+    }
+
+    .sima-table-modal--confirm {
+        width: 92vw;
+    }
+
+    .sima-table-modal__info-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    /* Header modal: judul + tombol export/close tetap rapi kalau sempit */
+    .sima-table-modal__header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .sima-table-modal__header h3 {
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    /* Footer modal jadi stack di layar sangat sempit lewat breakpoint 480 di bawah,
+       di 768px masih cukup ruang untuk sejajar */
+}
+
+/* ---------- MOBILE KECIL ---------- */
+@media (max-width: 480px) {
+    .page-header-row h1 {
+        font-size: 18px;
+    }
+
+    .status-tab {
+        padding: 7px 10px;
+        font-size: 12.5px;
+    }
+
+    .sima-table-wrap .sima-table {
+        min-width: 540px;
+    }
+
+    .sima-table-modal__info-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+    }
+
+    .sima-table-modal__info-grid p {
+        font-size: 0.85rem;
+    }
+
+    /* Footer modal: tombol jadi full width & stack, ini yang paling sering
+       kepotong/kesempit di HP kecil (mis. modal delete & modal detail) */
+    .sima-table-modal__footer--between {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .sima-table-modal__footer--between .sima-table-modal__btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .sima-table-modal__total {
+        text-align: center;
+    }
+
+    .sima-table-modal__header-actions {
+        gap: 6px;
+    }
+
+    .sima-table-wrap--scroll {
+        max-height: 42vh !important;
     }
 }

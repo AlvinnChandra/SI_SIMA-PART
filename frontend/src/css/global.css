@@ -13,7 +13,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    /* biar h1 & actions bisa turun baris kalau sempit */
 }
 
 .page-header-row h1 {
@@ -41,6 +44,7 @@
     font-size: 0.85rem;
     cursor: pointer;
     flex-shrink: 0;
+    white-space: nowrap;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -54,9 +58,57 @@
     transform: translateY(1px);
 }
 
+/* ===== TABLET (potrait & landscape, ~768px ke bawah) ===== */
+@media (max-width: 768px) {
+    .dashboard-content {
+        padding: 1.75rem 1.5rem;
+    }
+
+    .page-header-actions {
+        width: 100%;
+        gap: 0.75rem;
+    }
+}
+
+/* ===== HP besar / tablet kecil potrait (~640px ke bawah) ===== */
 @media (max-width: 640px) {
+    .page-header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .page-header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 0.6rem;
+    }
+
+    .sima-ghost-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}
+
+/* ===== HP kecil (~420px ke bawah), termasuk potrait sempit ===== */
+@media (max-width: 420px) {
+    .dashboard-content {
+        padding: 1.25rem 1rem;
+    }
+
+    .page-header-row h1 {
+        font-size: 1.25rem;
+    }
+
     .sima-ghost-btn {
         width: 100%;
-        justify-content: center;
+        padding: 0.6rem 1rem;
+    }
+}
+
+/* ===== Orientasi potrait secara umum, jaga-jaga untuk tablet besar ===== */
+@media (orientation: portrait) and (max-width: 900px) {
+    .page-header-actions {
+        justify-content: flex-start;
     }
 }
