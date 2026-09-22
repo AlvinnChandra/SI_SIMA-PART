@@ -54,7 +54,7 @@ export default function KatalogContent({ onAddToOrder, canManage }) {
         <main className="dashboard-content">
             <div className="page-header-row">
                 <h1>Katalog</h1>
-                <div className="page-header-actions flex flex-nowrap items-center gap-3 overflow-x-auto">
+                <div className="page-header-actions flex items-center gap-3">
                     {admin && !diskonModeActive && (
                         <button
                             type="button"
