@@ -7,7 +7,7 @@ import { formatRupiah, onlyDigits, FALLBACK_IMG } from "../utils/productFormat";
 const FIELDS = [
     { name: "nama", label: "Nama Produk", placeholder: "Contoh: Per Shock Breaker Grand" },
     { name: "harga", label: "Harga", placeholder: "Rp 25.000", numeric: true },
-    { name: "keterangan", label: "Keterangan", placeholder: "Contoh: 1 Set 2 Pcs" },
+    { name: "keterangan", label: "Keterangan", placeholder: "Contoh: SET / PCS" },
     { name: "kategori", label: "Kategori", placeholder: "Contoh: Per Shock Breaker" },
     { name: "kendaraan", label: "Kendaraan", placeholder: "Contoh: Grand" },
 ];

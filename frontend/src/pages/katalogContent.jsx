@@ -23,11 +23,15 @@ import { useAuth } from "../hooks/useAuth";
 // Badan halaman katalog. Ini satu-satunya tempat katalog digambar,
 // dipakai oleh halaman /katalog maupun dashboard.
 // Props:
-//   onAddToOrder : kalau diisi, kartu produk menampilkan tombol "+" (mode user)
-//   canManage    : izin admin (tambah / edit / hapus / export). Default ikut useAuth.
-export default function KatalogContent({ onAddToOrder, canManage }) {
+//   onAddToOrder     : kalau diisi, kartu produk menampilkan tombol "+" (mode user)
+//   canManage        : izin admin penuh (tambah / edit / hapus / export). Default ikut useAuth.
+//   canManageDiskon  : izin khusus atur diskon, lepas dari canManage.
+//                      Default ikut canManage/isAdmin, tapi bisa dinyalakan sendiri
+//                      (mis. untuk sales) tanpa buka akses CRUD/export.
+export default function KatalogContent({ onAddToOrder, canManage, canManageDiskon }) {
     const { isAdmin } = useAuth();
     const admin = canManage ?? isAdmin;
+    const diskonAllowed = canManageDiskon ?? admin;
 
     const catalog = useProductCatalog();
     const { confirmState, requestConfirm, closeConfirm } = useConfirmModal();
@@ -44,18 +48,16 @@ export default function KatalogContent({ onAddToOrder, canManage }) {
 
     const [previewProduct, setPreviewProduct] = useState(null);
 
-    // Mode diskon hanya boleh aktif untuk admin. diskon.diskonMode sendiri
-    // cuma bisa jadi true lewat tombol yang sudah dikunci admin, tapi
-    // variabel ini dipakai di semua tempat supaya kalau ada titik pemicu
-    // baru nanti, aturannya tetap satu tempat.
-    const diskonModeActive = admin && diskon.diskonMode;
+    // Mode diskon dikontrol lewat diskonAllowed (bukan admin lagi),
+    // supaya sales bisa dikasih akses ini tanpa jadi admin penuh.
+    const diskonModeActive = diskonAllowed && diskon.diskonMode;
 
     return (
         <main className="dashboard-content">
             <div className="page-header-row">
                 <h1>Katalog</h1>
                 <div className="page-header-actions flex items-center gap-3">
-                    {admin && !diskonModeActive && (
+                    {diskonAllowed && !diskonModeActive && (
                         <button
                             type="button"
                             onClick={diskon.bukaDiskonMode}
@@ -148,7 +150,7 @@ export default function KatalogContent({ onAddToOrder, canManage }) {
                                 selectionMode={diskonModeActive}
                                 selectedIds={diskon.selectedForDiskon}
                                 onToggleSelect={diskon.toggleSelect}
-                                onRemoveDiskon={admin ? diskon.hapusDiskon : undefined}
+                                onRemoveDiskon={diskonAllowed ? diskon.hapusDiskon : undefined}
                             />
 
                             <div className="mt-8">

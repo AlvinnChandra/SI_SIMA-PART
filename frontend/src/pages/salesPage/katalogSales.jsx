@@ -13,7 +13,7 @@ export default function KatalogSales() {
     return (
         <div className="dashboard-layout">
             <HeaderSales />
-            <KatalogContent onAddToOrder={handleAddToOrder} />
+            <KatalogContent onAddToOrder={handleAddToOrder} canManageDiskon />
         </div>
     );
 }
