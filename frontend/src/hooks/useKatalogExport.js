@@ -9,7 +9,7 @@ import {
 } from "../utils/pdfExport";
 import { exportListExcel } from "../utils/excelExport";
 import { getHargaFinal } from "../utils/diskonUtils";
-import { getProductImage, getSatuan } from "../utils/productFormat";
+import { getProductImage } from "../utils/productFormat";
 
 // Ubah gambar (URL / cross-origin) jadi base64 supaya bisa ditempel ke PDF.
 async function imageUrlToBase64(url) {
@@ -39,7 +39,7 @@ function buildListRows(items) {
     return items.map((p) => ({
         nama: p.nama,
         harga: `Rp ${getHargaFinal(p).toLocaleString("id-ID")}`,
-        satuan: getSatuan(p.keterangan),
+        satuan: p.keterangan,
     }));
 }
 
@@ -79,7 +79,7 @@ export default function useKatalogExport(filteredProducts) {
             const cardH = (availableH - rowGap * (rows - 1)) / rows;
 
             const imgPadding = 3;
-            const textBlockH = 22;
+            const textBlockH = 26; // dinaikkan dari 22 -> kasih ruang untuk baris satuan
             const imgSize = Math.min(
                 cardW - imgPadding * 2,
                 cardH - textBlockH - imgPadding - 3
@@ -143,13 +143,28 @@ export default function useKatalogExport(filteredProducts) {
                 const namaLines = doc.splitTextToSize(product.nama, cardW - 6).slice(0, 2);
                 doc.text(namaLines, cardX + cardW / 2, textY + 4, { align: "center" });
 
+                // hargaY dibuat TETAP (selalu anggap nama 2 baris) supaya harga & satuan
+                // sejajar rata di semua card dalam satu baris, terlepas nama 1 atau 2 baris.
+                const hargaY = textY + 4 + 2 * 3.5 + 3;
+
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(8);
                 doc.setTextColor(210, 30, 40);
                 doc.text(
                     `Rp ${getHargaFinal(product).toLocaleString("id-ID")}`,
                     cardX + cardW / 2,
-                    textY + 4 + namaLines.length * 3.5 + 3,
+                    hargaY,
+                    { align: "center" }
+                );
+
+                // satuan (PCS/SET) -- ambil langsung dari field keterangan di DB
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7);
+                doc.setTextColor(130);
+                doc.text(
+                    product.keterangan || "-",
+                    cardX + cardW / 2,
+                    hargaY + 3.5,
                     { align: "center" }
                 );
             }

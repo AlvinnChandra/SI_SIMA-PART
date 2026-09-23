@@ -17,7 +17,7 @@ export async function getLogo() {
 // Tinggi area yang dipakai footer (dipakai juga sebagai margin bawah tabel)
 export const FOOTER_HEIGHT = 20;
 
-// Header standar SIMA (logo + nama + hotline + garis + judul di tengah)
+// Header standar SIMA (logo + nama + garis + judul di tengah)
 export function drawPdfHeader(doc, logo, title) {
     const pageW = doc.internal.pageSize.getWidth();
 
@@ -26,12 +26,7 @@ export function drawPdfHeader(doc, logo, title) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(20, 40, 110);
-    doc.text("SIMA PART BANDUNG", 60, 17);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(210, 30, 40);
-    doc.text("HOTLINE 082130156005", 60, 23);
+    doc.text("SIMA PART BANDUNG", 60, 19);
 
     doc.setDrawColor(20, 40, 110);
     doc.setLineWidth(0.6);
@@ -58,7 +53,7 @@ export function drawPdfFooter(doc, pageNumber, totalPages) {
     doc.setFontSize(8);
     doc.setTextColor(120);
     doc.text(
-        "SIMA PART BANDUNG  |  Hotline 082130156005",
+        "SIMA PART BANDUNG",
         pageW / 2,
         lineY + 5,
         { align: "center" }
