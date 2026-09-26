@@ -173,6 +173,7 @@ export default function KatalogContent({ onAddToOrder, canManage, canManageDisko
                     form={crud.form}
                     submitting={crud.submitting}
                     error={crud.error}
+                    kendaraanOptions={catalog.kendaraanOptions}
                     onChangeField={crud.changeField}
                     onChangePhoto={crud.changePhoto}
                     onSubmit={crud.submitForm}
