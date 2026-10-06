@@ -41,8 +41,10 @@ export default function useProductCatalog() {
         [products]
     );
 
+    // product.kendaraan sekarang array (satu produk bisa punya >1 model
+    // kendaraan), jadi daftar opsi diambil lewat flatMap, bukan map langsung.
     const kendaraanOptions = useMemo(
-        () => [...new Set(products.map((p) => p.kendaraan))].sort(),
+        () => [...new Set(products.flatMap((p) => p.kendaraan || []))].sort(),
         [products]
     );
 
@@ -54,7 +56,9 @@ export default function useProductCatalog() {
         }
 
         if (selectedKendaraan.length > 0) {
-            result = result.filter((p) => selectedKendaraan.includes(p.kendaraan));
+            result = result.filter((p) =>
+                (p.kendaraan || []).some((k) => selectedKendaraan.includes(k))
+            );
         }
 
         const q = keyword.trim().toLowerCase();
