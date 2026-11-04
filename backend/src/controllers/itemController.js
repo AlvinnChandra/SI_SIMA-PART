@@ -26,6 +26,21 @@ const withKodeUrut = (items) => {
   });
 };
 
+// Kendaraan dikirim FE sebagai JSON string dari array (lihat buildFormData
+// di useProductCrud.js), karena multipart/form-data tidak punya tipe array
+// bawaan. Fallback ke string biasa dijaga untuk kompatibilitas (mis. request
+// manual lewat Postman).
+const parseListField = (raw) => {
+  let arr;
+  try {
+    arr = JSON.parse(raw);
+  } catch {
+    arr = raw;
+  }
+  if (!Array.isArray(arr)) arr = [arr];
+  return arr.map((k) => String(k).trim()).filter(Boolean);
+};
+
 // ---------------- TAMBAH PRODUK ----------------
 const createItem = async (req, res) => {
   try {
@@ -33,6 +48,11 @@ const createItem = async (req, res) => {
 
     if (!nama || !harga || !keterangan || !kategori || !kendaraan) {
       return res.status(400).json({ message: "Semua field wajib diisi." });
+    }
+
+    const kendaraanArr = parseListField(kendaraan);
+    if (kendaraanArr.length === 0) {
+      return res.status(400).json({ message: "Pilih minimal satu kendaraan." });
     }
 
     let gambar = null;
@@ -47,7 +67,7 @@ const createItem = async (req, res) => {
       harga: Number(harga),
       keterangan: String(keterangan).trim(),
       kategori: String(kategori).trim(),
-      kendaraan: String(kendaraan).trim(),
+      kendaraan: kendaraanArr,
       gambar,
       cloudinary_id,
     });
@@ -87,14 +107,22 @@ const updateItem = async (req, res) => {
     }
 
     // buang field yang tidak boleh ditimpa langsung dari body
-    // (diskon sudah tidak pernah disimpan ke DB sama sekali, murni FE)
-    const { gambar: _g, cloudinary_id: _c, kode, _id, diskon, ...body } = req.body;
+    const { gambar: _g, cloudinary_id: _c, kode, _id, diskon, kendaraan, ...body } = req.body;
 
-    const updated = await Item.findByIdAndUpdate(
-      req.params.id,
-      { ...body, gambar, cloudinary_id },
-      { new: true, runValidators: true }
-    );
+    const updateData = { ...body, gambar, cloudinary_id };
+
+    if (kendaraan !== undefined) {
+      const kendaraanArr = parseListField(kendaraan);
+      if (kendaraanArr.length === 0) {
+        return res.status(400).json({ message: "Pilih minimal satu kendaraan." });
+      }
+      updateData.kendaraan = kendaraanArr;
+    }
+
+    const updated = await Item.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     res.status(200).json(updated.toObject());
   } catch (error) {

@@ -7,16 +7,19 @@ export const EMPTY_FORM = {
     harga: "",
     keterangan: "",
     kategori: "",
-    kendaraan: "",
+    kendaraan: [],       // array: bisa lebih dari satu model kendaraan
     gambarFile: null,   // File asli yang dikirim ke server
     gambarPreview: null, // base64 hanya untuk preview di UI
 };
 
 function buildFormData(form) {
     const fd = new FormData();
-    ["nama", "harga", "keterangan", "kategori", "kendaraan"].forEach((key) =>
+    ["nama", "harga", "keterangan", "kategori"].forEach((key) =>
         fd.append(key, form[key])
     );
+    // multipart/form-data tidak punya tipe array, jadi kendaraan dikirim
+    // sebagai JSON string dan di-parse lagi di itemController.js.
+    fd.append("kendaraan", JSON.stringify(form.kendaraan || []));
     if (form.gambarFile) fd.append("gambar", form.gambarFile);
     return fd;
 }
@@ -49,7 +52,12 @@ export default function useProductCrud({ setProducts }) {
             harga: String(product.harga),
             keterangan: product.keterangan || "",
             kategori: product.kategori,
-            kendaraan: product.kendaraan,
+            // jaga-jaga untuk data lama yang belum dimigrasi ke array
+            kendaraan: Array.isArray(product.kendaraan)
+                ? product.kendaraan
+                : product.kendaraan
+                ? [product.kendaraan]
+                : [],
             gambarFile: null,
             gambarPreview: product.gambar || null,
         });
@@ -83,6 +91,12 @@ export default function useProductCrud({ setProducts }) {
 
     const submitForm = async (e) => {
         e.preventDefault();
+
+        if (!form.kendaraan || form.kendaraan.length === 0) {
+            setError("Pilih atau tambahkan minimal satu kendaraan.");
+            return;
+        }
+
         setSubmitting(true);
         setError("");
 

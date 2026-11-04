@@ -9,7 +9,7 @@ export default function ProductPreviewModal({ product, onClose }) {
     const detail = [
         ["Keterangan", product.keterangan],
         ["Kategori", product.kategori],
-        ["Kendaraan", product.kendaraan],
+        ["Kendaraan", (product.kendaraan || []).join(", ")],
     ];
 
     return (
