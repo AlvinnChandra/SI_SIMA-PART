@@ -17,16 +17,29 @@ export async function getLogo() {
 // Tinggi area yang dipakai footer (dipakai juga sebagai margin bawah tabel)
 export const FOOTER_HEIGHT = 20;
 
-// Header standar SIMA (logo + nama + garis + judul di tengah)
-export function drawPdfHeader(doc, logo, title) {
+// No telepon / WhatsApp SIMA
+export const SIMA_PHONE = "082130156005";
+
+// Header standar SIMA (logo + nama + no telp + garis + judul di tengah)
+// showPhone = true hanya untuk halaman pertama
+export function drawPdfHeader(doc, logo, title, showPhone = false) {
     const pageW = doc.internal.pageSize.getWidth();
 
     doc.addImage(logo, "PNG", 14, 10, 40, 13);
 
+    // Nama perusahaan
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(20, 40, 110);
-    doc.text("SIMA PART BANDUNG", 60, 19);
+    doc.text("SIMA PART BANDUNG", 60, 17);
+
+    // No telepon di bawah nama (halaman 1 saja)
+    if (showPhone) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(80);
+        doc.text(`Telp/WA: ${SIMA_PHONE}`, 60, 23);
+    }
 
     doc.setDrawColor(20, 40, 110);
     doc.setLineWidth(0.6);
@@ -52,12 +65,7 @@ export function drawPdfFooter(doc, pageNumber, totalPages) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(120);
-    doc.text(
-        "SIMA PART BANDUNG",
-        pageW / 2,
-        lineY + 5,
-        { align: "center" }
-    );
+    doc.text("SIMA PART BANDUNG", pageW / 2, lineY + 5, { align: "center" });
 
     if (totalPages) {
         doc.text(
@@ -113,7 +121,14 @@ export async function exportTablePdf({
         theme: "grid",
         styles: { fontSize: 9, cellPadding: 2.5 },
         headStyles: { fillColor: [20, 40, 110], textColor: 255 },
-        didDrawPage: () => drawPdfHeader(doc, logo, title),
+        // no telp hanya di halaman pertama
+        didDrawPage: () =>
+            drawPdfHeader(
+                doc,
+                logo,
+                title,
+                doc.internal.getCurrentPageInfo().pageNumber === 1
+            ),
     });
 
     drawFooterAllPages(doc);
@@ -131,7 +146,7 @@ export async function exportOrderDetailPdf(order, fileName) {
     const logo = await getLogo();
     const title = `Detail Pesanan ${order.orderNumber}`;
 
-    drawPdfHeader(doc, logo, title);
+    drawPdfHeader(doc, logo, title, true);
 
     // Info ringkas pesanan (toko, sales, tanggal, status)
     let y = 48;
@@ -171,7 +186,14 @@ export async function exportOrderDetailPdf(order, fileName) {
         theme: "grid",
         styles: { fontSize: 6.5, cellPadding: 0.8 }, // sebelumnya 9 dan 2.5
         headStyles: { fillColor: [20, 40, 110], textColor: 255 },
-        didDrawPage: () => drawPdfHeader(doc, logo, title),
+        // no telp hanya di halaman pertama
+        didDrawPage: () =>
+            drawPdfHeader(
+                doc,
+                logo,
+                title,
+                doc.internal.getCurrentPageInfo().pageNumber === 1
+            ),
     });
 
     drawFooterAllPages(doc);
