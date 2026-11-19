@@ -17,31 +17,25 @@ export async function getLogo() {
 // Tinggi area yang dipakai footer (dipakai juga sebagai margin bawah tabel)
 export const FOOTER_HEIGHT = 20;
 
-// Posisi Y tempat tabel mulai (tinggi area header). Sebelumnya 46.
-export const TABLE_START_Y = 34;
-
-// Jumlah baris data per halaman untuk export tabel/list
-export const ROWS_PER_PAGE = 50;
-
-// Header standar SIMA (logo + nama + garis + judul di tengah) - versi ringkas
+// Header standar SIMA (logo + nama + garis + judul di tengah)
 export function drawPdfHeader(doc, logo, title) {
     const pageW = doc.internal.pageSize.getWidth();
 
-    doc.addImage(logo, "PNG", 14, 8, 32, 10.4);
+    doc.addImage(logo, "PNG", 14, 10, 40, 13);
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11); // sebelumnya 14
+    doc.setFontSize(14);
     doc.setTextColor(20, 40, 110);
-    doc.text("SIMA PART BANDUNG", 50, 15);
+    doc.text("SIMA PART BANDUNG", 60, 19);
 
     doc.setDrawColor(20, 40, 110);
-    doc.setLineWidth(0.5);
-    doc.line(14, 21, pageW - 14, 21);
+    doc.setLineWidth(0.6);
+    doc.line(14, 27, pageW - 14, 27);
 
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(12); // judul, sebelumnya 16
-    doc.text(title, pageW / 2, 29, { align: "center" });
+    doc.setFontSize(16);
+    doc.text(title, pageW / 2, 40, { align: "center" });
 }
 
 // Footer standar SIMA (garis + teks & nomor halaman di tengah bawah)
@@ -58,7 +52,12 @@ export function drawPdfFooter(doc, pageNumber, totalPages) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(120);
-    doc.text("SIMA PART BANDUNG", pageW / 2, lineY + 5, { align: "center" });
+    doc.text(
+        "SIMA PART BANDUNG",
+        pageW / 2,
+        lineY + 5,
+        { align: "center" }
+    );
 
     if (totalPages) {
         doc.text(
@@ -85,7 +84,6 @@ export function drawFooterAllPages(doc) {
 }
 
 // Export PDF tabel biasa (dipakai Data Toko, Data Sales, List Produk)
-// Tepat ROWS_PER_PAGE (50) baris per halaman selama teks tidak wrap.
 export async function exportTablePdf({
     title,
     data = [],
@@ -107,22 +105,13 @@ export async function exportTablePdf({
         ...fields.map((f) => item[f.key] ?? "-"),
     ]);
 
-    // Tinggi baris dihitung supaya 50 baris + 1 baris header tabel pas 1 halaman
-    const usableH = doc.internal.pageSize.getHeight() - TABLE_START_Y - FOOTER_HEIGHT;
-    const rowH = usableH / (ROWS_PER_PAGE + 1) - 0.1; // -0.1 = toleransi pembulatan
-
     autoTable(doc, {
         head: [columns],
         body: rows,
-        startY: TABLE_START_Y,
-        margin: { top: TABLE_START_Y, bottom: FOOTER_HEIGHT },
+        startY: 46,
+        margin: { top: 46, bottom: FOOTER_HEIGHT },
         theme: "grid",
-        styles: {
-            fontSize: 7, // sebelumnya 9
-            cellPadding: 0.8, // sebelumnya 2.5
-            minCellHeight: rowH,
-            valign: "middle",
-        },
+        styles: { fontSize: 9, cellPadding: 2.5 },
         headStyles: { fillColor: [20, 40, 110], textColor: 255 },
         didDrawPage: () => drawPdfHeader(doc, logo, title),
     });
@@ -145,25 +134,25 @@ export async function exportOrderDetailPdf(order, fileName) {
     drawPdfHeader(doc, logo, title);
 
     // Info ringkas pesanan (toko, sales, tanggal, status)
-    let y = 40;
+    let y = 48;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setTextColor(120);
     doc.text("NAMA TOKO", 14, y);
     doc.text("SALES", 84, y);
     doc.text("TANGGAL", 134, y);
     doc.text("STATUS", 174, y);
 
-    y += 5;
+    y += 6;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
+    doc.setFontSize(11);
     doc.setTextColor(0);
     doc.text(order.storeName || "-", 14, y);
     doc.text(order.salesName || "-", 84, y);
     doc.text(order.orderDate || "-", 134, y);
     doc.text(order.statusLabel || "-", 174, y);
 
-    y += 6;
+    y += 8;
 
     const columns = ["No", "Nama Barang", "Qty", "Satuan", "Catatan"];
     const rows = order.items.map((item, i) => [
@@ -177,16 +166,12 @@ export async function exportOrderDetailPdf(order, fileName) {
     autoTable(doc, {
         head: [columns],
         body: rows,
-        startY: y, // halaman pertama: di bawah info toko/sales
-        margin: { top: TABLE_START_Y, bottom: FOOTER_HEIGHT }, // halaman berikutnya
+        startY: 46,
+        margin: { top: 46, bottom: FOOTER_HEIGHT },
         theme: "grid",
-        styles: { fontSize: 9, cellPadding: 2.5 },
+        styles: { fontSize: 6.5, cellPadding: 0.8 }, // sebelumnya 9 dan 2.5
         headStyles: { fillColor: [20, 40, 110], textColor: 255 },
-        didDrawPage: (data) => {
-            // header info toko/sales cuma di halaman pertama,
-            // halaman berikutnya cukup header standar SIMA saja
-            if (data.pageNumber > 1) drawPdfHeader(doc, logo, title);
-        },
+        didDrawPage: () => drawPdfHeader(doc, logo, title),
     });
 
     drawFooterAllPages(doc);
